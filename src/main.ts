@@ -7,7 +7,7 @@ import { advanceTurn } from './engine/sim';
 import { clearSave, exportSave, hasSave, importSave, loadGame, saveGame } from './engine/save';
 import { TOTAL_TURNS, createState } from './engine/state';
 import type { GameState, Scene } from './engine/types';
-import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled } from './ui/audio';
+import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady } from './ui/audio';
 import { renderDirectives, renderTopbar } from './ui/console';
 import { renderCodex, renderLog } from './ui/codex';
 import { renderActBreak, renderEnding, renderReport } from './ui/report';
@@ -146,8 +146,12 @@ function titleScreen(): void {
       <button id="t-seed">Choose a seed</button>
     </div>
     <div class="foot">
-      Eight schools. Ninety-six ideas. Every one of them real, and most of them still argued about.<br>
-      Sound is off by default — it can be switched on from the menu.
+      Eight schools. A hundred and five ideas. Every one of them real, and most still argued about.<br>
+      ${
+        audioEnabled()
+          ? 'Sound is on — switch it off from the menu if you would rather read in quiet.'
+          : 'Sound is off — switch it back on from the menu.'
+      }
     </div>
   </div>`;
 
@@ -166,7 +170,7 @@ function titleScreen(): void {
 }
 
 function start(seed: number, existing?: GameState): void {
-  setAudioEnabled(audioEnabled());
+  ensureAudioReady();
   state = existing ?? createState(seed);
   applyEra(state.act);
   buildShell();
@@ -278,5 +282,13 @@ async function finish(): Promise<void> {
 
 // ---------------------------------------------------------------------------
 
-document.addEventListener('click', () => sfxSelect(), { once: true, capture: false });
+// The first interaction is what unblocks the AudioContext, whatever the player clicks.
+document.addEventListener(
+  'click',
+  () => {
+    ensureAudioReady();
+    sfxSelect();
+  },
+  { once: true },
+);
 titleScreen();

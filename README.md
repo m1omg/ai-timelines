@@ -69,7 +69,8 @@ locked — which is the argument the game is making.
 | **Menu** | save, export a save code, sound on/off |
 
 A run is fully determined by its seed plus your choices, so an exported save code replays
-exactly. Sound is synthesised and off by default.
+exactly. Sound is synthesised in the browser, on by default, and the toggle in the menu is
+remembered.
 
 The interface ages with the century. Seven acts, seven eras, and the whole skin changes at each
 act break — teleprinter, storage tube, colour adapter, browser, panel, and two more. That is

@@ -4,23 +4,55 @@
  * relay clicks in 1954, a modem handshake in 1998, almost nothing at all by 2046.
  */
 
+const PREF_KEY = 'ai-timelines/audio';
+
 let ctx: AudioContext | null = null;
-let enabled = false;
+
+/** On by default; a player who turns it off stays turned off across visits. */
+function loadPreference(): boolean {
+  try {
+    return localStorage.getItem(PREF_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+let enabled = loadPreference();
 
 export function audioEnabled(): boolean {
   return enabled;
 }
 
-export function setAudioEnabled(on: boolean): void {
-  enabled = on;
-  if (on && !ctx) {
+function openContext(): void {
+  if (!ctx) {
     try {
       ctx = new AudioContext();
     } catch {
       enabled = false;
+      return;
     }
   }
-  void ctx?.resume();
+  void ctx.resume();
+}
+
+/**
+ * Browsers refuse to start an AudioContext until the page has seen a real user gesture, so
+ * "on by default" cannot mean "playing before the first click". Call this from the first
+ * interaction; it opens (or resumes) the context without touching the player's preference.
+ */
+export function ensureAudioReady(): void {
+  if (enabled) openContext();
+}
+
+export function setAudioEnabled(on: boolean): void {
+  enabled = on;
+  try {
+    localStorage.setItem(PREF_KEY, on ? 'on' : 'off');
+  } catch {
+    // No storage available — the setting simply will not survive a reload.
+  }
+  if (on) openContext();
+  else void ctx?.suspend();
 }
 
 function env(node: AudioNode, attack: number, decay: number, peak: number): GainNode {

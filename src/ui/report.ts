@@ -57,7 +57,9 @@ export function renderReport(root: HTMLElement, s: GameState, r: TickReportLike,
   );
 
   root.innerHTML = `<div class="panel"><div class="wrap report">
-    <h2>${r.year - 4}–${r.year}</h2>
+    <!-- The four years the previous directive board governed. Must not overlap the next
+         board's own label, or it reads as allocating for the same year twice. -->
+    <h2>${r.year - 4}–${r.year - 1}</h2>
     <div class="sub">The frontier reaches 10^${s.computeLog.toFixed(1)} operations. The field's centre of gravity is ${escapeHtml(FAMILIES[lead].name)}.</div>
     <ul>${items.join('')}</ul>
     <div style="margin:34px 0 60px"><button class="primary" id="rep-next">Continue ▸</button></div>
@@ -84,9 +86,20 @@ export function renderActBreak(host: HTMLElement, act: number, onDone: () => voi
 
   applyEra(act);
 
+  // The auto-dismiss timer must be cancelled when the player dismisses it by hand, and finish()
+  // must run exactly once. Without both, clicking through an act break in under 5.2s let the
+  // timer fire later and call onDone() a second time — which re-entered the turn loop and
+  // handed out a whole extra round of scenes and a second directive phase for the same period.
+  let done = false;
+  let timer = 0;
+
   const finish = () => {
-    el.remove();
+    if (done) return;
+    done = true;
+    window.clearTimeout(timer);
+    el.removeEventListener('click', finish);
     window.removeEventListener('keydown', onKey);
+    el.remove();
     onDone();
   };
   const onKey = (e: KeyboardEvent) => {
@@ -94,7 +107,7 @@ export function renderActBreak(host: HTMLElement, act: number, onDone: () => voi
   };
   el.addEventListener('click', finish);
   window.addEventListener('keydown', onKey);
-  window.setTimeout(finish, 5200);
+  timer = window.setTimeout(finish, 5200);
 }
 
 /** Roll the ending, play its scene, then show the summary of the century. */
