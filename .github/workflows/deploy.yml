@@ -4,23 +4,21 @@ on:
   push:
     branches:
       - main
-      # The game currently lives on this branch; keeping it here means Pages stays live
-      # before and after the branch is merged. Safe to drop once it is on main.
-      - claude/ai-visual-novel-game-tlyg6w
   workflow_dispatch:
 
+# Only `contents: write` is needed: this publishes by committing the build to the
+# gh-pages branch, which is classic Pages. The Pages *deployment* API is deliberately
+# not used — creating a Pages site through it needs repo-admin rights that the default
+# workflow token does not have, whereas pushing a gh-pages branch enables Pages on its own.
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Let a running deploy finish rather than cancelling it half-published.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +30,9 @@ jobs:
 
       - run: npm ci
 
-      # The same gates as `npm run verify`, minus the ~2 minute Monte Carlo harness — a
-      # broken build should not reach Pages, but balance drift is not a deploy blocker.
+      # The same gates as `npm run verify`, minus the ~2 minute Monte Carlo harness —
+      # a broken build must not reach the live site, but balance drift is not a deploy
+      # blocker. Run `npm run playtest` locally when touching src/engine/sim.ts.
       - name: Typecheck
         run: npm run typecheck
 
@@ -46,22 +45,20 @@ jobs:
       - name: Build
         run: npx vite build
 
-      # Requires Pages to already be enabled with "GitHub Actions" as the source
-      # (Settings → Pages). The workflow token cannot create the Pages site itself —
-      # that needs repo-admin rights, so `enablement: true` fails with
-      # "Resource not accessible by integration".
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      # .nojekyll stops Jekyll from processing the output and skips its build step.
+      - name: Publish to gh-pages
+        run: |
+          touch dist/.nojekyll
+          cd dist
+          git init -q
+          git checkout -qb gh-pages
+          git add -A
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -qm "Publish built site from ${GITHUB_SHA::7}"
+          git push -q --force \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
