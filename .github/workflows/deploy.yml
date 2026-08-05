@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      # The game currently lives on this branch; keeping it here means Pages stays live
+      # before and after the branch is merged. Safe to drop once it is on main.
+      - claude/ai-visual-novel-game-tlyg6w
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it half-published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # The same gates as `npm run verify`, minus the ~2 minute Monte Carlo harness — a
+      # broken build should not reach Pages, but balance drift is not a deploy blocker.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint content
+        run: npm run lint:content
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npx vite build
+
+      - uses: actions/configure-pages@v5
+        with:
+          # Turns Pages on the first time this runs, so no manual settings change is needed.
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
