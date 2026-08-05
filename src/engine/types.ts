@@ -1,0 +1,398 @@
+/**
+ * Core type vocabulary for AI Timelines.
+ *
+ * Two rules govern this file:
+ *
+ *  1. Content is authored as typed TypeScript, never as loose JSON, so the compiler
+ *     catches a misspelled paradigm id or an unknown flag before the game ever runs.
+ *  2. Conditions and effects are *declarative data*, not predicate functions. That costs
+ *     a little expressiveness and buys static analysability: tools/lint-content.ts walks
+ *     the same trees the engine evaluates, which is what makes the coherence checks
+ *     (dead gates, unreachable scenes, unsatisfiable endings) possible at all.
+ */
+
+// ---------------------------------------------------------------------------
+// Paradigms
+// ---------------------------------------------------------------------------
+
+export const FAMILY_IDS = [
+  'symbolic',
+  'connectionist',
+  'statistical',
+  'evolutionary',
+  'collective',
+  'cybernetic',
+  'substrate',
+  'bridge',
+] as const;
+
+export type FamilyId = (typeof FAMILY_IDS)[number];
+
+export interface FamilyDef {
+  id: FamilyId;
+  name: string;
+  /** The one-sentence thesis of the school, in its own voice. */
+  creed: string;
+  /** Hue used everywhere this family is drawn: tree, charts, scene accents. */
+  hue: number;
+  /** Families whose dominance actively costs this one talent and standing. */
+  rivals: FamilyId[];
+}
+
+export type ParadigmStatus =
+  /** Prerequisites or era not yet met; invisible on the tree. */
+  | 'locked'
+  /** Could be worked on. Nobody is. */
+  | 'available'
+  /** Under active development by someone (player or an autonomous actor). */
+  | 'active'
+  /** Delivered. Contributes capability and understanding from here on. */
+  | 'mature'
+  /** Was active, lost its people. Keeps its progress, decays slowly, can revive. */
+  | 'dormant';
+
+export interface Paradigm {
+  id: string;
+  family: FamilyId;
+  name: string;
+  /** Shown on the tree node — must fit in roughly forty characters. */
+  short: string;
+  /** No amount of funding surfaces this before its year. Ideas have prerequisites in time. */
+  earliest: number;
+  /** Paradigm ids that must be `mature` before this becomes available. */
+  prereqs: string[];
+  /** Requires maturity in *all* these families at the given insight level. */
+  familyPrereqs?: Partial<Record<FamilyId, number>>;
+  /** Research-points needed to mature. Roughly: bigger idea, bigger number. */
+  cost: number;
+  /** log10 FLOPS at which this idea can actually be demonstrated. */
+  computeNeed: number;
+  /** Capability delivered once mature, before compute and synergy multipliers. */
+  capability: number;
+  /** How much genuine theoretical grip it confers. Some powerful ideas confer none. */
+  understanding: number;
+  /** Excitement generated on maturing. High hype with low capability is how winters start. */
+  hype: number;
+  /** How badly it over-promises: scales the expectation gap it opens. 0..1 */
+  brittleness: number;
+  /** Historical anchor. `who` may be empty for post-2026 speculative nodes. */
+  anchor: { year: number; who: string };
+  /** Codex entry: what the idea actually is, and why it did or did not win. */
+  codex: string;
+  /** Free-form markers used by scenes and endings, e.g. 'hardware', 'agentic'. */
+  tags?: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Resources
+// ---------------------------------------------------------------------------
+
+export const PATRON_IDS = ['military', 'corporate', 'academic', 'public'] as const;
+export type PatronId = (typeof PATRON_IDS)[number];
+
+export const RESOURCE_KEYS = [
+  /** Spent on directives each turn. The player's only real currency. */
+  'influence',
+  /** How much the field has delivered. Drives everything downstream. */
+  'capability',
+  /** Theory, interpretability, knowing *why* it works. Decoupled from capability on purpose. */
+  'understanding',
+  /** Public and institutional excitement. Cheap to raise, expensive to owe. */
+  'attention',
+  /** The field's standing with the people holding the chequebooks. */
+  'credibility',
+  /** How far the technology has actually spread into the world. */
+  'deployment',
+  /** Accumulated unaddressed consequence. Mostly hidden from the player. */
+  'exposure',
+] as const;
+
+export type ResourceKey = (typeof RESOURCE_KEYS)[number];
+
+export type Resources = Record<ResourceKey, number>;
+
+export interface FamilyState {
+  /** Accumulated understanding *of this school's own methods*. Never decays to zero. */
+  insight: number;
+  /** Share of the world's researchers, 0..1 across all families. */
+  talent: number;
+  /** Short-horizon fashion. Drives talent migration with a lag. */
+  momentum: number;
+  /** Count of matured nodes, cached for conditions and endings. */
+  matured: number;
+}
+
+export interface ParadigmState {
+  status: ParadigmStatus;
+  /** 0..cost */
+  progress: number;
+  /** Year it matured, or null. */
+  maturedYear: number | null;
+  /** Who drove it: 'player' or an actor id. Used by the endings. */
+  driver: string | null;
+  /** Player-applied multiplier on progress rate. 1 = neutral. */
+  emphasis: number;
+}
+
+export interface ActorState {
+  /** 0..1, how much of the world's research budget this actor commands. */
+  weight: number;
+  /** How the actor feels about the player's programme, -1..1. */
+  stance: number;
+  active: boolean;
+  /** Paradigm currently being pushed, for display. */
+  focus: string | null;
+}
+
+export interface CharacterState {
+  /** -100..100. Backing someone's work early is remembered for decades. */
+  affinity: number;
+  /** Has appeared on screen at least once. */
+  met: boolean;
+  /** Still part of the story this turn. */
+  active: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Game state
+// ---------------------------------------------------------------------------
+
+export type FlagValue = number | boolean | string;
+
+export interface WinterRecord {
+  startYear: number;
+  endYear: number | null;
+  /** Which family took the blame. */
+  blamed: FamilyId;
+  severity: number;
+}
+
+export interface LogEntry {
+  year: number;
+  text: string;
+  kind: 'event' | 'breakthrough' | 'crisis' | 'choice' | 'system';
+}
+
+export interface GameState {
+  version: number;
+  seed: number;
+  /** Mutable PRNG cursor; saving and restoring this makes runs reproducible. */
+  rng: number;
+
+  year: number;
+  turn: number;
+  act: number;
+
+  resources: Resources;
+  patrons: Record<PatronId, number>;
+  /** log10 of the frontier's usable FLOPS. Grows on its own; substrate work bends the curve. */
+  computeLog: number;
+
+  families: Record<FamilyId, FamilyState>;
+  paradigms: Record<string, ParadigmState>;
+  actors: Record<string, ActorState>;
+  characters: Record<string, CharacterState>;
+
+  flags: Record<string, FlagValue>;
+  seenScenes: string[];
+  log: LogEntry[];
+
+  winters: WinterRecord[];
+  /**
+   * Outstanding excitement not yet backed by delivery. Rises when hyped, brittle paradigms
+   * mature or when the player talks the field up; decays on its own. The winter rule reads
+   * this against the capability actually shipped, which is why winters are emergent here
+   * rather than scripted.
+   */
+  promises: number;
+  /** Consecutive turns the expectation gap has been open. */
+  gapStreak: number;
+  /** Set while a winter is in progress. */
+  inWinter: boolean;
+
+  /** Directives already taken this turn, by id. */
+  directivesTaken: string[];
+  /** Set once an ending has been reached. */
+  ending: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Conditions — declarative so they can be both evaluated and analysed
+// ---------------------------------------------------------------------------
+
+export type CmpOp = '<' | '<=' | '==' | '!=' | '>=' | '>';
+
+export type Condition =
+  | { kind: 'always' }
+  | { kind: 'year'; min?: number; max?: number }
+  | { kind: 'act'; is: number }
+  | { kind: 'turn'; min?: number; max?: number }
+  | { kind: 'flag'; flag: string; op: CmpOp; value: FlagValue }
+  | { kind: 'flagSet'; flag: string }
+  | { kind: 'resource'; key: ResourceKey; op: CmpOp; value: number }
+  /**
+   * One resource measured against another. The endings care whether understanding kept
+   * *pace* with capability, which an absolute threshold cannot express: 60 understanding is
+   * excellent beside 90 capability and negligible beside 300.
+   */
+  | { kind: 'ratio'; num: ResourceKey; den: ResourceKey; op: CmpOp; value: number }
+  | { kind: 'patron'; patron: PatronId; op: CmpOp; value: number }
+  | { kind: 'compute'; op: CmpOp; value: number }
+  | { kind: 'paradigm'; id: string; status?: ParadigmStatus | ParadigmStatus[]; minProgress?: number }
+  | { kind: 'family'; family: FamilyId; field: keyof FamilyState; op: CmpOp; value: number }
+  | { kind: 'leadFamily'; family: FamilyId }
+  | { kind: 'character'; id: string; field: 'affinity'; op: CmpOp; value: number }
+  | { kind: 'characterMet'; id: string }
+  | { kind: 'actor'; id: string; field: 'weight' | 'stance'; op: CmpOp; value: number }
+  | { kind: 'seen'; scene: string }
+  | { kind: 'inWinter'; is: boolean }
+  | { kind: 'winterCount'; op: CmpOp; value: number }
+  | { kind: 'not'; c: Condition }
+  | { kind: 'all'; cs: Condition[] }
+  | { kind: 'any'; cs: Condition[] };
+
+// ---------------------------------------------------------------------------
+// Effects
+// ---------------------------------------------------------------------------
+
+export type Effect =
+  | { kind: 'flag'; flag: string; op: 'set' | 'add'; value: FlagValue }
+  | { kind: 'resource'; key: ResourceKey; op: 'add' | 'mul' | 'set'; value: number }
+  | { kind: 'patron'; patron: PatronId; op: 'add' | 'mul' | 'set'; value: number }
+  | { kind: 'compute'; op: 'add' | 'mul'; value: number }
+  | { kind: 'family'; family: FamilyId; field: 'insight' | 'momentum' | 'talent'; op: 'add' | 'mul'; value: number }
+  | { kind: 'paradigm'; id: string; op: 'unlock' | 'progress' | 'mature' | 'emphasis' | 'dormant'; value?: number }
+  | { kind: 'character'; id: string; field: 'affinity'; op: 'add' | 'set'; value: number }
+  | { kind: 'characterActive'; id: string; value: boolean }
+  | { kind: 'actor'; id: string; field: 'weight' | 'stance'; op: 'add' | 'set'; value: number }
+  | { kind: 'log'; text: string; logKind?: LogEntry['kind'] }
+  | { kind: 'ending'; id: string };
+
+// ---------------------------------------------------------------------------
+// Narrative
+// ---------------------------------------------------------------------------
+
+/** Procedural backdrop selectors. Every one is drawn in src/art/backdrops.ts. */
+export type BackdropId =
+  | 'void'
+  | 'lab-valve'
+  | 'lecture-hall'
+  | 'machine-room'
+  | 'workshop'
+  | 'corridor'
+  | 'committee'
+  | 'terminal-room'
+  | 'cleanroom'
+  | 'server-floor'
+  | 'city-night'
+  | 'datacenter-vast'
+  | 'observatory'
+  | 'ruins'
+  | 'garden'
+  | 'archive';
+
+export interface Line {
+  /** Character id, or omitted for narration. */
+  who?: string;
+  text: string;
+  /** Overrides the scene backdrop from this line on. */
+  backdrop?: BackdropId;
+  /** Procedural sound cue id, see src/ui/audio.ts. */
+  sfx?: string;
+  /** Renders this line in the interface's own voice rather than as speech. */
+  system?: boolean;
+}
+
+export interface Choice {
+  text: string;
+  /** Short parenthetical shown under the option — tone, not outcome. */
+  hint?: string;
+  when?: Condition;
+  cost?: number;
+  effects?: Effect[];
+  goto?: string;
+}
+
+export interface Scene {
+  id: string;
+  act: number;
+  /** Fires only in a turn whose year falls in this window. */
+  years?: [number, number];
+  /** Higher wins when several scenes are eligible in the same turn. */
+  priority?: number;
+  /** Default true. False means it can recur. */
+  once?: boolean;
+  when?: Condition;
+  title?: string;
+  backdrop?: BackdropId;
+  lines: Line[];
+  choices?: Choice[];
+  /** Unconditional follow-on scene, played immediately. */
+  next?: string;
+  onEnter?: Effect[];
+  /** Marks scenes the scheduler must play the moment they become eligible. */
+  pinned?: boolean;
+  tags?: string[];
+}
+
+export interface Character {
+  id: string;
+  name: string;
+  /** How they are labelled in the dialogue box, if different from `name`. */
+  title?: string;
+  /** Real historical figure, composite, or wholly invented. Drives the depiction rules. */
+  kind: 'historical' | 'composite' | 'fictional';
+  family: FamilyId | null;
+  /** Years the character can appear on screen. */
+  span: [number, number];
+  /** Seeds the procedural portrait. */
+  portraitSeed: number;
+  /** Portrait styling hints. */
+  look: {
+    era: number;
+    build?: 'slim' | 'broad' | 'round';
+    hair?: 'short' | 'long' | 'bald' | 'wild' | 'tied';
+    facial?: 'none' | 'beard' | 'moustache';
+    glasses?: boolean;
+    accent?: string;
+  };
+  /** One paragraph for the Codex. For historical figures, strictly documented material. */
+  bio: string;
+  /** Sources backing the depiction. Required for `historical`, enforced by the linter. */
+  sources?: string[];
+}
+
+export interface Ending {
+  id: string;
+  name: string;
+  /** Ordering when several endings qualify: most specific first. */
+  priority: number;
+  when: Condition;
+  epigraph: string;
+  lines: Line[];
+  /** Shown in the post-game summary. */
+  verdict: string;
+}
+
+export interface Directive {
+  id: string;
+  name: string;
+  blurb: string;
+  cost: number;
+  when?: Condition;
+  effects: Effect[];
+  /** Repeatable within a single turn. Default false. */
+  repeatable?: boolean;
+  category: 'fund' | 'people' | 'field' | 'world';
+}
+
+export interface ActorDef {
+  id: string;
+  name: string;
+  short: string;
+  span: [number, number];
+  /** Relative appetite per family, 0..1. Drives what they fund unprompted. */
+  taste: Partial<Record<FamilyId, number>>;
+  startWeight: number;
+  blurb: string;
+}

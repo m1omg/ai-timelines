@@ -1,0 +1,25 @@
+{
+  "name": "ai-timelines",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A visual novel about steering the development of artificial intelligence, 1950-2050",
+  "license": "GPL-2.0-only",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint:content": "tsx tools/lint-content.ts",
+    "playtest": "tsx tools/playtest.ts",
+    "test": "vitest run",
+    "verify": "npm run typecheck && npm run lint:content && npm run test && npm run playtest"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
+  }
+}
