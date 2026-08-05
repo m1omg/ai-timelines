@@ -227,11 +227,16 @@ async function beginTurn(): Promise<void> {
 
 function directivePhase(): void {
   stageEl.innerHTML = '';
-  renderDirectives(stageEl, state, () => {
-    sfxAdvance();
-    saveGame(state);
-    nextTurn();
-  });
+  renderDirectives(
+    stageEl,
+    state,
+    () => {
+      sfxAdvance();
+      saveGame(state);
+      nextTurn();
+    },
+    refreshTopbar,
+  );
 }
 
 function nextTurn(): void {

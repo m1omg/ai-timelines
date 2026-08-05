@@ -65,7 +65,17 @@ const CATEGORY_LABEL: Record<Directive['category'], string> = {
  * finite, most of what you would like to do costs more than you have, and the cards you are
  * not shown are as informative as the ones you are.
  */
-export function renderDirectives(root: HTMLElement, s: GameState, onAdvance: () => void): void {
+export function renderDirectives(
+  root: HTMLElement,
+  s: GameState,
+  onAdvance: () => void,
+  /**
+   * Called after every purchase. The top bar is a sibling element that this function does not
+   * own, so without this the gauges sit frozen for the whole directive phase while the panel
+   * below them updates — influence visibly not going down as you spend it.
+   */
+  onChange?: () => void,
+): void {
   const draw = () => {
     const all = availableDirectives(s);
     const byCat: Record<string, Directive[]> = { fund: [], people: [], field: [], world: [] };
@@ -101,6 +111,7 @@ export function renderDirectives(root: HTMLElement, s: GameState, onAdvance: () 
         if (!d || !canAfford(s, d)) return;
         sfxSelect();
         takeDirective(s, d);
+        onChange?.();
         draw();
       });
     });
