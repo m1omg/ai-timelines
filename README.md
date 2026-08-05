@@ -3,10 +3,14 @@
 **A visual novel about a hundred years of argument over what a mind is — and your hand on where
 the money, the people and the attention go.**
 
+**▶ Play it: https://m1omg.github.io/ai-timelines/**
+
 1950 to 2050, in twenty-six four-year turns. Eight schools of thought. A hundred and five ideas,
 every one of them real. You do not get to decide what is true. You decide what gets funded, who
 gets defended, and what the field says about itself in public — and then four years pass and the
 world reacts on its own terms.
+
+Or run it locally:
 
 ```bash
 npm install
