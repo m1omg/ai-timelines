@@ -148,7 +148,7 @@ export const EVOLUTIONARY: Paradigm[] = [
     family: 'evolutionary',
     name: 'Neuroevolution',
     short: 'Evolve the architecture, not just the weights',
-    earliest: 2002,
+    earliest: 1975,
     prereqs: ['genetic-algorithms'],
     familyPrereqs: { connectionist: 25 },
     cost: 68,

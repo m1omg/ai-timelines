@@ -776,7 +776,13 @@ export const ACT1: Scene[] = [
     years: [1950, 1962],
     priority: 4,
     backdrop: 'machine-room',
-    when: notMature('analog-computing'),
+    /*
+     * The differential analyser is not a research programme anyone has to fund into existence —
+     * it is already downstairs and already working in 1950. The live question is whether the
+     * tradition keeps any people once someone starts building hardware specifically to learn on,
+     * which is what closes this scene.
+     */
+    when: all(mature('analog-computing'), notMature('neural-hardware')),
     lines: [
       {
         text: 'In the next building there is a machine that solves differential equations by being one. Voltages for variables, capacitors for integrals, answers at the speed of electricity.',
@@ -796,16 +802,18 @@ export const ACT1: Scene[] = [
         hint: 'It comes back. It takes until the 2020s.',
         cost: 4,
         effects: [
-          { kind: 'paradigm', id: 'analog-computing', op: 'progress', value: 18 },
-          { kind: 'family', family: 'substrate', field: 'insight', op: 'add', value: 10 },
+          { kind: 'family', family: 'substrate', field: 'insight', op: 'add', value: 16 },
+          { kind: 'family', family: 'substrate', field: 'talent', op: 'add', value: 0.02 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 4 },
           { kind: 'flag', flag: 'analogKept', op: 'set', value: true },
         ],
       },
       {
         text: 'Let it go. Digital is repeatable and repeatable wins.',
         effects: [
-          { kind: 'paradigm', id: 'stored-program-scale', op: 'progress', value: 16 },
-          { kind: 'family', family: 'substrate', field: 'momentum', op: 'add', value: 6 },
+          { kind: 'family', family: 'substrate', field: 'momentum', op: 'add', value: 9 },
+          { kind: 'resource', key: 'capability', op: 'add', value: 3 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 3 },
         ],
       },
     ],

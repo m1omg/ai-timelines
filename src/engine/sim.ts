@@ -2,7 +2,7 @@ import { ACTORS } from '../content/actors';
 import { FAMILIES, PARADIGMS, PARADIGM_BY_ID } from '../content/paradigms';
 import { normaliseTalent } from './effects';
 import { next as rand } from './rng';
-import { actOfTurn, yearOfTurn } from './state';
+import { INSIGHT_FROM_MATURITY, actOfTurn, yearOfTurn } from './state';
 import type { FamilyId, GameState, Paradigm, WinterRecord } from './types';
 import { FAMILY_IDS, PATRON_IDS } from './types';
 
@@ -12,7 +12,6 @@ const PROGRESS_BASE = 4.6;
 const ACTOR_BUDGET = 2.1;
 const EMPHASIS_SUPPORT = 2.2;
 const IDLE_SUPPORT = 0.12;
-const INSIGHT_FROM_MATURITY = 0.32;
 const PROMISE_DECAY = 0.75;
 const ATTENTION_DECAY = 0.82;
 const WINTER_STRAIN = 9;
@@ -407,7 +406,20 @@ export function advanceTurn(s: GameState): TickReport {
 
   const substrateBonus = s.families.substrate.matured * 0.020;
   const industryBonus = (s.patrons.corporate / 100) * 0.12;
-  const computeGain = Math.max(0.2, 0.70 + substrateBonus + industryBonus - (s.inWinter ? 0.14 : 0));
+  /*
+   * Hardware did accelerate once the work was worth specialising silicon for, so the curve
+   * bends upward late — but only gently, and deliberately far less than the frontier training
+   * runs of the 2020s would suggest. That figure measures one school's appetite for compute,
+   * not what the substrate made available to everyone; an embodied system or a swarm does not
+   * eat orders of magnitude the way a large model does. Matching it would quietly install
+   * connectionist scaling as the yardstick the whole century is judged against, which is the
+   * opposite of the argument this game is making.
+   */
+  const lateEraBonus = Math.max(0, (s.turn - 12) * 0.012);
+  const computeGain = Math.max(
+    0.2,
+    0.70 + substrateBonus + industryBonus + lateEraBonus - (s.inWinter ? 0.14 : 0),
+  );
   s.computeLog += computeGain;
   report.computeGain = computeGain;
 

@@ -45,6 +45,9 @@ export function actOfTurn(turn: number): number {
 /** Historical compute frontier, log10 of the FLOPs available to a single frontier experiment. */
 export const START_COMPUTE_LOG = 5;
 
+/** Share of a paradigm's cost that becomes lasting insight for its school on maturing. */
+export const INSIGHT_FROM_MATURITY = 0.32;
+
 export function createState(seed: number): GameState {
   const paradigms: Record<string, ParadigmState> = {};
   for (const p of PARADIGMS) {
@@ -60,6 +63,30 @@ export function createState(seed: number): GameState {
   const families = {} as GameState['families'];
   for (const f of FAMILY_IDS) {
     families[f] = { insight: 0, talent: 1 / FAMILY_IDS.length, momentum: 0, matured: 0 };
+  }
+
+  /*
+   * The century does not begin from nothing. Anything whose real-world anchor predates 1950 —
+   * the formal neuron, information theory, cybernetics, Hebb's rule, the stored-program
+   * machine, the electronic differential analyser — is the inheritance the field starts with,
+   * not a research programme competing for funding. Modelled as unfunded, they produced
+   * centuries in which nobody had invented the stored-program computer until the 1980s.
+   */
+  let startCapability = 0;
+  let startUnderstanding = 0;
+  for (const p of PARADIGMS) {
+    if (p.anchor.year > START_YEAR) continue;
+    paradigms[p.id] = {
+      status: 'mature',
+      progress: p.cost,
+      maturedYear: p.anchor.year,
+      driver: 'inherited',
+      emphasis: 1,
+    };
+    families[p.family].matured += 1;
+    families[p.family].insight += p.cost * INSIGHT_FROM_MATURITY;
+    startCapability += p.capability;
+    startUnderstanding += p.understanding * 0.5;
   }
 
   const patrons = {} as Record<PatronId, number>;
@@ -94,8 +121,8 @@ export function createState(seed: number): GameState {
     act: 1,
     resources: {
       influence: 14,
-      capability: 2,
-      understanding: 4,
+      capability: startCapability,
+      understanding: startUnderstanding,
       attention: 18,
       credibility: 50,
       deployment: 1,
