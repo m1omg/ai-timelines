@@ -68,9 +68,10 @@ export const CHARACTERS: Character[] = [
     span: [1950, 1966],
     portraitSeed: 1916,
     look: { era: 1950, build: 'slim', hair: 'short', accent: '#9a7fc8' },
-    bio: 'Founder of information theory. Also built a maze-solving mechanical mouse and one of the first chess programs, and was a co-organiser of the 1956 Dartmouth study.',
+    bio: 'Founder of information theory. In 1951 he measured the entropy of written English by having a subject guess a novel one letter at a time, defining the next-symbol prediction problem that every language model since has been scored on. Also built a maze-solving mechanical mouse and one of the first chess programs, and was a co-organiser of the 1956 Dartmouth study.',
     sources: [
       'A Mathematical Theory of Communication (1948)',
+      'Prediction and Entropy of Printed English (Bell System Technical Journal, 1951)',
       'Programming a Computer for Playing Chess (1950)',
     ],
   },

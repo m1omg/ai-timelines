@@ -37,6 +37,24 @@ export interface FamilyDef {
   hue: number;
   /** Families whose dominance actively costs this one talent and standing. */
   rivals: FamilyId[];
+  /**
+   * Families this one is genuinely complementary with — where each school's results make the
+   * other's work easier rather than harder.
+   *
+   * Deliberately not the inverse of `rivals`, and a pair may be both. Connectionism and the
+   * statistical school spent the 2000s fighting over hiring lines and programme committees
+   * while sharing their entire mathematical basis: a language model is trained by minimising
+   * cross-entropy, which is Shannon's quantity, against an objective Shannon posed in 1951.
+   * Rivalry moves momentum, which is fashion. Alliance moves insight, which is not.
+   */
+  allies: FamilyId[];
+  /**
+   * How much compute this school wants when it holds the field, as a multiplier. Hardware
+   * improves on its own schedule; this is how much of it anyone bothers to assemble in one
+   * place, which is a property of what the leading school is trying to do. A frontier training
+   * run and a theorem prover are not the same customer.
+   */
+  computeAppetite: number;
 }
 
 export type ParadigmStatus =
@@ -79,6 +97,13 @@ export interface Paradigm {
   anchor: { year: number; who: string };
   /** Codex entry: what the idea actually is, and why it did or did not win. */
   codex: string;
+  /**
+   * Insight this pays to the whole field on maturing, over and above its own school's share.
+   * Reserved for genuinely general-purpose infrastructure: a stored-program machine or an
+   * integrated circuit is not a programme competing with the others, it is the floor all of
+   * them stand on, and it should lift the schools that were not funding it.
+   */
+  dividend?: number;
   /** Free-form markers used by scenes and endings, e.g. 'hardware', 'agentic'. */
   tags?: string[];
 }

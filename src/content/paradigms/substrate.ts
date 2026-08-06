@@ -40,6 +40,7 @@ export const SUBSTRATE: Paradigm[] = [
     anchor: { year: 1949, who: 'the first stored-program computers' },
     codex:
       'A machine that holds its own instructions in rewritable memory can modify them, which is the precondition for a program that changes itself. Everything in this game rests on that one architectural decision, and on the fact that the machines got faster every year without anybody in AI having to do anything about it.',
+    dividend: 9,
     tags: ['founding'],
   },
   {
@@ -77,6 +78,7 @@ export const SUBSTRATE: Paradigm[] = [
     anchor: { year: 1965, who: 'Gordon Moore’s observation' },
     codex:
       'Not an AI result at all, and the single most important input to the field’s history. A geometric improvement arriving reliably for half a century meant that any approach limited only by compute would eventually become feasible, and any approach limited by ideas would not. It quietly decided several arguments that the participants believed they were winning on merit.',
+    dividend: 12,
     tags: ['hardware', 'durable'],
   },
   {
@@ -95,6 +97,7 @@ export const SUBSTRATE: Paradigm[] = [
     anchor: { year: 1980, who: 'Mead & Conway' },
     codex:
       'Mead and Conway turned chip design from a craft guarded by a few firms into something a university course could teach, with abstractions clean enough that a graduate student could tape out a custom processor. Every subsequent piece of special-purpose hardware in this story — neuromorphic, parallel, accelerated — exists because of that democratisation.',
+    dividend: 10,
     tags: ['hardware'],
   },
   {
@@ -113,6 +116,7 @@ export const SUBSTRATE: Paradigm[] = [
     anchor: { year: 1985, who: 'Danny Hillis — the Connection Machine' },
     codex:
       'Hillis reasoned that if a brain is a great many slow elements, a thinking machine should be too, and built a cube of blinking lights containing sixty-five thousand one-bit processors. Its commercial failure was total and its intellectual influence enormous: data-parallel programming, and the demonstration that the bottleneck is communication rather than arithmetic.',
+    dividend: 8,
     tags: ['hardware'],
   },
   {
@@ -187,6 +191,7 @@ export const SUBSTRATE: Paradigm[] = [
     anchor: { year: 2007, who: 'programmable GPU compute' },
     codex:
       'The video game industry spent two decades funding massively parallel floating-point hardware for reasons entirely unrelated to intelligence, and then someone noticed that a matrix multiply is a matrix multiply. It is the largest accidental subsidy in the history of the field, and it arrived exactly when the connectionists needed it.',
+    dividend: 10,
     tags: ['hardware', 'pivotal'],
   },
   {

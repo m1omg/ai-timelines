@@ -1,7 +1,8 @@
 import { ACTORS } from '../content/actors';
 import { FAMILIES, PARADIGMS, PARADIGM_BY_ID } from '../content/paradigms';
 import { recordSnapshot } from './describe';
-import { normaliseTalent } from './effects';
+import { leadingFamily } from './conditions';
+import { applyEffect, normaliseTalent } from './effects';
 import { next as rand } from './rng';
 import { INSIGHT_FROM_MATURITY, actOfTurn, yearOfTurn } from './state';
 import type { FamilyId, GameState, Paradigm, WinterRecord } from './types';
@@ -179,6 +180,14 @@ function advanceResearch(s: GameState, report: TickReport): number {
       fam.insight += p.cost * INSIGHT_FROM_MATURITY;
       fam.momentum += 10;
 
+      /*
+       * General-purpose infrastructure pays everybody. The stored-program machine and the
+       * integrated circuit were not entries in the argument about what a mind is; they are the
+       * floor every school stands on, and a school that spent nothing on them still got them.
+       * Paid as a commons so it lands hardest on whoever is furthest behind.
+       */
+      if (p.dividend) applyEffect(s, { kind: 'commons', value: p.dividend });
+
       const delivered = p.capability * Math.min(1.15, adequacy);
       s.resources.capability += delivered;
       capabilityGain += delivered;
@@ -219,13 +228,33 @@ function updateMomentumAndTalent(s: GameState, matured: string[]): void {
   const before: Record<string, number> = {};
   for (const f of FAMILY_IDS) before[f] = s.families[f].momentum;
 
+  /*
+   * Two graphs, pulling in opposite directions and not the inverse of each other.
+   *
+   * A rival in the ascendant costs you standing: it takes the hiring lines, the programme
+   * committees and the funders' attention, and none of that is about whether either of you is
+   * right. An ally in the ascendant lifts you, more weakly, because their results make your
+   * problems easier — and separately feeds you insight, which is the part a change of fashion
+   * cannot take away again.
+   */
+  const insightBefore: Record<string, number> = {};
+  for (const f of FAMILY_IDS) insightBefore[f] = s.families[f].insight;
+
   for (const f of FAMILY_IDS) {
     const def = FAMILIES[f];
     let rivalPressure = 0;
     for (const r of def.rivals) rivalPressure += Math.max(0, before[r]!) * 0.25;
+    let allyLift = 0;
+    for (const a of def.allies) allyLift += Math.max(0, before[a]!) * 0.10;
     const fresh = freshByFamily[f] ?? 0;
-    s.families[f].momentum = s.families[f].momentum * 0.65 + fresh * 9 - rivalPressure;
+    s.families[f].momentum = s.families[f].momentum * 0.65 + fresh * 9 - rivalPressure + allyLift;
     s.families[f].momentum = Math.max(-50, Math.min(100, s.families[f].momentum));
+
+    // Complementary work compounds: a school with two strong allies gains more than one with
+    // a single strong ally, which is why the bridge column needs a broad portfolio behind it.
+    let trickle = 0;
+    for (const a of def.allies) trickle += insightBefore[a]! * 0.010;
+    s.families[f].insight += trickle;
   }
 
   // Researchers follow fashion, with a lag. The lag is what makes bandwagons and hangovers.
@@ -414,22 +443,31 @@ export function advanceTurn(s: GameState): TickReport {
     notes: [],
   };
 
+  /*
+   * The frontier is what a single leading experiment can command, not the world's total
+   * silicon, and it moves for two independent reasons.
+   *
+   * The floor is Moore's law: transistors get cheaper on a schedule that has nothing to do
+   * with anybody's theory of mind, and it lifts every school at once. Nothing a player does
+   * stops it, which is why a century with no interest in scale still ends far above where it
+   * started.
+   *
+   * On top of that sits concentration — how much of that cheap hardware anyone actually
+   * assembles in one place, which depends entirely on what the leading school is trying to do.
+   * A frontier training run and a theorem prover are not the same customer. This is where the
+   * connectionist century pulls away, and it is the honest version of the thing the previous
+   * comment here was trying to avoid: the LLM appetite for compute is not the yardstick for
+   * everyone, but it is emphatically the yardstick for them.
+   */
   const substrateBonus = s.families.substrate.matured * 0.020;
   const industryBonus = (s.patrons.corporate / 100) * 0.12;
-  /*
-   * Hardware did accelerate once the work was worth specialising silicon for, so the curve
-   * bends upward late — but only gently, and deliberately far less than the frontier training
-   * runs of the 2020s would suggest. That figure measures one school's appetite for compute,
-   * not what the substrate made available to everyone; an embodied system or a swarm does not
-   * eat orders of magnitude the way a large model does. Matching it would quietly install
-   * connectionist scaling as the yardstick the whole century is judged against, which is the
-   * opposite of the argument this game is making.
-   */
+  const moore = 0.58 + substrateBonus + industryBonus * 0.4;
+
+  const appetite = FAMILIES[leadingFamily(s)].computeAppetite;
   const lateEraBonus = Math.max(0, (s.turn - 12) * 0.012);
-  const computeGain = Math.max(
-    0.2,
-    0.70 + substrateBonus + industryBonus + lateEraBonus - (s.inWinter ? 0.14 : 0),
-  );
+  const concentration = (0.14 + lateEraBonus) * appetite + industryBonus * 0.6;
+
+  const computeGain = Math.max(0.25, moore + concentration - (s.inWinter ? 0.14 : 0));
   s.computeLog += computeGain;
   report.computeGain = computeGain;
 

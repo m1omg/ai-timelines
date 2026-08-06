@@ -222,6 +222,13 @@ export const CONNECTIONIST: Paradigm[] = [
     short: 'The data labels itself',
     earliest: 2018,
     prereqs: ['attention'],
+    /*
+     * Next-token prediction trained by cross-entropy is Shannon's F_N with the estimate done by
+     * gradient descent instead of by his wife guessing letters. The objective is not
+     * connectionist property and never was, so the school that owns it has to have got
+     * somewhere before this can.
+     */
+    familyPrereqs: { statistical: 36 },
     cost: 92,
     computeNeed: 20.5,
     capability: 26,
@@ -230,7 +237,7 @@ export const CONNECTIONIST: Paradigm[] = [
     brittleness: 0.5,
     anchor: { year: 2018, who: 'the pretraining era' },
     codex:
-      'Predicting the next token, or the masked one, needs no annotator — which removes the ceiling that labelled data had imposed on every previous method. What emerges is not a next-word predictor but whatever internal machinery next-word prediction requires, which turns out to be a great deal more than anyone expected and considerably less than the marketing claimed.',
+      'Predicting the next token, or the masked one, needs no annotator — which removes the ceiling that labelled data had imposed on every previous method. The objective is Shannon\u2019s, exactly: minimise the cross-entropy of the next symbol given the context, the quantity he defined and measured by hand in 1951. What emerges is not a next-word predictor but whatever internal machinery next-word prediction requires, which turns out to be a great deal more than anyone expected and considerably less than the marketing claimed.',
   },
   {
     id: 'scaling-regime',
