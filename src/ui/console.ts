@@ -65,6 +65,13 @@ export interface TopbarHandlers {
   onCodex: () => void;
   onLog: () => void;
   onMenu: () => void;
+  /**
+   * Undo the most recent choice. Omitted when there is nothing to undo — the button is absent
+   * rather than disabled, so it never invites a click that does nothing.
+   */
+  onBack?: () => void;
+  /** The choice `onBack` would undo, quoted back in the tooltip. */
+  backLabel?: string;
 }
 
 export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): void {
@@ -84,6 +91,15 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
       <span class="year">${s.year}</span>
       <span class="act">Act ${roman(s.act)} · ${escapeHtml(ACT_TITLES[s.act - 1] ?? '')}${s.inWinter ? ' · <b style="color:var(--warn)">WINTER</b>' : ''}</span>
       <span class="spacer"></span>
+      ${
+        h.onBack
+          ? `<button data-a="back" title="${escapeHtml(
+              h.backLabel
+                ? `Undo “${h.backLabel}” and play that moment again. Anything you have spent since then comes back too.`
+                : 'Undo your most recent choice and play that moment again.',
+            )}">◂ Back</button>`
+          : ''
+      }
       <button data-a="tree">Paradigms</button>
       <button data-a="codex">Codex</button>
       <button data-a="log">Record</button>
@@ -91,6 +107,7 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
     </div>
     <div class="gauges">${gauges}</div>`;
 
+  if (h.onBack) el.querySelector('[data-a="back"]')!.addEventListener('click', h.onBack);
   el.querySelector('[data-a="tree"]')!.addEventListener('click', h.onTree);
   el.querySelector('[data-a="codex"]')!.addEventListener('click', h.onCodex);
   el.querySelector('[data-a="log"]')!.addEventListener('click', h.onLog);

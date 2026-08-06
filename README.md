@@ -63,6 +63,7 @@ locked — which is the argument the game is making.
 | | |
 |---|---|
 | **Click, space or enter** | advance dialogue (again to skip the typing) |
+| **Back** | appears once you have made a choice: undoes it and plays that moment again, rolling back anything spent since. One step only, and it goes away when the turn advances |
 | **Paradigms** | the full tree — click any entry for what the idea actually is, and why it is blocked |
 | **Codex** | an encyclopedia that unlocks as you reach things: every idea, every person you have met, with sources |
 | **Record** | what happened, in order |

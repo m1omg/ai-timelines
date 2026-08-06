@@ -14,6 +14,7 @@ import { renderActBreak, renderEnding, renderReport } from './ui/report';
 import { applyEra } from './ui/theme';
 import { renderTree } from './ui/tree';
 import { escapeHtml, playScene } from './ui/vn';
+import type { Rewind } from './ui/vn';
 
 const app = document.getElementById('app')!;
 let state: GameState;
@@ -23,6 +24,19 @@ let overlayEl: HTMLElement;
 
 /** Scenes per turn. Enough for a beat and a consequence without becoming a reading task. */
 const SCENES_PER_TURN = 3;
+
+/**
+ * The one step of history the player is allowed to take back: the state as it was when the
+ * scene containing their last choice opened, plus the scenes that were still queued behind it.
+ *
+ * It is cleared the moment the turn advances. Undoing a choice is one thing; rolling back a
+ * simulated four years to see whether the winter still happens is a different game, and the
+ * run would stop being deterministic from its seed.
+ */
+let rewind: { at: Rewind; queue: string[]; then: () => void } | null = null;
+
+/** Lets the Back button cut short whatever scene is currently on screen. */
+let sceneAbort: AbortController | null = null;
 
 // ---------------------------------------------------------------------------
 // Shell
@@ -45,6 +59,8 @@ function refreshTopbar(): void {
     onCodex: () => openOverlay((el, close) => renderCodex(el, state, close)),
     onLog: () => openOverlay((el, close) => renderLog(el, state, close)),
     onMenu: () => openOverlay((el, close) => renderMenu(el, close)),
+    onBack: rewind ? goBack : undefined,
+    backLabel: rewind?.at.choice,
   });
 }
 
@@ -111,6 +127,12 @@ function renderMenu(el: HTMLElement, close: () => void): void {
       msg.textContent = 'That code could not be read.';
       return;
     }
+    // A scene may be mid-play behind this overlay, still holding the state we are replacing.
+    const running = sceneAbort;
+    sceneAbort = null;
+    running?.abort();
+    rewind = null;
+
     state = loaded;
     close();
     applyEra(state.act);
@@ -171,6 +193,8 @@ function titleScreen(): void {
 
 function start(seed: number, existing?: GameState): void {
   ensureAudioReady();
+  rewind = null;
+  sceneAbort = null;
   state = existing ?? createState(seed);
   applyEra(state.act);
   buildShell();
@@ -196,23 +220,67 @@ function refreshCharacters(): void {
   }
 }
 
-async function playChain(startId: string): Promise<void> {
-  let id: string | null = startId;
-  const guard = new Set<string>();
-  while (id) {
-    if (guard.has(id)) break;
-    guard.add(id);
+/**
+ * Play a queue of scenes, following each one's `goto` before moving on to the next queued id.
+ *
+ * This is a flat queue rather than nested loops specifically so that the Back button has
+ * something concrete to restore: a scene id to replay plus everything still to come after it.
+ * Returns without opening the directive board if a rewind took the loop over.
+ */
+async function playQueue(initial: string[], then: () => void): Promise<void> {
+  let queue = initial.slice();
+  const played = new Set<string>();
+
+  while (queue.length > 0) {
+    const id = queue[0]!;
+    const rest = queue.slice(1);
+    queue = rest;
+
     const sc: Scene | undefined = SCENE_BY_ID[id];
-    if (!sc) break;
-    const result = await playScene(stageEl, state, sc);
+    if (!sc || played.has(id)) continue;
+    played.add(id);
+
+    const ctrl = new AbortController();
+    sceneAbort = ctrl;
+    const result = await playScene(stageEl, state, sc, { signal: ctrl.signal });
+    if (sceneAbort === ctrl) sceneAbort = null;
+    if (result.aborted) return;
+
+    if (result.rewind) rewind = { at: result.rewind, queue: [id, ...rest], then };
     refreshTopbar();
-    id = result.goto;
+
+    if (state.ending) break;
+    if (result.goto) queue = [result.goto, ...rest];
   }
+
+  refreshTopbar();
+  then();
+}
+
+/**
+ * Put the state back as it was when the last choice's scene opened and play it again. Anything
+ * spent since — including directives taken after the scene — comes back with it, because the
+ * snapshot is the whole state and not just the choice.
+ */
+function goBack(): void {
+  const r = rewind;
+  if (!r) return;
+  rewind = null;
+  state = r.at.state;
+  applyEra(state.act);
+  refreshCharacters();
+  refreshTopbar();
+
+  const running = sceneAbort;
+  sceneAbort = null;
+  running?.abort();
+
+  // Deferred so the aborted loop unwinds first and cannot clear the new loop's abort handle.
+  void Promise.resolve().then(() => playQueue(r.queue, r.then));
 }
 
 async function openingSequence(): Promise<void> {
-  await playChain('open-1');
-  await beginTurn();
+  await playQueue(['open-1'], () => void beginTurn());
 }
 
 async function beginTurn(): Promise<void> {
@@ -220,13 +288,10 @@ async function beginTurn(): Promise<void> {
   refreshTopbar();
 
   const picked = pickScenes(state, SCENES, SCENES_PER_TURN);
-  for (const sc of picked) {
-    await playChain(sc.id);
-    if (state.ending) break;
-  }
-
-  refreshTopbar();
-  directivePhase();
+  await playQueue(
+    picked.map((p) => p.id),
+    directivePhase,
+  );
 }
 
 function directivePhase(): void {
@@ -244,6 +309,10 @@ function directivePhase(): void {
 }
 
 function nextTurn(): void {
+  // Four years are about to pass. Past this point the choice is history like everything else.
+  rewind = null;
+  refreshTopbar();
+
   if (state.turn >= TOTAL_TURNS - 1) {
     void finish();
     return;
