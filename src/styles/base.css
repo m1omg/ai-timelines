@@ -88,6 +88,22 @@ body::after {
 .gauge.warn .bar i { background: var(--warn); }
 .gauge .val { font-size: 11px; color: var(--ink); font-variant-numeric: tabular-nums; }
 
+/* Who is paying. A different kind of quantity from the gauges above — not something you hold,
+   something that holds you — so it reads as one line rather than four more meters. */
+.patrons { display: flex; align-items: center; gap: clamp(7px, 1.2vw, 16px); flex-wrap: wrap; }
+.patrons > b {
+  font-weight: 500; font-size: 9.5px; color: var(--dim);
+  letter-spacing: 0.14em; white-space: nowrap;
+}
+.patron { display: flex; align-items: center; gap: 5px; font-size: 9.5px; color: var(--dim); }
+.patron .bar {
+  display: block; width: clamp(26px, 4.5vw, 54px); height: 3px;
+  background: color-mix(in srgb, var(--dim) 30%, transparent);
+}
+.patron .bar i { display: block; height: 100%; background: var(--dim); transition: width 0.6s ease; }
+.patron .lab { letter-spacing: 0.04em; white-space: nowrap; }
+.patron .v { color: var(--ink); font-variant-numeric: tabular-nums; }
+
 /* ---------------------------------------------------------------- stage */
 
 .stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
@@ -346,6 +362,17 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 .legend .key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--fam); margin-right: 6px; }
 .legend .key.dashed i { width: 14px; height: 0; border-top: 2px dashed var(--ink); border-radius: 0; vertical-align: 3px; }
 
+/* The four patrons. Deliberately not the family palette — these are not schools, and giving
+   them a school's colour would suggest an allegiance they do not have. */
+.pline.p0, .patron-key.p0 i { stroke: var(--warn); background: var(--warn); }
+.pline.p1, .patron-key.p1 i { stroke: var(--accent); background: var(--accent); }
+.pline.p2, .patron-key.p2 i { stroke: var(--ink); background: var(--ink); }
+.pline.p3, .patron-key.p3 i { stroke: var(--dim); background: var(--dim); }
+.pline.p2 { stroke-dasharray: 6 4; }
+.pline.p3 { stroke-dasharray: 2 4; }
+.patron-key.p2 i { height: 0; width: 14px; border-top: 2px dashed var(--ink); border-radius: 0; background: none; vertical-align: 3px; }
+.patron-key.p3 i { height: 0; width: 14px; border-top: 2px dotted var(--dim); border-radius: 0; background: none; vertical-align: 3px; }
+
 /* The decision tree: one trunk down the century, a branch per term, a twig per decision. */
 .dtree { border-left: 2px solid color-mix(in srgb, var(--dim) 35%, transparent); margin-left: 8px; padding-left: 0; }
 .branch { position: relative; padding: 0 0 22px 20px; }
@@ -463,4 +490,8 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
   .gauge { min-width: 74px; }
   .gauge b { font-size: 8.5px; letter-spacing: 0.01em; }
   .topbar .act { font-size: 10px; }
+  /* The top bar already costs a quarter of a phone screen. The patron mini-bars are the most
+     expendable part of it — the number says the same thing in a fraction of the width. */
+  .patron .bar { display: none; }
+  .patrons { gap: 4px 10px; }
 }

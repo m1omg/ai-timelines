@@ -1,3 +1,4 @@
+import { familyShares } from './describe';
 import type { Effect, FamilyId, GameState } from './types';
 import { FAMILY_IDS, RESOURCE_KEYS } from './types';
 
@@ -127,6 +128,31 @@ export function applyEffect(state: GameState, e: Effect): void {
       a[e.field] = e.field === 'stance' ? Math.max(-1, Math.min(1, next)) : Math.max(0, Math.min(1, next));
       break;
     }
+
+    case 'commons': {
+      /*
+       * Split inversely to standing, so the school with least of the field takes most of it.
+       * Weights are 1/(share + floor) normalised; the floor keeps a school that has nothing
+       * from swallowing the entire payment, and keeps the split finite in the first turn when
+       * every school is level.
+       */
+      const shares = familyShares(state);
+      const FLOOR = 0.06;
+      let total = 0;
+      const weight = {} as Record<FamilyId, number>;
+      for (const f of FAMILY_IDS) {
+        weight[f] = 1 / (shares[f] + FLOOR);
+        total += weight[f];
+      }
+      for (const f of FAMILY_IDS) {
+        state.families[f].insight = Math.max(0, state.families[f].insight + (e.value * weight[f]) / total);
+      }
+      break;
+    }
+
+    case 'promises':
+      state.promises = Math.max(0, state.promises + e.value);
+      break;
 
     case 'log':
       state.log.push({ year: state.year, text: e.text, kind: e.logKind ?? 'event' });

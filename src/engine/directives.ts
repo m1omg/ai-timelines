@@ -108,27 +108,81 @@ function patronDirectives(s: GameState): Directive[] {
   }));
 }
 
+/*
+ * Backing a person.
+ *
+ * Someone inside a school is a bet on that school: the momentum goes where they already stand.
+ * Someone outside every school is a different instrument entirely, and the four unaffiliated
+ * historical figures in this game are not an accident of casting — Turing, Dreyfus, Weizenbaum
+ * and Lighthill are the people who asked what the field was *for* rather than joining a
+ * programme. What that buys is modelled as two things nothing else on the board sells:
+ *
+ *   1. `commons` insight, which lands hardest on whichever school currently has least. Work
+ *      framed as a question travels; work framed as a programme recruits. This is the only
+ *      repeatable counterweight to the bandwagon loop.
+ *   2. A reduction in `promises` — the hype debt the winter rule reads against delivery. The
+ *      field's critics are, mechanically and historically, its insurance against its own
+ *      enthusiasm. It is the only way to pay that debt down deliberately.
+ *
+ * The second tier exists so that affinity finally means something. Until now it gated nothing
+ * anywhere in the content; here, a figure you have backed repeatedly can be put at the centre
+ * of the field, and the effect is large enough to be a strategy rather than a gesture.
+ */
+const CHAMPION_COST = 3;
+const CENTREPIECE_COST = 7;
+/** Affinity at which someone has enough standing with you to be worth spending real capital on. */
+const CENTREPIECE_AFFINITY = 35;
+
 function championDirectives(s: GameState): Directive[] {
   const out: Directive[] = [];
   for (const [id, st] of Object.entries(s.characters)) {
-    if (!st.met || !st.active || st.affinity >= 60) continue;
+    if (!st.met || !st.active) continue;
     const c = CHARACTER_BY_ID[id];
-    if (!c) continue;
-    out.push({
-      id: `champion:${id}`,
-      name: `Champion ${c.name}`,
-      blurb: c.family
-        ? `A chair, a grant, a hearing. ${FAMILIES[c.family].name} gains, and they remember who arranged it.`
-        : 'A hearing, at a moment when nobody else will give them one.',
-      cost: 3,
-      category: 'people',
-      effects: [
-        { kind: 'character', id, field: 'affinity', op: 'add', value: 18 },
-        ...(c.family
-          ? [{ kind: 'family' as const, family: c.family, field: 'momentum' as const, op: 'add' as const, value: 4 }]
-          : []),
-      ],
-    });
+    // The Archivist and the Second Voice are the frame, not researchers you can endow.
+    if (!c || c.narrator) continue;
+
+    if (st.affinity < 60) {
+      out.push({
+        id: `champion:${id}`,
+        name: `Champion ${c.name}`,
+        blurb: c.family
+          ? `A chair, a grant, a hearing. ${FAMILIES[c.family].name} gains, and they remember who arranged it.`
+          : `A hearing, at a moment when nobody else will give them one. They belong to no school, so what they leave behind goes to whichever school has least.`,
+        cost: CHAMPION_COST,
+        category: 'people',
+        effects: c.family
+          ? [
+              { kind: 'character', id, field: 'affinity', op: 'add', value: 18 },
+              { kind: 'family', family: c.family, field: 'momentum', op: 'add', value: 4 },
+            ]
+          : [
+              { kind: 'character', id, field: 'affinity', op: 'add', value: 18 },
+              { kind: 'commons', value: 7 },
+              { kind: 'resource', key: 'understanding', op: 'add', value: 3 },
+              { kind: 'promises', op: 'add', value: -5 },
+            ],
+      });
+    }
+
+    if (!c.family && st.affinity >= CENTREPIECE_AFFINITY) {
+      out.push({
+        id: `centrepiece:${id}`,
+        name: `Put ${c.name}'s question at the centre of the field`,
+        blurb:
+          'Not a grant — a syllabus. Every school has to answer them now, which slows all of them down and leaves none of them able to claim more than it has.',
+        cost: CENTREPIECE_COST,
+        category: 'people',
+        effects: [
+          { kind: 'character', id, field: 'affinity', op: 'add', value: 10 },
+          { kind: 'commons', value: 16 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 9 },
+          { kind: 'resource', key: 'credibility', op: 'add', value: 5 },
+          { kind: 'promises', op: 'add', value: -14 },
+          // The cost of making everyone answer a hard question is that nobody is selling one.
+          { kind: 'resource', key: 'attention', op: 'add', value: -6 },
+        ],
+      });
+    }
   }
   return out;
 }

@@ -5,6 +5,7 @@ import { familyShares, familyStanding } from '../engine/describe';
 import { END_YEAR, START_YEAR } from '../engine/state';
 import type { Decision, FamilyId, GameState, TurnSnapshot } from '../engine/types';
 import { FAMILY_IDS } from '../engine/types';
+import { PATRONS } from './console';
 import { currentEra } from './theme';
 import { escapeHtml } from './vn';
 
@@ -95,6 +96,14 @@ export function renderBalance(root: HTMLElement, s: GameState, onClose: () => vo
           : `<div class="chart-wrap">${stackedAreaSvg(history, colour)}${axisHtml()}</div>
              <div class="legend">${legend}</div>
              <p class="chart-note">Each band is a school's share of the field. Shaded columns are the winters — note which school the money leaves and which one it does not come back to. The axis is the whole century, so the empty stretch on the right is how much of it you have left.</p>
+
+             <div class="section-head">Who has been paying</div>
+             <div class="chart-wrap">${patronSvg(history)}${axisHtml()}</div>
+             <div class="legend">${PATRONS.map(
+               (p, i) =>
+                 `<span class="key patron-key p${i}"><i></i>${escapeHtml(p.label)} · ${Math.round(s.patrons[p.key])}</span>`,
+             ).join('')}</div>
+             <p class="chart-note">A winter takes all four down at once and they recover at different speeds — the universities barely flinch, industry is gone for a decade. Industry is the only one that speeds the hardware up, which is why a century funded entirely by defence money reaches 2050 with a slower machine.</p>
 
              <div class="section-head">What the field could do, and what it understood</div>
              <div class="chart-wrap">${capabilitySvg(history, era.accent)}${axisHtml()}</div>
@@ -245,6 +254,42 @@ function capabilitySvg(history: TurnSnapshot[], accent: string): string {
     <polyline points="${capPts}" fill="none" stroke="${accent}" stroke-width="2" vector-effect="non-scaling-stroke"/>
     <polyline points="${line((h) => h.understanding)}" fill="none" stroke="var(--ink)" stroke-width="2"
       stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+
+/**
+ * The four patrons over time, on a fixed 0–100 scale so the lines can be read against each
+ * other. Drawn with CSS custom properties for colour rather than the family palette, since
+ * these are not schools and should not borrow a school's identity.
+ */
+function patronSvg(history: TurnSnapshot[]): string {
+  const y = (v: number) => (1 - Math.max(0, Math.min(100, v)) / 100) * H;
+  const withPatrons = history.filter((h) => h.patrons);
+  if (withPatrons.length < 2) {
+    return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="chart">${gridlines()}
+      <text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="26" fill="var(--dim)">not recorded before this build</text>
+    </svg>`;
+  }
+
+  const lines = PATRONS.map((p, i) => {
+    const pts = withPatrons
+      .map((h) => `${xAt(h.year).toFixed(1)},${y(h.patrons![p.key]).toFixed(1)}`)
+      .join(' ');
+    return `<polyline points="${pts}" fill="none" class="pline p${i}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  }).join('');
+
+  const winters = withPatrons
+    .filter((h) => h.inWinter)
+    .map((h) => {
+      const x = xAt(h.year);
+      const w = Math.max(4, xAt(h.year + 4) - x);
+      return `<rect x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="var(--warn)" fill-opacity="0.1"/>`;
+    })
+    .join('');
+
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="chart" role="img"
+    aria-label="Support from defence, industry, the universities and the public, 1950 to ${withPatrons[withPatrons.length - 1]!.year}">
+    ${gridlines()}${winters}${lines}
   </svg>`;
 }
 

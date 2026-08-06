@@ -89,6 +89,12 @@ export function describeEffect(e: Effect): string | null {
       if (e.op !== 'add') return `${name}'s regard for you set to ${e.value}`;
       return e.value >= 0 ? `${name} remembers this well` : `${name} does not forget this`;
     }
+    case 'commons':
+      return `+${e.value} insight to the field at large, weighted to whichever school has least`;
+    case 'promises':
+      return e.value <= 0
+        ? `talks the field down by ${-e.value} — less owed against delivery`
+        : `+${e.value} owed against delivery`;
     case 'flag':
     case 'log':
     case 'characterActive':
@@ -168,6 +174,7 @@ export function recordSnapshot(s: GameState): void {
     turn: s.turn,
     year: s.year,
     shares: familyShares(s),
+    patrons: { ...s.patrons },
     capability: s.resources.capability,
     understanding: s.resources.understanding,
     computeLog: s.computeLog,

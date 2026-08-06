@@ -3,7 +3,7 @@ import { FAMILIES } from '../content/paradigms';
 import { describeEffects, effectFamily } from '../engine/describe';
 import { availableDirectives, canAfford, takeDirective } from '../engine/directives';
 import { ACT_TITLES, TOTAL_TURNS } from '../engine/state';
-import type { Directive, FamilyId, GameState } from '../engine/types';
+import type { Directive, FamilyId, GameState, PatronId } from '../engine/types';
 import { FAMILY_IDS } from '../engine/types';
 import { sfxSelect } from './audio';
 import { currentEra } from './theme';
@@ -102,6 +102,34 @@ export interface TopbarHandlers {
   backLabel?: string;
 }
 
+/**
+ * Who is paying. These four were simulated from the first commit and shown nowhere: corporate
+ * standing drives deployment and bends the compute curve, and a winter cuts all four hard, so a
+ * player could watch their century turn on a number the interface never mentioned.
+ */
+export const PATRONS: { key: PatronId; label: string; hint: string }[] = [
+  {
+    key: 'military',
+    label: 'defence',
+    hint: 'The agencies. Deep pockets and the first to leave when a report says the promises were not met.',
+  },
+  {
+    key: 'corporate',
+    label: 'industry',
+    hint: 'Firms with an application to pay for. Drives how far the work reaches into ordinary life, and is the only patron that speeds the hardware up.',
+  },
+  {
+    key: 'academic',
+    label: 'universities',
+    hint: 'Chairs, journals, conferences. Slow, cheap, hardest to lose in a winter, and it decides what the next generation believes.',
+  },
+  {
+    key: 'public',
+    label: 'the public',
+    hint: 'Ordinary attention. Rises with what has been deployed and falls with anything the work has left unaddressed.',
+  },
+];
+
 export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): void {
   const gauges = GAUGES.map((g) => {
     const v = s.resources[g.key];
@@ -134,7 +162,18 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
       <button data-a="log">Record</button>
       <button data-a="menu">Menu</button>
     </div>
-    <div class="gauges">${gauges}</div>`;
+    <div class="gauges">${gauges}</div>
+    <div class="patrons" title="Who is currently funding the field. A winter takes all four down at once.">
+      <b>funded by</b>
+      ${PATRONS.map((p) => {
+        const v = s.patrons[p.key];
+        return `<span class="patron" title="${escapeHtml(p.hint)}">
+          <i class="bar"><i style="width:${Math.max(0, Math.min(100, v)).toFixed(0)}%"></i></i>
+          <span class="lab">${p.label}</span>
+          <span class="v">${Math.round(v)}</span>
+        </span>`;
+      }).join('')}
+    </div>`;
 
   if (h.onBack) el.querySelector('[data-a="back"]')!.addEventListener('click', h.onBack);
   el.querySelector('[data-a="balance"]')!.addEventListener('click', h.onBalance);

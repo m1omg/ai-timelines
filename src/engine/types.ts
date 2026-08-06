@@ -236,6 +236,8 @@ export interface TurnSnapshot {
   year: number;
   /** Each school's share of the field's standing, 0–1, summing to 1. */
   shares: Record<FamilyId, number>;
+  /** Who was paying, 0–100 each. Optional: snapshots written before it was recorded lack it. */
+  patrons?: Record<PatronId, number>;
   capability: number;
   understanding: number;
   computeLog: number;
@@ -308,6 +310,20 @@ export type Effect =
   | { kind: 'characterActive'; id: string; value: boolean }
   | { kind: 'actor'; id: string; field: 'weight' | 'stance'; op: 'add' | 'set'; value: number }
   | { kind: 'log'; text: string; logKind?: LogEntry['kind'] }
+  /**
+   * Insight paid into the field as a whole rather than to one school, distributed *inversely*
+   * to how much of the field each school already holds. This is what work that belongs to
+   * nobody actually does: a result framed as a question rather than a programme is picked up
+   * hardest where there is least going on. Mechanically it is the one counterweight to the
+   * momentum → talent → maturity → momentum loop that otherwise makes a lead self-reinforcing.
+   */
+  | { kind: 'commons'; value: number }
+  /**
+   * Outstanding excitement not yet backed by delivery — the quantity the winter rule reads.
+   * Content can only ever have moved it indirectly, by generating hype; this lets something
+   * deliberately talk the field back down.
+   */
+  | { kind: 'promises'; op: 'add'; value: number }
   | { kind: 'ending'; id: string };
 
 // ---------------------------------------------------------------------------
@@ -385,6 +401,11 @@ export interface Character {
   /** Real historical figure, composite, or wholly invented. Drives the depiction rules. */
   kind: 'historical' | 'composite' | 'fictional';
   family: FamilyId | null;
+  /**
+   * The framing device rather than a person in the field. Narrators are met and active for the
+   * whole century, which without this made the board offer to fund them a research chair.
+   */
+  narrator?: true;
   /** Years the character can appear on screen. */
   span: [number, number];
   /** Seeds the procedural portrait. */

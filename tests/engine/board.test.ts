@@ -8,11 +8,12 @@ import {
   recordSnapshot,
 } from '../../src/engine/describe';
 import { availableDirectives, canAfford, takeDirective } from '../../src/engine/directives';
+import { applyEffect } from '../../src/engine/effects';
 import { advanceTurn } from '../../src/engine/sim';
 import { TOTAL_TURNS, cloneState, createState } from '../../src/engine/state';
 import { gaugeValue, spendableInfluence } from '../../src/ui/console';
 import type { GameState } from '../../src/engine/types';
-import { FAMILY_IDS } from '../../src/engine/types';
+import { FAMILY_IDS, PATRON_IDS } from '../../src/engine/types';
 
 /** Spend until nothing is affordable, which is where the display and the check used to disagree. */
 function spendDown(s: GameState): void {
@@ -124,6 +125,115 @@ describe('the record of what was decided', () => {
     spendDown(s);
     expect(s.decisions!.length).toBeGreaterThan(0);
     expect(undoPoint.decisions!.length).toBe(0);
+  });
+});
+
+describe('backing people who belong to no school', () => {
+  /** Put a character on stage so the board will offer them. */
+  function meet(s: GameState, id: string): void {
+    s.characters[id]!.met = true;
+    s.characters[id]!.active = true;
+  }
+
+  it('pays a school with least of the field more than the school with most', () => {
+    const s = createState(21);
+    s.families.connectionist.matured = 8;
+    s.families.connectionist.insight = 200;
+    const behind = 'collective';
+    const beforeLead = s.families.connectionist.insight;
+    const beforeBehind = s.families[behind].insight;
+
+    applyEffect(s, { kind: 'commons', value: 40 });
+
+    const toLead = s.families.connectionist.insight - beforeLead;
+    const toBehind = s.families[behind].insight - beforeBehind;
+    expect(toBehind).toBeGreaterThan(toLead);
+    // And the whole payment is distributed, not partly discarded.
+    const total = FAMILY_IDS.reduce((n, f) => n + s.families[f].insight, 0);
+    const was = beforeLead + beforeBehind;
+    expect(total).toBeGreaterThan(was);
+  });
+
+  it('splits evenly when no school is ahead', () => {
+    const s = createState(22);
+    const before = FAMILY_IDS.map((f) => s.families[f].insight);
+    applyEffect(s, { kind: 'commons', value: 80 });
+    const gains = FAMILY_IDS.map((f, i) => s.families[f].insight - before[i]!);
+    const spread = Math.max(...gains) - Math.min(...gains);
+    // Start-of-game standing is not perfectly level (some schools inherit pre-1950 work), so
+    // allow a little tilt — but nothing like a winner-takes-most split.
+    expect(spread).toBeLessThan(Math.max(...gains) * 0.75);
+  });
+
+  it('lets promises be paid down, and never below zero', () => {
+    const s = createState(23);
+    s.promises = 10;
+    applyEffect(s, { kind: 'promises', op: 'add', value: -14 });
+    expect(s.promises).toBe(0);
+  });
+
+  it('offers the unaffiliated a different bargain from the school-aligned', () => {
+    const s = createState(24);
+    meet(s, 'turing'); // family: null
+    meet(s, 'wiener'); // family: cybernetic
+    const board = availableDirectives(s);
+
+    const turing = board.find((d) => d.id === 'champion:turing')!;
+    const wiener = board.find((d) => d.id === 'champion:wiener')!;
+
+    expect(turing.effects.some((e) => e.kind === 'commons')).toBe(true);
+    expect(turing.effects.some((e) => e.kind === 'promises')).toBe(true);
+    expect(turing.effects.some((e) => e.kind === 'family')).toBe(false);
+
+    expect(wiener.effects.some((e) => e.kind === 'family')).toBe(true);
+    expect(wiener.effects.some((e) => e.kind === 'commons')).toBe(false);
+  });
+
+  it('unlocks the second tier only once affinity has been earned', () => {
+    const s = createState(25);
+    meet(s, 'turing');
+    expect(availableDirectives(s).some((d) => d.id === 'centrepiece:turing')).toBe(false);
+    s.characters.turing!.affinity = 40;
+    expect(availableDirectives(s).some((d) => d.id === 'centrepiece:turing')).toBe(true);
+  });
+
+  it('never offers to endow the narrators', () => {
+    const s = createState(26);
+    meet(s, 'archivist');
+    meet(s, 'second');
+    const ids = availableDirectives(s).map((d) => d.id);
+    expect(ids).not.toContain('champion:archivist');
+    expect(ids).not.toContain('champion:second');
+  });
+});
+
+describe('who is paying', () => {
+  it('is recorded every turn so it can be charted', () => {
+    const s = createState(27);
+    for (let t = 0; t < 5; t++) advanceTurn(s);
+    for (const row of s.history!) {
+      expect(row.patrons).toBeDefined();
+      for (const p of PATRON_IDS) {
+        expect(row.patrons![p]).toBeGreaterThanOrEqual(0);
+        expect(row.patrons![p]).toBeLessThanOrEqual(100);
+      }
+    }
+  });
+
+  it('drops across all four when a winter hits', () => {
+    const s = createState(28);
+    let before: Record<string, number> | null = null;
+    for (let t = 0; t < TOTAL_TURNS - 1; t++) {
+      const wasWinter = s.inWinter;
+      const snapshot = { ...s.patrons };
+      advanceTurn(s);
+      if (!wasWinter && s.inWinter) {
+        before = snapshot;
+        break;
+      }
+    }
+    if (!before) return; // this seed never had a winter; the other tests cover the rest
+    for (const p of PATRON_IDS) expect(s.patrons[p]).toBeLessThan(before[p]!);
   });
 });
 

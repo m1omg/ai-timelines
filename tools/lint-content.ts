@@ -178,6 +178,13 @@ function checkEffectRefs(
     case 'family':
       if (!FAMILY_IDS.includes(e.family)) err(`${where}: unknown family "${e.family}"`);
       break;
+    case 'commons':
+      // Pays the whole field, so there is no id to resolve — but a negative payment would
+      // silently drain every school at once, which no piece of content should be doing.
+      if (e.value < 0) err(`${where}: commons effect must be positive, got ${e.value}`);
+      break;
+    case 'promises':
+      break;
     default:
       break;
   }
