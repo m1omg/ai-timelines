@@ -9,10 +9,10 @@ import {
 } from '../../src/engine/describe';
 import { availableDirectives, canAfford, takeDirective } from '../../src/engine/directives';
 import { CHARACTER_BY_ID, familyAt } from '../../src/content/characters';
-import { FAMILIES, PARADIGM_BY_ID } from '../../src/content/paradigms';
+import { FAMILIES, PARADIGMS, PARADIGM_BY_ID } from '../../src/content/paradigms';
 import { leadingFamily } from '../../src/engine/conditions';
 import { applyEffect } from '../../src/engine/effects';
-import { advanceTurn } from '../../src/engine/sim';
+import { advanceTurn, prereqsMet } from '../../src/engine/sim';
 import { TOTAL_TURNS, cloneState, createState } from '../../src/engine/state';
 import { gaugeValue, spendableInfluence } from '../../src/ui/console';
 import type { GameState } from '../../src/engine/types';
@@ -354,5 +354,39 @@ describe('people who changed their minds', () => {
     // 1950: SNARC-era Minsky. The momentum must go to the connectionists.
     const fam = card.effects.find((e) => e.kind === 'family');
     expect(fam && fam.kind === 'family' && fam.family).toBe('connectionist');
+  });
+});
+
+describe('the cross-entropy dependency', () => {
+  /*
+   * A language model is trained by minimising cross-entropy against the objective Shannon
+   * posed in 1951, so the statistical school has to have got somewhere real first. The gate
+   * has to sit above where a century drifts to on its own — autonomous actors fund statistics
+   * whether or not the player does — or it is a statement rather than a trade-off.
+   */
+  it('puts the LLM chain behind statistical insight', () => {
+    const p = PARADIGM_BY_ID['self-supervision']!;
+    expect(p.familyPrereqs?.statistical).toBeGreaterThanOrEqual(90);
+  });
+
+  it('blocks the chain below the threshold and clears it above', () => {
+    const need = PARADIGM_BY_ID['self-supervision']!.familyPrereqs!.statistical!;
+    const starved = createState(51);
+    starved.families.statistical.insight = need - 1;
+    expect(prereqsMet(starved, PARADIGM_BY_ID['self-supervision']!)).toBe(false);
+
+    const funded = createState(51);
+    funded.families.statistical.insight = need + 1;
+    // Its own paradigm prereq still has to hold; check the family gate specifically.
+    funded.paradigms.attention!.status = 'mature';
+    expect(prereqsMet(funded, PARADIGM_BY_ID['self-supervision']!)).toBe(true);
+  });
+
+  it('leaves the rest of the connectionist school reachable without it', () => {
+    // Backprop, convnets, attention and the rest must not be hostage to another school.
+    const gated = PARADIGMS.filter(
+      (p) => p.family === 'connectionist' && p.familyPrereqs?.statistical !== undefined,
+    );
+    expect(gated.map((p) => p.id)).toEqual(['self-supervision']);
   });
 });

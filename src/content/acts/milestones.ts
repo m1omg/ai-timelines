@@ -28,7 +28,7 @@ export const MILESTONES: Scene[] = [
     title: 'Let It Think For Longer',
     when: all(
       mature('scaling-regime'),
-      fam('statistical', 'insight', '>', 45),
+      fam('statistical', 'insight', '>', 120),
       notMature('continual-networks'),
     ),
     lines: [

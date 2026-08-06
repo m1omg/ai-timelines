@@ -226,9 +226,17 @@ export const CONNECTIONIST: Paradigm[] = [
      * Next-token prediction trained by cross-entropy is Shannon's F_N with the estimate done by
      * gradient descent instead of by his wife guessing letters. The objective is not
      * connectionist property and never was, so the school that owns it has to have got
-     * somewhere before this can.
+     * somewhere real before this can.
+     *
+     * 100, not the 36 this first shipped with. Measured across 200 runs, a century that ignores
+     * the statistical school still drifts to about 66 insight by the 2020s — autonomous actors
+     * fund it, allied schools feed it, and the substrate dividends land on whoever is behind —
+     * so a gate at 36 cleared four decades before the thing it gated was even possible and
+     * never once bound. A century that actually backs both sits near 240 by 2022. 100 is the
+     * line between not suppressing a school and investing in it, which is where the trade-off
+     * belongs: you cannot get to a language model on connectionist money alone.
      */
-    familyPrereqs: { statistical: 36 },
+    familyPrereqs: { statistical: 100 },
     cost: 92,
     computeNeed: 20.5,
     capability: 26,
