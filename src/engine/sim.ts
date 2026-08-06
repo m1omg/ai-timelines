@@ -15,7 +15,16 @@ const EMPHASIS_SUPPORT = 2.2;
 const IDLE_SUPPORT = 0.12;
 const PROMISE_DECAY = 0.75;
 const ATTENTION_DECAY = 0.82;
-const WINTER_STRAIN = 9;
+/*
+ * How far promises may outrun delivery before the gap starts counting against you, and how many
+ * consecutive turns of that it takes to break the funding.
+ *
+ * Lowered from 9. At 9 the median century had roughly one collapse in a hundred years, which
+ * made a winter feel like bad luck rather than the standing risk of working in a field that
+ * lives on expectation. The point of the rule is that it should be in the back of your mind
+ * every time you talk the work up.
+ */
+const WINTER_STRAIN = 7;
 const WINTER_STREAK = 2;
 
 export interface TickReport {

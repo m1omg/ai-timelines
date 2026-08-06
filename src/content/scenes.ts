@@ -6,13 +6,24 @@ import { ACT4 } from './acts/act4';
 import { ACT5 } from './acts/act5';
 import { ACT6 } from './acts/act6';
 import { ACT7 } from './acts/act7';
+import { ARRIVALS } from './acts/arrivals';
 import { OPENING } from './acts/opening';
 
 /**
  * Act 0 scenes (the opening chain) are excluded from SCENES so the scheduler never picks them;
  * main.ts plays them explicitly. They are still in SCENE_BY_ID so chain following works.
  */
-export const SCENES: Scene[] = [...ACT1, ...ACT2, ...ACT3, ...ACT4, ...ACT5, ...ACT6, ...ACT7];
+export const SCENES: Scene[] = [
+  ...ACT1,
+  ...ACT2,
+  ...ACT3,
+  ...ACT4,
+  ...ACT5,
+  ...ACT6,
+  // One public-arrival scene per school, act 6, fired only for the school that leads.
+  ...ARRIVALS,
+  ...ACT7,
+];
 
 export const ALL_SCENES: Scene[] = [...OPENING, ...SCENES];
 

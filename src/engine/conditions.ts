@@ -156,6 +156,7 @@ export const flagIs = (flag: string, value: FlagValue): Condition => ({ kind: 'f
 export const flagSet = (flag: string): Condition => ({ kind: 'flagSet', flag });
 export const mature = (id: string): Condition => ({ kind: 'paradigm', id, status: 'mature' });
 export const notMature = (id: string): Condition => not(mature(id));
+export const leadFamily = (family: FamilyId): Condition => ({ kind: 'leadFamily', family });
 export const resource = (
   key: Extract<Condition, { kind: 'resource' }>['key'],
   op: CmpOp,
