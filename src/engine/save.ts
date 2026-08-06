@@ -65,6 +65,13 @@ function migrate(s: GameState): GameState {
     if (!s.actors[id]) s.actors[id] = fresh.actors[id]!;
   }
   if (typeof s.promises !== 'number') s.promises = 0;
+  /*
+   * The balance chart and the decision tree arrived after people had already started centuries.
+   * Backfilling empty rather than bumping SAVE_VERSION keeps those saves loadable: an older run
+   * simply has no record before the point it was upgraded, which the charts say plainly.
+   */
+  if (!Array.isArray(s.history)) s.history = [];
+  if (!Array.isArray(s.decisions)) s.decisions = [];
   return s;
 }
 

@@ -8,6 +8,7 @@ import { clearSave, exportSave, hasSave, importSave, loadGame, saveGame } from '
 import { TOTAL_TURNS, createState } from './engine/state';
 import type { GameState, Scene } from './engine/types';
 import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady } from './ui/audio';
+import { renderBalance } from './ui/balance';
 import { renderDirectives, renderTopbar } from './ui/console';
 import { renderCodex, renderLog } from './ui/codex';
 import { renderActBreak, renderEnding, renderReport } from './ui/report';
@@ -58,6 +59,7 @@ function refreshTopbar(): void {
     onTree: () => openOverlay((el, close) => renderTree(el, state, close)),
     onCodex: () => openOverlay((el, close) => renderCodex(el, state, close)),
     onLog: () => openOverlay((el, close) => renderLog(el, state, close)),
+    onBalance: () => openOverlay((el, close) => renderBalance(el, state, close)),
     onMenu: () => openOverlay((el, close) => renderMenu(el, close)),
     onBack: rewind ? goBack : undefined,
     backLabel: rewind?.at.choice,

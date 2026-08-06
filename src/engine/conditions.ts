@@ -1,3 +1,4 @@
+import { familyStanding } from './describe';
 import type { CmpOp, Condition, FamilyId, FlagValue, GameState } from './types';
 import { FAMILY_IDS } from './types';
 
@@ -25,13 +26,18 @@ export function compare(a: FlagValue, op: CmpOp, b: FlagValue): boolean {
   }
 }
 
-/** The family with the largest share of matured work, weighted by insight. Ties break by id order. */
+/**
+ * The school currently holding the field. Ties break by id order.
+ *
+ * Scored by `familyStanding`, the same definition the balance chart, the turn report and the
+ * ending summary use — three places that used to compute "who is winning" slightly differently
+ * and could therefore disagree on screen within the same turn.
+ */
 export function leadingFamily(s: GameState): FamilyId {
   let best: FamilyId = FAMILY_IDS[0];
   let bestScore = -Infinity;
   for (const f of FAMILY_IDS) {
-    const st = s.families[f];
-    const score = st.matured * 10 + st.insight + st.talent * 20;
+    const score = familyStanding(s, f);
     if (score > bestScore) {
       bestScore = score;
       best = f;

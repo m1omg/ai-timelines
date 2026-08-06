@@ -1,5 +1,6 @@
 import { ERAS, eraForAct } from '../art/palette';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
+import { leadingFamily } from '../engine/conditions';
 import { resolveEnding } from '../engine/endings';
 import { ACT_TITLES, ACT_TURNS, yearOfTurn } from '../engine/state';
 import type { GameState, TickReportLike } from './types';
@@ -52,9 +53,7 @@ export function renderReport(root: HTMLElement, s: GameState, r: TickReportLike,
     );
   }
 
-  const lead = FAMILY_IDS.reduce((a, b) =>
-    s.families[a].matured * 10 + s.families[a].insight > s.families[b].matured * 10 + s.families[b].insight ? a : b,
-  );
+  const lead = leadingFamily(s);
 
   root.innerHTML = `<div class="panel"><div class="wrap report">
     <!-- The four years the previous directive board governed. Must not overlap the next

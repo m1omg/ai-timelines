@@ -2,9 +2,10 @@ import { AUTHORED_DIRECTIVES } from '../content/directives';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { CHARACTER_BY_ID } from '../content/characters';
 import { evaluate } from './conditions';
+import { describeEffects, effectFamily } from './describe';
 import { applyEffects } from './effects';
 import { computeAdequacy, fundableParadigms } from './sim';
-import type { Directive, GameState } from './types';
+import type { Decision, Directive, GameState } from './types';
 import { FAMILY_IDS, PATRON_IDS } from './types';
 
 /**
@@ -157,7 +158,25 @@ export function takeDirective(s: GameState, d: Directive): boolean {
   s.resources.influence -= d.cost;
   s.directivesTaken.push(d.id);
   applyEffects(s, d.effects);
+  recordDecision(s, {
+    turn: s.turn,
+    year: s.year,
+    kind: 'directive',
+    label: d.name,
+    source: d.id,
+    family: effectFamily(d.effects),
+    influenceSpent: d.cost,
+    consequences: describeEffects(d.effects),
+  });
   return true;
+}
+
+/**
+ * Append to the decision record. Tolerates the field being absent, which it is on any save
+ * written before the decision tree existed.
+ */
+export function recordDecision(s: GameState, d: Decision): void {
+  (s.decisions ??= []).push(d);
 }
 
 /** Used by the console to show what a paradigm is currently receiving. */

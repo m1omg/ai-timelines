@@ -214,6 +214,48 @@ export interface GameState {
   directivesTaken: string[];
   /** Set once an ending has been reached. */
   ending: string | null;
+
+  /**
+   * One row per completed turn, for the balance-of-power chart. Kept in the save because a
+   * chart that starts blank every time you reload is not a record of anything. Optional so
+   * that saves written before it existed still load; `migrate` backfills an empty array.
+   */
+  history?: TurnSnapshot[];
+  /**
+   * Every choice and every directive the player has taken, with what it did. This is the raw
+   * material for the decision tree, and the reason it is stored rather than recomputed: the
+   * effect of a decision depends on the state it landed in, which is gone by the time you
+   * look at it. Optional for the same save-compatibility reason as `history`.
+   */
+  decisions?: Decision[];
+}
+
+/** A reading of where the field stood at the end of one turn. */
+export interface TurnSnapshot {
+  turn: number;
+  year: number;
+  /** Each school's share of the field's standing, 0–1, summing to 1. */
+  shares: Record<FamilyId, number>;
+  capability: number;
+  understanding: number;
+  computeLog: number;
+  inWinter: boolean;
+}
+
+export interface Decision {
+  turn: number;
+  year: number;
+  /** A line in a scene, or a card on the directive board. */
+  kind: 'choice' | 'directive';
+  /** What the player clicked. */
+  label: string;
+  /** Scene id or directive id, for grouping. */
+  source: string;
+  /** The school this decision favoured, where it favoured one. */
+  family?: FamilyId;
+  influenceSpent: number;
+  /** What it did, already in words — see engine/describe.ts. */
+  consequences: string[];
 }
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 import { ACTORS } from '../content/actors';
 import { FAMILIES, PARADIGMS, PARADIGM_BY_ID } from '../content/paradigms';
+import { recordSnapshot } from './describe';
 import { normaliseTalent } from './effects';
 import { next as rand } from './rng';
 import { INSIGHT_FROM_MATURITY, actOfTurn, yearOfTurn } from './state';
@@ -453,5 +454,6 @@ export function advanceTurn(s: GameState): TickReport {
     });
   }
 
+  recordSnapshot(s);
   return report;
 }

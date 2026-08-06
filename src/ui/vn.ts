@@ -2,6 +2,8 @@ import { backdropSvg } from '../art/backdrops';
 import { portraitSvg, signalSvg } from '../art/portraits';
 import { CHARACTER_BY_ID } from '../content/characters';
 import { evaluate } from '../engine/conditions';
+import { describeEffects, effectFamily } from '../engine/describe';
+import { recordDecision } from '../engine/directives';
 import { applyEffects } from '../engine/effects';
 import { cloneState } from '../engine/state';
 import type { BackdropId, Choice, GameState, Line, Scene } from '../engine/types';
@@ -216,6 +218,16 @@ export function playScene(
           if (ch.cost) s.resources.influence = Math.max(0, s.resources.influence - ch.cost);
           applyEffects(s, ch.effects);
           s.log.push({ year: s.year, text: `— ${ch.text}`, kind: 'choice' });
+          recordDecision(s, {
+            turn: s.turn,
+            year: s.year,
+            kind: 'choice',
+            label: ch.text,
+            source: scene.id,
+            family: effectFamily(ch.effects),
+            influenceSpent: ch.cost ?? 0,
+            consequences: describeEffects(ch.effects),
+          });
           detach();
           resolve({
             goto: ch.goto ?? scene.next ?? null,

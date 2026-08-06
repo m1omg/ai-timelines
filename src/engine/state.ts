@@ -1,6 +1,7 @@
 import { ACTORS } from '../content/actors';
 import { CHARACTERS } from '../content/characters';
 import { PARADIGMS } from '../content/paradigms';
+import { recordSnapshot } from './describe';
 import type { FamilyId, GameState, ParadigmState, PatronId } from './types';
 import { FAMILY_IDS, PATRON_IDS } from './types';
 
@@ -112,7 +113,7 @@ export function createState(seed: number): GameState {
     characters[c.id] = { affinity: 0, met: false, active: false };
   }
 
-  return {
+  const state: GameState = {
     version: 1,
     seed,
     rng: seed | 0,
@@ -143,7 +144,13 @@ export function createState(seed: number): GameState {
     inWinter: false,
     directivesTaken: [],
     ending: null,
+    history: [],
+    decisions: [],
   };
+
+  // Row zero, so the balance chart has a starting line rather than opening on an empty box.
+  recordSnapshot(state);
+  return state;
 }
 
 /** Deep-enough clone for the playtest harness and for speculative UI previews. */
@@ -163,6 +170,10 @@ export function cloneState(s: GameState): GameState {
     log: s.log.slice(),
     winters: s.winters.map((w) => ({ ...w })),
     directivesTaken: s.directivesTaken.slice(),
+    // Both must be copied, not shared: the Back button holds one of these clones as its undo
+    // point, and a shared array would keep collecting the decisions it is supposed to erase.
+    history: (s.history ?? []).map((h) => ({ ...h, shares: { ...h.shares } })),
+    decisions: (s.decisions ?? []).map((d) => ({ ...d, consequences: d.consequences.slice() })),
   };
 }
 
