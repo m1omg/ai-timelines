@@ -576,7 +576,9 @@ export const CHARACTERS: Character[] = [
     name: 'Rafael Okonjo-Barros',
     kind: 'fictional',
     family: 'collective',
-    span: [2030, 2050],
+    // Invented, so the span is a choice rather than a record. Widened because a collective
+    // century accretes early and its reckoning can come long before the 2030s.
+    span: [2014, 2050],
     portraitSeed: 4104,
     look: { era: 2030, build: 'broad', hair: 'short', accent: '#d89a4a' },
     bio: 'Organiser for the distributed commons. Holds that the question was never which paradigm wins but who is permitted to run it.',
@@ -586,7 +588,9 @@ export const CHARACTERS: Character[] = [
     name: 'Meiling Sørensen',
     kind: 'fictional',
     family: 'cybernetic',
-    span: [2030, 2050],
+    // Widened for the same reason: eleven years of a machine in a house has to start somewhere,
+    // and on this branch that can be the 2010s.
+    span: [2018, 2050],
     portraitSeed: 4105,
     look: { era: 2030, build: 'slim', hair: 'tied', accent: '#c86f8a' },
     bio: 'Developmental roboticist. Raises her systems rather than training them, and is extremely tired of being asked how long it takes.',

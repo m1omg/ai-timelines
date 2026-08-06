@@ -37,7 +37,11 @@ describe('content shape', () => {
 
   it('keeps real people out of the speculative acts', () => {
     const historical = new Set(CHARACTERS.filter((c) => c.kind === 'historical').map((c) => c.id));
-    for (const s of SCENES.filter((x) => x.act >= 6)) {
+    // The rule is about the year, not the act number: an era-free scene is bounded by its
+    // years window instead, and 2026 is where the reconstruction stops.
+    const pastTheRecord = (x: (typeof SCENES)[number]) =>
+      x.act === 'any' ? (x.years?.[1] ?? 2050) > 2026 : x.act >= 6;
+    for (const s of SCENES.filter(pastTheRecord)) {
       for (const line of s.lines) {
         expect(line.who && historical.has(line.who), `${s.id} puts words in a real person's mouth`).toBeFalsy();
       }

@@ -373,7 +373,14 @@ export interface Choice {
 
 export interface Scene {
   id: string;
-  act: number;
+  /**
+   * The act this scene belongs to, or `'any'` for a scene whose timing is a property of the
+   * run rather than of the story's structure. An `'any'` scene must carry `years`, which then
+   * does all the work the act would have done — including bounding the linter's anachronism
+   * checks. Use it sparingly: a scene that could happen at any point usually means it has not
+   * been decided what it is about.
+   */
+  act: number | 'any';
   /** Fires only in a turn whose year falls in this window. */
   years?: [number, number];
   /** Higher wins when several scenes are eligible in the same turn. */

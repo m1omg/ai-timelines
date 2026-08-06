@@ -229,6 +229,25 @@ function checkDeadGates(): void {
 // 3. Anachronisms — content that cannot fire in the window it claims
 // ---------------------------------------------------------------------------
 
+/**
+ * The last year the game is reconstructing rather than projecting: the end of act V.
+ * Everything after this is invented, which is what the depiction rules turn on.
+ */
+const RECORD_END = yearOfTurn(ACT_TURNS[4]![1]);
+
+/**
+ * Could this scene put words in someone's mouth after the record stops?
+ *
+ * This used to be `act >= 6`, which was right only for as long as every scene belonged to an
+ * act. An era-free scene is bounded by its years instead, and the rule was always about the
+ * year rather than the act number — a real person may not speak past the record, wherever the
+ * scene happens to be filed.
+ */
+function playsPastTheRecord(s: { act: number | 'any'; years?: [number, number] }): boolean {
+  if (s.act === 'any') return (s.years?.[1] ?? END_YEAR) > RECORD_END;
+  return s.act >= 6;
+}
+
 function actYearRange(act: number): [number, number] {
   const range = ACT_TURNS[act - 1];
   if (!range) return [START_YEAR, END_YEAR];
@@ -238,7 +257,19 @@ function actYearRange(act: number): [number, number] {
 function checkAnachronisms(): void {
   for (const s of ALL_SCENES) {
     if (s.act === 0) continue;
-    const [lo, hi] = actYearRange(s.act);
+
+    /*
+     * An `'any'` scene is not bound to an act, so its own `years` window is the only thing
+     * saying when it can fire — which makes `years` mandatory there. Everything downstream
+     * (paradigm eras, character spans) is then checked against that window exactly as it would
+     * be against an act's, so going era-free costs no coverage.
+     */
+    if (s.act === 'any' && !s.years) {
+      err(`${s.id}: act "any" requires a years window, or nothing bounds when it can fire`);
+      continue;
+    }
+
+    const [lo, hi] = s.act === 'any' ? s.years! : actYearRange(s.act);
 
     if (s.years) {
       if (s.years[0] > s.years[1]) err(`${s.id}: years window is inverted`);
@@ -430,9 +461,9 @@ function checkDepiction(): void {
     if (c.span[0] > c.span[1]) err(`character ${c.id}: span is inverted`);
   }
 
-  // No real person may appear in an act set beyond the present day.
+  // No real person may appear anywhere the scene could play past the present day.
   for (const s of ALL_SCENES) {
-    if (s.act < 6) continue;
+    if (!playsPastTheRecord(s)) continue;
     for (const line of s.lines) {
       const c = line.who ? CHARACTER_BY_ID[line.who] : undefined;
       if (c?.kind === 'historical') {

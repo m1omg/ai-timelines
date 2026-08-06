@@ -2,8 +2,16 @@ import { all, any, leadFamily, mature, resource } from '../../engine/conditions'
 import type { Scene } from '../../engine/types';
 
 /**
- * THE ARRIVALS — 2030-2042. One per school, and only for the school that actually holds the
- * field.
+ * THE ARRIVALS — one per school, only for the school that actually holds the field, and each
+ * in the era that school could plausibly have reached people in.
+ *
+ * These sat in act VI at first, which was an artefact of how scenes are filed rather than an
+ * argument: connectionism arrives in 2022 and everyone else waited until the 2030s because that
+ * was where there was room. That is the same flattening in a different place — it says every
+ * alternative is a late version of the same event. Expert systems were the 1980s; Thompson's
+ * evolved circuit is 1996; Pearl's causal work is 2000. A century those schools won does not
+ * queue behind the one they beat. So each of these is `act: 'any'` with its own window, and
+ * fires whenever its school is genuinely holding the field with the work to show for it.
  *
  * Act V hands connectionism a text box and a hundred million users in two months, because that
  * is what happened. The problem with stopping there is that it quietly teaches the player that
@@ -32,8 +40,8 @@ import type { Scene } from '../../engine/types';
 export const ARRIVALS: Scene[] = [
   {
     id: 'a6-arrival-symbolic',
-    act: 6,
-    years: [2030, 2042],
+    act: 'any',
+    years: [1998, 2046],
     priority: 9,
     backdrop: 'committee',
     title: 'The Right to an Answer',
@@ -85,8 +93,8 @@ export const ARRIVALS: Scene[] = [
 
   {
     id: 'a6-arrival-statistical',
-    act: 6,
-    years: [2030, 2042],
+    act: 'any',
+    years: [2006, 2046],
     priority: 9,
     backdrop: 'observatory',
     title: 'Insufficient Evidence',
@@ -138,8 +146,8 @@ export const ARRIVALS: Scene[] = [
 
   {
     id: 'a6-arrival-evolutionary',
-    act: 6,
-    years: [2030, 2042],
+    act: 'any',
+    years: [2006, 2046],
     priority: 9,
     backdrop: 'workshop',
     title: 'Nobody Drew This',
@@ -190,8 +198,8 @@ export const ARRIVALS: Scene[] = [
 
   {
     id: 'a6-arrival-collective',
-    act: 6,
-    years: [2030, 2042],
+    act: 'any',
+    years: [2014, 2046],
     priority: 9,
     backdrop: 'city-night',
     title: 'The Tuesday',
@@ -244,8 +252,8 @@ export const ARRIVALS: Scene[] = [
 
   {
     id: 'a6-arrival-cybernetic',
-    act: 6,
-    years: [2030, 2042],
+    act: 'any',
+    years: [2018, 2046],
     priority: 9,
     backdrop: 'garden',
     title: 'Eleven Years',
@@ -307,8 +315,8 @@ export const ARRIVALS: Scene[] = [
 
   {
     id: 'a6-arrival-substrate',
-    act: 6,
-    years: [2030, 2042],
+    act: 'any',
+    years: [2022, 2046],
     priority: 9,
     backdrop: 'ruins',
     title: 'The Quiet Watt',
@@ -362,8 +370,8 @@ export const ARRIVALS: Scene[] = [
 
   {
     id: 'a6-arrival-bridge',
-    act: 6,
-    years: [2030, 2042],
+    act: 'any',
+    years: [2018, 2046],
     priority: 9,
     backdrop: 'committee',
     title: 'Admissible',

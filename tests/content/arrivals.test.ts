@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { ARRIVALS } from '../../src/content/acts/arrivals';
 import { SCENES } from '../../src/content/scenes';
-import { ACT_TURNS } from '../../src/engine/state';
 import type { Condition, Effect, FamilyId } from '../../src/engine/types';
 import { FAMILY_IDS } from '../../src/engine/types';
 
@@ -16,7 +15,7 @@ function conditionsIn(c: Condition | undefined, out: Condition[] = []): Conditio
 
 const effectsOf = (family: FamilyId): Effect[] => {
   const sc = ARRIVALS.find((s) => conditionsIn(s.when).some((c) => c.kind === 'leadFamily' && c.family === family));
-  return (sc?.choices ?? []).flatMap((ch) => ch.effects);
+  return (sc?.choices ?? []).flatMap((ch) => ch.effects ?? []);
 };
 
 const netOf = (family: FamilyId, key: string): number => {
@@ -24,7 +23,7 @@ const netOf = (family: FamilyId, key: string): number => {
   // Best case across the scene's choices, which is what a player optimising for it would get.
   return Math.max(
     ...(sc?.choices ?? []).map((ch) =>
-      ch.effects.reduce((n, e) => (e.kind === 'resource' && e.key === key ? n + e.value : n), 0),
+      (ch.effects ?? []).reduce((n, e) => (e.kind === 'resource' && e.key === key ? n + e.value : n), 0),
     ),
   );
 };
@@ -45,15 +44,22 @@ describe('the arrivals', () => {
     }
   });
 
-  it('sits inside act VI', () => {
-    const [lo, hi] = ACT_TURNS[5]!;
-    const loYear = 1950 + lo * 4;
-    const hiYear = 1950 + hi * 4;
+  /*
+   * Each arrival is era-free and carries its own window, because the era a school could reach
+   * people in is a fact about that school. Filing them all in one act made every alternative a
+   * late version of connectionism's moment, which is the flattening these scenes exist to undo.
+   */
+  it('lets each school arrive in its own era, not in one shared decade', () => {
+    const starts = new Set<number>();
     for (const s of ARRIVALS) {
-      expect(s.act).toBe(6);
-      expect(s.years![0]).toBeGreaterThanOrEqual(loYear);
-      expect(s.years![1]).toBeLessThanOrEqual(hiYear);
+      expect(s.act).toBe('any');
+      expect(s.years).toBeDefined();
+      expect(s.years![0]).toBeLessThan(s.years![1]);
+      starts.add(s.years![0]);
     }
+    // Several distinct opening years, and at least one that beats connectionism's 2022.
+    expect(starts.size).toBeGreaterThanOrEqual(4);
+    expect(Math.min(...starts)).toBeLessThan(2022);
   });
 
   it('lets no historical figure speak past the record', () => {

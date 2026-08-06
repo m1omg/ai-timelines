@@ -11,7 +11,8 @@ import type { GameState, Scene } from './types';
 
 export function isEligible(s: GameState, sc: Scene): boolean {
   if (sc.once !== false && s.seenScenes.includes(sc.id)) return false;
-  if (sc.act !== s.act && sc.act !== 0) return false;
+  // `'any'` is era-free: its `years` window and conditions decide when it fires, not the act.
+  if (sc.act !== 'any' && sc.act !== s.act && sc.act !== 0) return false;
   if (sc.years) {
     const [lo, hi] = sc.years;
     if (s.year < lo || s.year > hi) return false;
