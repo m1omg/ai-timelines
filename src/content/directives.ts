@@ -200,14 +200,16 @@ export const AUTHORED_DIRECTIVES: Directive[] = [
   },
   {
     id: 'listen',
-    name: 'Say nothing this term',
+    name: 'Say nothing this term — ends the term',
     blurb:
-      'Watch. Some centuries you learn more by not touching it. Returns your unspent influence with interest.',
+      'Touch nothing, and let the four years pass on their own. Everything you have not spent carries over, with a little interest, and you watch what the field does when you leave it alone.',
     cost: 0,
     category: 'field',
+    endsTurn: true,
     effects: [
       { kind: 'resource', key: 'influence', op: 'add', value: 4 },
       { kind: 'resource', key: 'understanding', op: 'add', value: 2 },
+      { kind: 'log', text: 'A term passes with no instruction given.', logKind: 'choice' },
     ],
   },
   {

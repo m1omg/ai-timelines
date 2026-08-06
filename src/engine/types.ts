@@ -383,6 +383,12 @@ export interface Directive {
   effects: Effect[];
   /** Repeatable within a single turn. Default false. */
   repeatable?: boolean;
+  /**
+   * Taking this ends the term immediately. Such a directive is only offered while nothing else
+   * has been taken, so it stays a real commitment rather than a free bonus on top of a full
+   * turn of spending.
+   */
+  endsTurn?: boolean;
   category: 'fund' | 'people' | 'field' | 'world';
 }
 

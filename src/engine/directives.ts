@@ -142,6 +142,8 @@ export function availableDirectives(s: GameState): Directive[] {
   ];
   return all.filter((d) => {
     if (!d.repeatable && s.directivesTaken.includes(d.id)) return false;
+    // "Do nothing this term" cannot honestly be offered after you have already done something.
+    if (d.endsTurn && s.directivesTaken.length > 0) return false;
     return evaluate(d.when, s);
   });
 }

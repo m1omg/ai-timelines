@@ -239,6 +239,7 @@ function runOnce(policy: PolicyName, seed: number): RunResult {
         const chosen = weightedPick(s, options, (d) => scoreDirective(policy, d, s));
         if (!chosen) break;
         if (!takeDirective(s, chosen)) break;
+        if (chosen.endsTurn) break;
         if (s.resources.influence < 3) break;
       }
 

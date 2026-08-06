@@ -160,6 +160,10 @@ export function renderDirectives(
         sfxSelect();
         takeDirective(s, d);
         onChange?.();
+        if (d.endsTurn) {
+          onAdvance();
+          return;
+        }
         draw();
       });
     });
