@@ -434,6 +434,18 @@ export interface Character {
   kind: 'historical' | 'composite' | 'fictional';
   family: FamilyId | null;
   /**
+   * People change their minds, and the ones who changed them hardest are the ones this game is
+   * most about. An entry here overrides `family` from `from` onward, so a figure's allegiance
+   * moves with the record: Minsky built a forty-synapse learning machine in 1951, co-wrote the
+   * book that bounded what one-layer networks could do in 1969, and proposed mind as a society
+   * of mindless agents in 1986 — connectionist, symbolic and collective, in that order, and he
+   * meant all three.
+   *
+   * Only for shifts that are documented in the person's own published work. `family` remains
+   * the affiliation before the first entry.
+   */
+  affiliations?: { from: number; family: FamilyId | null }[];
+  /**
    * The framing device rather than a person in the field. Narrators are met and active for the
    * whole century, which without this made the board offer to fund them a research chair.
    */

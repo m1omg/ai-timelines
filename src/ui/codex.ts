@@ -1,5 +1,5 @@
 import { familyColour } from '../art/palette';
-import { CHARACTERS } from '../content/characters';
+import { CHARACTERS, familyAt } from '../content/characters';
 import { FAMILIES, PARADIGMS } from '../content/paradigms';
 import { CODEX_ESSAYS } from '../content/codex';
 import type { GameState } from '../engine/types';
@@ -64,12 +64,20 @@ export function renderCodex(root: HTMLElement, s: GameState, onClose: () => void
       if (met.length === 0) return '<p style="color:var(--dim)">You have not met anyone yet.</p>';
       return met
         .map((c) => {
-          const colour = c.family ? familyColour(FAMILIES[c.family].hue, era) : era.accent;
+          const now = familyAt(c, s.year);
+          const colour = now ? familyColour(FAMILIES[now].hue, era) : era.accent;
           const aff = s.characters[c.id]!.affinity;
+          // People who changed their minds get the whole arc, not just where they ended up.
+          const arc = c.affiliations?.length
+            ? c.affiliations
+                .map((a) => `${a.from} ${a.family ? FAMILIES[a.family].name : 'unaffiliated'}`)
+                .join(' → ')
+            : null;
           const rel = aff > 40 ? 'owes you a great deal' : aff > 12 ? 'thinks well of you' : aff < -30 ? 'has not forgiven you' : aff < -10 ? 'is wary of you' : 'has no particular opinion';
           return `<div class="entry" style="--fam:${colour}">
             <h4>${escapeHtml(c.name)}</h4>
-            <div class="meta">${c.kind === 'historical' ? 'historical figure' : c.kind} · ${c.span[0]}–${c.span[1]}${c.family ? ` · ${escapeHtml(FAMILIES[c.family].name)}` : ''} · ${rel}</div>
+            <div class="meta">${c.kind === 'historical' ? 'historical figure' : c.kind} · ${c.span[0]}–${c.span[1]}${now ? ` · ${escapeHtml(FAMILIES[now].name)}` : ''} · ${rel}</div>
+            ${arc ? `<div class="meta arc">changed schools: ${escapeHtml(arc)}</div>` : ''}
             <p>${escapeHtml(c.bio)}</p>
             ${c.sources?.length ? `<div class="src">Sources: ${c.sources.map(escapeHtml).join(' · ')}</div>` : ''}
           </div>`;

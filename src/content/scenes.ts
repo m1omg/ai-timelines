@@ -7,6 +7,7 @@ import { ACT5 } from './acts/act5';
 import { ACT6 } from './acts/act6';
 import { ACT7 } from './acts/act7';
 import { ARRIVALS } from './acts/arrivals';
+import { MILESTONES } from './acts/milestones';
 import { OPENING } from './acts/opening';
 
 /**
@@ -20,8 +21,10 @@ export const SCENES: Scene[] = [
   ...ACT4,
   ...ACT5,
   ...ACT6,
-  // One public-arrival scene per school, act 6, fired only for the school that leads.
+  // One public-arrival scene per school, fired only for the school that leads.
   ...ARRIVALS,
+  // Real results that a school actually shipped, whether or not anyone noticed.
+  ...MILESTONES,
   ...ACT7,
 ];
 

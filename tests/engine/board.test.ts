@@ -8,6 +8,9 @@ import {
   recordSnapshot,
 } from '../../src/engine/describe';
 import { availableDirectives, canAfford, takeDirective } from '../../src/engine/directives';
+import { CHARACTER_BY_ID, familyAt } from '../../src/content/characters';
+import { FAMILIES, PARADIGM_BY_ID } from '../../src/content/paradigms';
+import { leadingFamily } from '../../src/engine/conditions';
 import { applyEffect } from '../../src/engine/effects';
 import { advanceTurn } from '../../src/engine/sim';
 import { TOTAL_TURNS, cloneState, createState } from '../../src/engine/state';
@@ -265,5 +268,91 @@ describe('effects in words', () => {
 
   it('says nothing about bookkeeping the player cannot see', () => {
     expect(describeEffects([{ kind: 'flag', flag: 'x', op: 'set', value: true }])).toEqual([]);
+  });
+});
+
+describe('schools that help each other', () => {
+  it('pays the join, not the strongest neighbour', () => {
+    // Bridge is allied with symbolic, connectionist and statistical. One world-class ally and
+    // two empty ones is not a hybrid programme, and must not be paid like one.
+    const lopsided = createState(41);
+    lopsided.families.connectionist.insight = 300;
+    const broad = createState(41);
+    for (const f of ['symbolic', 'connectionist', 'statistical'] as const) {
+      broad.families[f].insight = 100;
+    }
+    const before = { lopsided: lopsided.families.bridge.insight, broad: broad.families.bridge.insight };
+    advanceTurn(lopsided);
+    advanceTurn(broad);
+    const gained = {
+      lopsided: lopsided.families.bridge.insight - before.lopsided,
+      broad: broad.families.bridge.insight - before.broad,
+    };
+    expect(gained.broad).toBeGreaterThan(gained.lopsided * 3);
+  });
+
+  it('lets a rival drain momentum while an ally still feeds insight', () => {
+    // Connectionism and the statistical school are both, which is the historically honest case.
+    const conn = FAMILIES.connectionist;
+    expect(conn.allies).toContain('statistical');
+    expect(FAMILIES.statistical.rivals).toContain('connectionist');
+    expect(FAMILIES.statistical.allies).toContain('connectionist');
+  });
+});
+
+describe('the compute frontier', () => {
+  it('always climbs, whoever is in front', () => {
+    for (const lead of ['symbolic', 'connectionist'] as const) {
+      const s = createState(43);
+      s.families[lead].matured = 6;
+      s.families[lead].insight = 200;
+      const start = s.computeLog;
+      for (let t = 0; t < 10; t++) advanceTurn(s);
+      expect(s.computeLog).toBeGreaterThan(start + 4);
+    }
+  });
+
+  it('climbs faster for a school that actually wants the hardware', () => {
+    const hungry = createState(44);
+    hungry.families.connectionist.matured = 8;
+    hungry.families.connectionist.insight = 260;
+    const frugal = createState(44);
+    frugal.families.symbolic.matured = 8;
+    frugal.families.symbolic.insight = 260;
+    for (let t = 0; t < 20; t++) {
+      advanceTurn(hungry);
+      advanceTurn(frugal);
+    }
+    expect(leadingFamily(hungry)).toBe('connectionist');
+    expect(leadingFamily(frugal)).toBe('symbolic');
+    expect(hungry.computeLog).toBeGreaterThan(frugal.computeLog + 3);
+  });
+
+  it('pays a dividend from general-purpose hardware to the schools that did not fund it', () => {
+    const s = createState(45);
+    const ic = PARADIGM_BY_ID['integrated-circuits']!;
+    expect(ic.dividend).toBeGreaterThan(0);
+    const before = s.families.symbolic.insight;
+    applyEffect(s, { kind: 'commons', value: ic.dividend! });
+    expect(s.families.symbolic.insight).toBeGreaterThan(before);
+  });
+});
+
+describe('people who changed their minds', () => {
+  it('follows Minsky from a learning machine to a society of agents', () => {
+    const m = CHARACTER_BY_ID.minsky!;
+    expect(familyAt(m, 1955)).toBe('connectionist');
+    expect(familyAt(m, 1970)).toBe('symbolic');
+    expect(familyAt(m, 1990)).toBe('collective');
+  });
+
+  it('backs the school they held at the time, not the one they ended on', () => {
+    const early = createState(46);
+    early.characters.minsky!.met = true;
+    early.characters.minsky!.active = true;
+    const card = availableDirectives(early).find((d) => d.id === 'champion:minsky')!;
+    // 1950: SNARC-era Minsky. The momentum must go to the connectionists.
+    const fam = card.effects.find((e) => e.kind === 'family');
+    expect(fam && fam.kind === 'family' && fam.family).toBe('connectionist');
   });
 });

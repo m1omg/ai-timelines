@@ -1,4 +1,4 @@
-import type { Character } from '../engine/types';
+import type { Character, FamilyId } from '../engine/types';
 
 /**
  * DEPICTION RULES — enforced by tools/lint-content.ts and by review.
@@ -94,12 +94,28 @@ export const CHARACTERS: Character[] = [
     id: 'minsky',
     name: 'Marvin Minsky',
     kind: 'historical',
-    family: 'symbolic',
+    family: 'connectionist',
+    /*
+     * The clearest case in the cast of somebody changing their mind in public, twice, and
+     * meaning it every time. Built a forty-synapse reinforcement learning machine as a graduate
+     * student, spent two decades on symbolic AI and co-wrote the book that bounded what a
+     * one-layer network could compute, then proposed mind as a society of mindless agents.
+     */
+    affiliations: [
+      { from: 1951, family: 'connectionist' },
+      { from: 1959, family: 'symbolic' },
+      { from: 1986, family: 'collective' },
+    ],
     span: [1955, 2016],
     portraitSeed: 1927.5,
     look: { era: 1955, build: 'broad', hair: 'bald', glasses: true, accent: '#d8a24a' },
-    bio: 'Co-founder of the MIT AI Laboratory. Built an early neural learning machine as a graduate student, later co-authored the formal analysis that bounded what single-layer perceptrons can compute, and proposed mind as a society of simple agents.',
-    sources: ['Steps Toward Artificial Intelligence (1961)', 'Perceptrons (with Papert, 1969)', 'The Society of Mind (1986)'],
+    bio: 'Co-founder of the MIT AI Laboratory, and the cast\u2019s clearest case of somebody changing schools in public. Built SNARC, a forty-synapse reinforcement learning machine, with Dean Edmonds in 1951; spent the following two decades on symbolic AI and co-authored the formal analysis bounding what single-layer perceptrons can compute; then in 1986 proposed mind as a society of simple mindless agents with no central controller.',
+    sources: [
+      'SNARC, with Dean Edmonds (1951)',
+      'Steps Toward Artificial Intelligence (1961)',
+      'Perceptrons (with Papert, 1969)',
+      'The Society of Mind (1986)',
+    ],
   },
   {
     id: 'rosenblatt',
@@ -344,12 +360,21 @@ export const CHARACTERS: Character[] = [
     id: 'pearl',
     name: 'Judea Pearl',
     kind: 'historical',
-    family: 'statistical',
+    family: 'symbolic',
+    // Came to probability through heuristic search, not the other way round.
+    affiliations: [
+      { from: 1982, family: 'symbolic' },
+      { from: 1988, family: 'statistical' },
+    ],
     span: [1982, 2026],
     portraitSeed: 1936.8,
     look: { era: 1982, build: 'slim', hair: 'short', glasses: true, accent: '#9a7fc8' },
-    bio: 'Introduced Bayesian networks as a tractable representation of probabilistic knowledge, then developed the calculus of interventions and counterfactuals that distinguishes causation from correlation.',
-    sources: ['Probabilistic Reasoning in Intelligent Systems (1988)', 'Causality (2000)'],
+    bio: 'Worked first on heuristic search and game trees, then introduced Bayesian networks as a tractable representation of probabilistic knowledge, and finally developed the calculus of interventions and counterfactuals that distinguishes causation from correlation.',
+    sources: [
+      'Heuristics: Intelligent Search Strategies for Computer Problem Solving (1984)',
+      'Probabilistic Reasoning in Intelligent Systems (1988)',
+      'Causality (2000)',
+    ],
   },
   {
     id: 'brooks',
@@ -630,4 +655,26 @@ export function character(id: string): Character {
   const c = CHARACTER_BY_ID[id];
   if (!c) throw new Error(`unknown character: ${id}`);
   return c;
+}
+
+/**
+ * Which school this person belonged to in a given year.
+ *
+ * Allegiance is not a fixed property of a person. Minsky built a learning machine, then spent
+ * twenty years arguing against learning machines, then proposed mind as a society of agents,
+ * and every one of those was sincere. Backing him in 1955 is not backing the same programme as
+ * backing him in 1990, and the board should say so.
+ */
+export function familyAt(c: Character, year: number): FamilyId | null {
+  if (!c.affiliations?.length) return c.family;
+  let current = c.family;
+  for (const a of c.affiliations) {
+    if (year >= a.from) current = a.family;
+  }
+  return current;
+}
+
+/** The arc in words, for the Codex: "connectionist → symbolic → collective". */
+export function affiliationArc(c: Character): { from: number; family: FamilyId | null }[] {
+  return c.affiliations ?? [];
 }

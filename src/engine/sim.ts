@@ -250,11 +250,20 @@ function updateMomentumAndTalent(s: GameState, matured: string[]): void {
     s.families[f].momentum = s.families[f].momentum * 0.65 + fresh * 9 - rivalPressure + allyLift;
     s.families[f].momentum = Math.max(-50, Math.min(100, s.families[f].momentum));
 
-    // Complementary work compounds: a school with two strong allies gains more than one with
-    // a single strong ally, which is why the bridge column needs a broad portfolio behind it.
-    let trickle = 0;
-    for (const a of def.allies) trickle += insightBefore[a]! * 0.010;
-    s.families[f].insight += trickle;
+    /*
+     * The insight side takes the *weakest* ally, not the sum. Complementary work pays for the
+     * join, and a join is only as good as its thinnest side: neurosymbolic integration needs
+     * both halves, and a century with world-class networks and no logic gets nothing from it.
+     *
+     * Summing was wrong in a way the linter could not see and the playtest could — one strong
+     * neighbour was enough to float a school that had done nothing, which quietly made the
+     * bridge column free and left the scene about a narrow century unable to fire at all.
+     */
+    if (def.allies.length > 0) {
+      let weakest = Infinity;
+      for (const a of def.allies) weakest = Math.min(weakest, insightBefore[a]!);
+      s.families[f].insight += weakest * 0.022;
+    }
   }
 
   // Researchers follow fashion, with a lag. The lag is what makes bandwagons and hangovers.

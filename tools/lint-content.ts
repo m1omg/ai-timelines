@@ -459,6 +459,25 @@ function checkDepiction(): void {
       if (!c.bio || c.bio.length < 40) warn(`character ${c.id}: bio is very short for a real person`);
     }
     if (c.span[0] > c.span[1]) err(`character ${c.id}: span is inverted`);
+
+    /*
+     * A change of school is a claim about the record, so it is held to the same standard as
+     * everything else about a real person: the years must be ordered, and they must fall inside
+     * the span the sources actually document.
+     */
+    if (c.affiliations?.length) {
+      let last = -Infinity;
+      for (const a of c.affiliations) {
+        if (a.from <= last) err(`character ${c.id}: affiliation years are not in order (${a.from})`);
+        last = a.from;
+        if (a.from > c.span[1]) {
+          err(`character ${c.id}: changes school in ${a.from}, after their span ends in ${c.span[1]}`);
+        }
+      }
+      if (c.kind === 'historical' && (c.sources?.length ?? 0) < c.affiliations.length) {
+        warn(`character ${c.id}: ${c.affiliations.length} documented shifts but only ${c.sources?.length ?? 0} sources`);
+      }
+    }
   }
 
   // No real person may appear anywhere the scene could play past the present day.

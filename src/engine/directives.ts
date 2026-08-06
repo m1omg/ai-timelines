@@ -1,6 +1,6 @@
 import { AUTHORED_DIRECTIVES } from '../content/directives';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
-import { CHARACTER_BY_ID } from '../content/characters';
+import { CHARACTER_BY_ID, familyAt } from '../content/characters';
 import { evaluate } from './conditions';
 import { describeEffects, effectFamily } from './describe';
 import { applyEffects } from './effects';
@@ -141,19 +141,23 @@ function championDirectives(s: GameState): Directive[] {
     // The Archivist and the Second Voice are the frame, not researchers you can endow.
     if (!c || c.narrator) continue;
 
+    // Which school they belong to *now*. Backing Minsky in 1955 funds a learning machine;
+    // backing him in 1990 funds a society of agents. Same person, different bet.
+    const family = familyAt(c, s.year);
+
     if (st.affinity < 60) {
       out.push({
         id: `champion:${id}`,
         name: `Champion ${c.name}`,
-        blurb: c.family
-          ? `A chair, a grant, a hearing. ${FAMILIES[c.family].name} gains, and they remember who arranged it.`
+        blurb: family
+          ? `A chair, a grant, a hearing. ${FAMILIES[family].name} gains, and they remember who arranged it.`
           : `A hearing, at a moment when nobody else will give them one. They belong to no school, so what they leave behind goes to whichever school has least.`,
         cost: CHAMPION_COST,
         category: 'people',
-        effects: c.family
+        effects: family
           ? [
               { kind: 'character', id, field: 'affinity', op: 'add', value: 18 },
-              { kind: 'family', family: c.family, field: 'momentum', op: 'add', value: 4 },
+              { kind: 'family', family, field: 'momentum', op: 'add', value: 4 },
             ]
           : [
               { kind: 'character', id, field: 'affinity', op: 'add', value: 18 },
@@ -164,7 +168,7 @@ function championDirectives(s: GameState): Directive[] {
       });
     }
 
-    if (!c.family && st.affinity >= CENTREPIECE_AFFINITY) {
+    if (!family && st.affinity >= CENTREPIECE_AFFINITY) {
       out.push({
         id: `centrepiece:${id}`,
         name: `Put ${c.name}'s question at the centre of the field`,
