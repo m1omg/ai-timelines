@@ -4,14 +4,60 @@ import type { Directive, GameState } from '../engine/types';
 import { sfxSelect } from './audio';
 import { escapeHtml } from './vn';
 
-const GAUGES: { key: keyof GameState['resources']; label: string; max: number; warnAbove?: boolean }[] = [
-  { key: 'influence', label: 'influence', max: 60 },
-  { key: 'capability', label: 'capability', max: 260 },
-  { key: 'understanding', label: 'understanding', max: 140 },
-  { key: 'attention', label: 'attention', max: 100 },
-  { key: 'credibility', label: 'credibility', max: 100 },
-  { key: 'deployment', label: 'deployment', max: 100 },
-  { key: 'exposure', label: 'exposure', max: 100, warnAbove: true },
+/**
+ * `max` must match the ceiling in engine/effects.ts, or the bar fills long before the number
+ * does. `hint` is the tooltip — the labels say what a gauge is called, not what it means.
+ */
+const GAUGES: {
+  key: keyof GameState['resources'];
+  label: string;
+  max: number;
+  hint: string;
+  warnAbove?: boolean;
+}[] = [
+  {
+    key: 'influence',
+    label: 'influence',
+    max: 60,
+    hint: 'What you spend on directives. Unspent influence carries over, and you regenerate more of it each turn when the field has credibility.',
+  },
+  {
+    key: 'capability',
+    label: 'capability',
+    max: 400,
+    hint: 'What the field can actually do. Rises when a paradigm matures on hardware able to demonstrate it.',
+  },
+  {
+    key: 'understanding',
+    label: 'understanding',
+    max: 300,
+    hint: 'How much of what has been built anyone can explain. Decays as the frontier moves, so it needs continuous investment.',
+  },
+  {
+    key: 'attention',
+    label: 'attention',
+    max: 100,
+    hint: 'Public and institutional excitement. The cheapest thing to raise and the most expensive to owe — sustained attention is a debt against delivery.',
+  },
+  {
+    key: 'credibility',
+    label: 'credibility',
+    max: 100,
+    hint: 'The field\'s standing with the people holding the chequebooks. Feeds your influence; collapses in a winter.',
+  },
+  {
+    key: 'deployment',
+    label: 'deployment',
+    max: 100,
+    hint: 'How far the technology has spread into ordinary life.',
+  },
+  {
+    key: 'exposure',
+    label: 'exposure',
+    max: 100,
+    hint: 'Accumulated consequence nobody has got round to addressing. Grows fastest when capability outruns understanding.',
+    warnAbove: true,
+  },
 ];
 
 export interface TopbarHandlers {
@@ -26,22 +72,24 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
     const v = s.resources[g.key];
     const pct = Math.max(0, Math.min(100, (v / g.max) * 100));
     const warn = g.warnAbove ? v > 45 : false;
-    return `<div class="gauge${warn ? ' warn' : ''}" title="${g.label}">
-      <b>${g.label.slice(0, 4)}</b>
+    return `<div class="gauge${warn ? ' warn' : ''}" title="${escapeHtml(g.hint)}">
+      <b>${g.label}</b>
       <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
       <span class="val">${Math.round(v)}</span>
     </div>`;
   }).join('');
 
   el.innerHTML = `
-    <span class="year">${s.year}</span>
-    <span class="act">Act ${roman(s.act)} · ${escapeHtml(ACT_TITLES[s.act - 1] ?? '')}${s.inWinter ? ' · <b style="color:var(--warn)">WINTER</b>' : ''}</span>
-    <div class="gauges">${gauges}</div>
-    <span class="spacer"></span>
-    <button data-a="tree">Paradigms</button>
-    <button data-a="codex">Codex</button>
-    <button data-a="log">Record</button>
-    <button data-a="menu">Menu</button>`;
+    <div class="topline">
+      <span class="year">${s.year}</span>
+      <span class="act">Act ${roman(s.act)} · ${escapeHtml(ACT_TITLES[s.act - 1] ?? '')}${s.inWinter ? ' · <b style="color:var(--warn)">WINTER</b>' : ''}</span>
+      <span class="spacer"></span>
+      <button data-a="tree">Paradigms</button>
+      <button data-a="codex">Codex</button>
+      <button data-a="log">Record</button>
+      <button data-a="menu">Menu</button>
+    </div>
+    <div class="gauges">${gauges}</div>`;
 
   el.querySelector('[data-a="tree"]')!.addEventListener('click', h.onTree);
   el.querySelector('[data-a="codex"]')!.addEventListener('click', h.onCodex);
