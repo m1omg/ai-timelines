@@ -122,10 +122,13 @@ body::after {
 /* ---------------------------------------------------------------- stage */
 
 .stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.backdrop { position: absolute; inset: 0; opacity: 0.34; }
+/* The fade-in ends with `both`, so its last keyframe outranks any plain opacity rule an era
+   might set. Both read the same custom property instead, which is the only way an era can
+   turn its own rooms up. */
+.backdrop { position: absolute; inset: 0; --bd: 0.34; opacity: var(--bd); }
 .backdrop svg { width: 100%; height: 100%; display: block; }
 .backdrop.fade { animation: bdIn 1.4s ease both; }
-@keyframes bdIn { from { opacity: 0; transform: scale(1.04); } to { opacity: 0.34; transform: none; } }
+@keyframes bdIn { from { opacity: 0; transform: scale(1.04); } to { opacity: var(--bd); transform: none; } }
 
 .portrait {
   position: absolute;
@@ -651,9 +654,16 @@ html[data-era='cga'] button:hover:not(:disabled) {
   border-color: var(--ink);
   transform: none;
 }
+/* Inverting the whole card is the period-correct hover, but everything inside it is coloured by
+   its school, and a school colour on a solid cyan field is unreadable. Under inversion the card
+   goes monochrome — the school is named in the text anyway. */
 html[data-era='cga'] .card:hover .blurb,
 html[data-era='cga'] .card:hover .cost,
 html[data-era='cga'] .choice:hover .hint { color: var(--paper); }
+html[data-era='cga'] .card:hover .effects i {
+  color: var(--paper);
+  border-color: color-mix(in srgb, var(--paper) 55%, transparent);
+}
 /* The 50% checkerboard the hardware used wherever it needed a tone it did not have. */
 html[data-era='cga'] .gauge .bar,
 html[data-era='cga'] .standing .track,
@@ -665,6 +675,10 @@ html[data-era='cga'] .owed .bar {
   background-color: transparent;
 }
 html[data-era='cga'] .dialogue .inner { border-left-width: 3px; }
+/* The backdrops are drawn in the era's ink at low opacity. Against mode 5's absolute black
+   that is much darker than against the near-black the other CRT eras use, so the act's rooms
+   need turning up or they disappear entirely. */
+html[data-era='cga'] .backdrop { --bd: 0.55; }
 
 /* --- Act IV · the browser. Beige, bevelled, and laid out by someone who had just been given
        tables. Panels sit slightly proud of the page; the accent is a link blue. */
