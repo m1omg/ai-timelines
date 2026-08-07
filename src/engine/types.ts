@@ -307,6 +307,15 @@ export type Condition =
   | { kind: 'ratio'; num: ResourceKey; den: ResourceKey; op: CmpOp; value: number }
   | { kind: 'patron'; patron: PatronId; op: CmpOp; value: number }
   | { kind: 'compute'; op: CmpOp; value: number }
+  /**
+   * The two stored quantities the winter rule reads. `promises` is outstanding excitement not
+   * yet backed by delivery; `gapStreak` is how many consecutive turns that gap has been open.
+   *
+   * Exposed as a condition so the historical funding reviews can be gated on the field actually
+   * having over-promised, rather than on the calendar. A review that happens in a century which
+   * delivered is not a review, it is scenery.
+   */
+  | { kind: 'strain'; field: 'promises' | 'gapStreak'; op: CmpOp; value: number }
   | { kind: 'paradigm'; id: string; status?: ParadigmStatus | ParadigmStatus[]; minProgress?: number }
   | { kind: 'family'; family: FamilyId; field: keyof FamilyState; op: CmpOp; value: number }
   | { kind: 'leadFamily'; family: FamilyId }

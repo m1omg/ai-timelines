@@ -86,6 +86,8 @@ export function evaluate(c: Condition | undefined, s: GameState): boolean {
     case 'patron':
       return compare(s.patrons[c.patron], c.op, c.value);
 
+    case 'strain':
+      return compare(c.field === 'promises' ? s.promises : s.gapStreak, c.op, c.value);
     case 'compute':
       return compare(s.computeLog, c.op, c.value);
 
@@ -157,6 +159,10 @@ export const flagSet = (flag: string): Condition => ({ kind: 'flagSet', flag });
 export const mature = (id: string): Condition => ({ kind: 'paradigm', id, status: 'mature' });
 export const notMature = (id: string): Condition => not(mature(id));
 export const leadFamily = (family: FamilyId): Condition => ({ kind: 'leadFamily', family });
+/** Outstanding excitement the field has not yet delivered against. */
+export const promises = (op: CmpOp, value: number): Condition => ({ kind: 'strain', field: 'promises', op, value });
+/** Consecutive turns the expectation gap has been open. Non-zero means funders have noticed. */
+export const gapStreak = (op: CmpOp, value: number): Condition => ({ kind: 'strain', field: 'gapStreak', op, value });
 export const resource = (
   key: Extract<Condition, { kind: 'resource' }>['key'],
   op: CmpOp,

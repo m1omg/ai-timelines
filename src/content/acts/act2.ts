@@ -1,4 +1,4 @@
-import { all, any, flagIs, flagSet, mature, not, notMature } from '../../engine/conditions';
+import { all, any, flagIs, flagSet, gapStreak, mature, notMature, promises, resource } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -17,6 +17,18 @@ export const ACT2: Scene[] = [
     priority: 9,
     backdrop: 'committee',
     title: 'The First Bill',
+    /*
+     * The 1966 report did not conclude that machine translation was impossible. It concluded
+     * that after a decade and twenty million dollars there was still nothing a working
+     * translator would use, and that human translation was cheaper and better. So the review
+     * happens when the field has taken money and not put anything into the world — a century
+     * that actually shipped by 1966 does not get audited for failing to ship.
+     *
+     * 16 is measured, not guessed: at the moment the scheduler evaluates this scene, a century
+     * chasing deployment sits at 16-23 in 1966 and 22-34 in 1970, while one chasing attention
+     * sits at 3-12 and 5-16. The threshold is the line between those two populations.
+     */
+    when: resource('deployment', '<', 16),
     lines: [
       {
         text: 'A government committee reports on twelve years of machine translation funding. It is not hostile. It is worse than hostile: it is arithmetical.',
@@ -182,6 +194,14 @@ export const ACT2: Scene[] = [
     act: 2,
     years: [1966, 1974],
     pinned: true,
+    /*
+     * Deliberately unconditional, unlike the two funding reviews around it. The other beats are
+     * verdicts on whether the field delivered, and gating them on delivery is what makes them
+     * honest. This one is a theorem. What a single layer cannot compute is true in every
+     * century, and the answer to it — assigning blame through a hidden layer — is not published
+     * until 1974 and not carried to the field until 1986. The book is right when it is written
+     * and stays right for as long as it takes somebody to build the thing it does not cover.
+     */
     priority: 9,
     backdrop: 'lecture-hall',
     title: 'A Proof, and What Is Done With It',
@@ -274,8 +294,18 @@ export const ACT2: Scene[] = [
     priority: 10,
     backdrop: 'committee',
     title: 'The Review',
-    when: not(flagSet('lighthillDone')),
-    onEnter: [{ kind: 'flag', flag: 'lighthillDone', op: 'set', value: true }],
+    /*
+     * This used to read `not(flagSet('lighthillDone'))` while setting `lighthillDone` itself on
+     * entry — a condition that can only be true on a first play, which `once` already
+     * guarantees. It looked like a gate, passed the linter, and fired the 1973 review into
+     * every century including ones with nothing to review.
+     *
+     * The real charge was that the field had promised general intelligence and delivered
+     * results that did not survive leaving the toy problem. So it is gated on the quantity the
+     * winter rule itself reads: outstanding excitement not yet backed by delivery, or a gap
+     * that funders have already started asking about.
+     */
+    when: any(promises('>', 13), gapStreak('>', 0)),
     lines: [
       {
         text: 'A research council commissions an applied mathematician with no stake in the field to say whether it is delivering. He is thorough and he is not unkind and that makes it worse.',

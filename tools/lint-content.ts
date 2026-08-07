@@ -142,6 +142,11 @@ function checkConditionRefs(
     case 'leadFamily':
       if (!FAMILY_IDS.includes(c.family)) err(`${where}: unknown family "${c.family}"`);
       break;
+    // Reads a scalar off the state; there is no id to resolve, but a negative threshold on a
+    // quantity that is clamped at zero would be a gate that is always open.
+    case 'strain':
+      if (c.value < 0) err(`${where}: strain condition on "${c.field}" tests below zero, which is always true`);
+      break;
     default:
       break;
   }
@@ -187,6 +192,45 @@ function checkEffectRefs(
       break;
     default:
       break;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 1b. Vacuous gates — a `when` that cannot be false on a first play
+// ---------------------------------------------------------------------------
+
+/**
+ * A scene whose only condition tests a flag it sets in its own `onEnter` is not gated at all:
+ * `once` already prevents a replay, so the condition is true exactly when the scene has not
+ * played, which is every time it is asked.
+ *
+ * This is not a dead gate — the flag *is* written, so check 2 passes — and it is satisfiable,
+ * so the reachability check passes too. It reads as a condition and behaves as scenery, which
+ * is how the 1973 funding review came to fire into centuries that had nothing to review.
+ */
+function checkVacuousGates(): void {
+  for (const s of ALL_SCENES) {
+    if (!s.when) continue;
+    const setsOwn = new Set(
+      (s.onEnter ?? []).filter((e) => e.kind === 'flag').map((e) => (e as { flag: string }).flag),
+    );
+    if (setsOwn.size === 0) continue;
+
+    const tests = allConditionsIn(s)
+      .map(({ c }) => c)
+      .filter((c) => c.kind !== 'all' && c.kind !== 'any' && c.kind !== 'not');
+    if (tests.length === 0) continue;
+
+    const meaningful = tests.filter((c) => {
+      const flag = c.kind === 'flagSet' ? c.flag : c.kind === 'flag' ? c.flag : null;
+      return !(flag && setsOwn.has(flag));
+    });
+    if (meaningful.length === 0) {
+      err(
+        `${s.id}: its only gate tests "${[...setsOwn].join(', ')}", which the scene sets itself — ` +
+          `that is what \`once\` already does, so this scene is unconditional`,
+      );
+    }
   }
 }
 
@@ -547,6 +591,7 @@ function checkCoverage(): void {
 
 function main(): void {
   checkReferences();
+  checkVacuousGates();
   checkDeadGates();
   checkAnachronisms();
   checkCycles();
