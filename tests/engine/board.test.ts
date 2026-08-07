@@ -10,7 +10,8 @@ import {
 import { availableDirectives, canAfford, takeDirective } from '../../src/engine/directives';
 import { CHARACTER_BY_ID, familyAt } from '../../src/content/characters';
 import { FAMILIES, PARADIGMS, PARADIGM_BY_ID } from '../../src/content/paradigms';
-import { leadingFamily } from '../../src/engine/conditions';
+import { evaluate, leadingFamily } from '../../src/engine/conditions';
+import { SCENE_BY_ID } from '../../src/content/scenes';
 import { applyEffect } from '../../src/engine/effects';
 import { advanceTurn, prereqsMet } from '../../src/engine/sim';
 import { TOTAL_TURNS, cloneState, createState } from '../../src/engine/state';
@@ -417,5 +418,33 @@ describe('taking a directive back', () => {
     takeDirective(s, d);
     expect(availableDirectives(s).some((x) => x.id === d.id)).toBe(false);
     expect(availableDirectives(before).some((x) => x.id === d.id)).toBe(true);
+  });
+});
+
+describe('the expectation debt', () => {
+  /*
+   * `promises` is the quantity the winter rule reads and the one the menu text describes to the
+   * player, and it was displayed nowhere. A funding review gated on it therefore arrived looking
+   * arbitrary, and the collapse it warned about looked like bad luck.
+   */
+  it('is what the historical funding review reads, not the winter flag', () => {
+    const s = createState(71);
+    const lighthill = SCENE_BY_ID['a2-lighthill']!;
+    s.promises = 0;
+    s.gapStreak = 0;
+    expect(evaluate(lighthill.when, s)).toBe(false);
+    s.promises = 20;
+    expect(evaluate(lighthill.when, s)).toBe(true);
+    // It must not require a winter — the review is the leading indicator, not the aftermath.
+    expect(s.inWinter).toBe(false);
+  });
+
+  it('does not charge credibility on entry, which would feed the collapse it warns about', () => {
+    // Winter tolerance is 5 + credibility x 0.1, so docking credibility here would make the
+    // very outcome this scene is warning about more likely. That is a spiral, not a consequence.
+    const lighthill = SCENE_BY_ID['a2-lighthill']!;
+    for (const e of lighthill.onEnter ?? []) {
+      expect(e.kind === 'resource' && e.key === 'credibility').toBe(false);
+    }
   });
 });

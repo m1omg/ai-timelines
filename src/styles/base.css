@@ -104,6 +104,21 @@ body::after {
 .patron .lab { letter-spacing: 0.04em; white-space: nowrap; }
 .patron .v { color: var(--ink); font-variant-numeric: tabular-nums; }
 
+/* The expectation debt. Same row as the patrons because it is the other half of the same
+   relationship: what they are giving you, and what you owe them against it. */
+.owed { display: flex; align-items: center; gap: 5px; font-size: 9.5px; color: var(--dim); }
+.owed .bar {
+  display: block; width: clamp(26px, 4.5vw, 54px); height: 3px;
+  background: color-mix(in srgb, var(--dim) 30%, transparent);
+}
+.owed .bar i { display: block; height: 100%; background: var(--dim); transition: width 0.6s ease; }
+.owed .lab { letter-spacing: 0.04em; white-space: nowrap; }
+.owed .v { color: var(--ink); font-variant-numeric: tabular-nums; }
+.owed.warn { color: var(--warn); }
+.owed.warn .bar i { background: var(--warn); }
+.owed.warn .v { color: var(--warn); }
+.owed .asking { color: var(--warn); letter-spacing: 0.06em; white-space: nowrap; }
+
 /* ---------------------------------------------------------------- stage */
 
 .stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }

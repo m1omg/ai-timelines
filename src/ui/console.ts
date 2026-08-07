@@ -130,6 +130,32 @@ export const PATRONS: { key: PatronId; label: string; hint: string }[] = [
   },
 ];
 
+/**
+ * The expectation debt, which the winter rule reads against delivery every turn and which the
+ * interface never showed.
+ *
+ * It is the quantity the whole mechanic turns on — the menu tells the player that if the field
+ * promises more than it delivers for long enough the money leaves — and it was invisible, so a
+ * funding review triggered by it arrived looking arbitrary. A rule you cannot see is not a rule
+ * the player can play against.
+ *
+ * It sits on the patron line rather than among the gauges because it is the same kind of thing:
+ * not something you hold, something you owe to the people who hold the chequebooks.
+ */
+function owedHtml(s: GameState): string {
+  const owed = Math.round(s.promises);
+  const asking = s.gapStreak > 0;
+  const heavy = s.promises > 24;
+  return `<span class="owed${heavy || asking ? ' warn' : ''}" title="${escapeHtml(
+    'Excitement the field has generated and not yet delivered against. It decays on its own and rises when a loud, brittle result matures or you talk the work up. When it outruns delivery for two terms in a row, the funding breaks.',
+  )}">
+    <i class="bar"><i style="width:${Math.max(0, Math.min(100, (s.promises / 45) * 100)).toFixed(0)}%"></i></i>
+    <span class="lab">owed</span>
+    <span class="v">${owed}</span>
+    ${asking ? '<span class="asking">funders asking</span>' : ''}
+  </span>`;
+}
+
 export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): void {
   const gauges = GAUGES.map((g) => {
     const v = s.resources[g.key];
@@ -173,6 +199,7 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
           <span class="v">${Math.round(v)}</span>
         </span>`;
       }).join('')}
+      ${owedHtml(s)}
     </div>`;
 
   if (h.onBack) el.querySelector('[data-a="back"]')!.addEventListener('click', h.onBack);

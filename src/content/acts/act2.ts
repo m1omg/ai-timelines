@@ -322,8 +322,22 @@ export const ACT2: Scene[] = [
         who: 'archivist',
         text: 'He is right about the diagnosis. He is wrong about the prognosis, but nobody in the room can prove it, because the thing that eventually addresses it is thirty years of hardware nobody has yet.',
       },
-      { who: 'archivist', text: 'British AI funding ends within the year. Most of a generation leaves.' },
+      {
+        who: 'archivist',
+        text: 'British AI funding ends within the year and most of that generation leaves. One country, not the field — the American money keeps moving for another eighteen months. But every research council on earth now has a template for how to ask this question, and a precedent for what to do with the answer.',
+      },
     ],
+    /*
+     * Deliberately no `onEnter` penalty, though it is tempting.
+     *
+     * This scene is gated on the same quantity the winter rule reads, so when it fires the
+     * collapse is often already one turn out — it is the leading indicator, not a separate
+     * event, and the choices below are about how you meet it. Charging credibility here as
+     * well would double-count and, worse, would feed back: the winter tolerance is
+     * `5 + credibility × 0.1`, so docking credibility at the moment expectation is already high
+     * makes the collapse it is warning about more likely. That is a spiral the player cannot
+     * get out of, dressed as consequence.
+     */
     choices: [
       {
         text: 'Concede the diagnosis and ask for the machines instead of the promises.',
