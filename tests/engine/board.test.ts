@@ -390,3 +390,32 @@ describe('the cross-entropy dependency', () => {
     expect(gated.map((p) => p.id)).toEqual(['self-supervision']);
   });
 });
+
+describe('taking a directive back', () => {
+  /*
+   * The Back button originally only ever appeared after a *scene* choice, so a term whose
+   * scenes happened to offer none had no undo at all and a mistapped card was permanent.
+   * A purchase has to create an undo point of its own.
+   */
+  it('leaves a snapshot that restores the spend exactly', () => {
+    const s = createState(61);
+    const d = availableDirectives(s).find((x) => canAfford(s, x) && x.cost > 0)!;
+    const before = cloneState(s);
+    takeDirective(s, d);
+
+    expect(s.resources.influence).toBe(before.resources.influence - d.cost);
+    expect(s.directivesTaken).toContain(d.id);
+    expect(before.directivesTaken).not.toContain(d.id);
+    // The snapshot must not share the arrays it is supposed to be able to roll back.
+    expect(before.decisions!.length).toBeLessThan(s.decisions!.length);
+  });
+
+  it('makes the card available to buy again once undone', () => {
+    const s = createState(62);
+    const d = availableDirectives(s).find((x) => canAfford(s, x) && x.cost > 0 && !x.repeatable)!;
+    const before = cloneState(s);
+    takeDirective(s, d);
+    expect(availableDirectives(s).some((x) => x.id === d.id)).toBe(false);
+    expect(availableDirectives(before).some((x) => x.id === d.id)).toBe(true);
+  });
+});

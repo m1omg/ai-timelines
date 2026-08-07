@@ -39,7 +39,15 @@ type PolicyName =
   | 'accelerationist'
   | 'broad'
   | 'synthesis'
-  | `focus:${FamilyId}`;
+  | `focus:${FamilyId}`
+  /**
+   * Backs a school *and the schools it is complementary with*. Added because the game grew
+   * cross-school gates and an alliance mechanic, and every existing policy either backs one
+   * school or spreads evenly across all eight — so nothing in the harness played the way the
+   * synergies now reward, and content behind those gates read as unreachable when it was
+   * merely undiscovered.
+   */
+  | `allied:${FamilyId}`;
 
 interface RunResult {
   policy: PolicyName;
@@ -129,6 +137,19 @@ function scoreDirective(policy: PolicyName, d: Directive, s: GameState): number 
     return 1.5;
   }
 
+  if (policy.startsWith('allied:')) {
+    const lead = policy.slice('allied:'.length) as FamilyId;
+    const wanted = new Set<FamilyId>([lead, ...FAMILIES[lead].allies]);
+    if (d.id.startsWith('fund:') || d.id.startsWith('concentrate:')) {
+      const p = PARADIGM_BY_ID[d.id.split(':')[1]!];
+      if (!p) return 0.4;
+      return p.family === lead ? 14 : wanted.has(p.family) ? 9 : 0.4;
+    }
+    for (const f of wanted) if (d.id === `recruit:${f}`) return f === lead ? 12 : 8;
+    if (d.category === 'world' || d.category === 'field') return 1.2;
+    return 0.6;
+  }
+
   const family = policy.slice('focus:'.length) as FamilyId;
   if (d.id.startsWith('fund:') || d.id.startsWith('concentrate:')) {
     const p = PARADIGM_BY_ID[d.id.split(':')[1]!];
@@ -142,6 +163,18 @@ function scoreDirective(policy: PolicyName, d: Directive, s: GameState): number 
 /** How much a policy likes a given effect. Positive means "seek this out". */
 function effectAppeal(policy: PolicyName, e: Effect): number {
   const fam = policy.startsWith('focus:') ? (policy.slice(6) as FamilyId) : null;
+
+  if (policy.startsWith('allied:')) {
+    const lead = policy.slice('allied:'.length) as FamilyId;
+    const wanted = new Set<FamilyId>([lead, ...FAMILIES[lead].allies]);
+    if (e.kind === 'family' && wanted.has(e.family)) return e.value * (e.family === lead ? 6 : 4);
+    if (e.kind === 'paradigm') {
+      const f = PARADIGM_BY_ID[e.id]?.family;
+      if (f && wanted.has(f)) return (e.value ?? 10) * (f === lead ? 0.5 : 0.35);
+    }
+    if (e.kind === 'commons') return e.value * 2;
+    return 0;
+  }
 
   if (fam) {
     if (e.kind === 'family' && e.family === fam) return e.value * 6;
@@ -299,6 +332,7 @@ function main(): void {
     'broad',
     'synthesis',
     ...FAMILY_IDS.map((f) => `focus:${f}` as PolicyName),
+    ...FAMILY_IDS.map((f) => `allied:${f}` as PolicyName),
   ];
 
   const results: RunResult[] = [];

@@ -2,7 +2,7 @@ import { familyColour } from '../art/palette';
 import { FAMILIES } from '../content/paradigms';
 import { describeEffects, effectFamily } from '../engine/describe';
 import { availableDirectives, canAfford, takeDirective } from '../engine/directives';
-import { ACT_TITLES, TOTAL_TURNS } from '../engine/state';
+import { ACT_TITLES, TOTAL_TURNS, cloneState } from '../engine/state';
 import type { Directive, FamilyId, GameState, PatronId } from '../engine/types';
 import { FAMILY_IDS } from '../engine/types';
 import { sfxSelect } from './audio';
@@ -151,8 +151,8 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
         h.onBack
           ? `<button data-a="back" title="${escapeHtml(
               h.backLabel
-                ? `Undo “${h.backLabel}” and play that moment again. Anything you have spent since then comes back too.`
-                : 'Undo your most recent choice and play that moment again.',
+                ? `Undo “${h.backLabel}”. Everything goes back to just before it, including anything spent since.`
+                : 'Undo your most recent choice. Everything goes back to just before it.',
             )}">◂ Back</button>`
           : ''
       }
@@ -223,6 +223,14 @@ export function renderDirectives(
    * below them updates — influence visibly not going down as you spend it.
    */
   onChange?: () => void,
+  /**
+   * Called with the state as it was *before* a purchase, so the Back button can undo a card.
+   *
+   * Without this the board was the one place in the game where a click could not be taken
+   * back: `rewind` was only ever set by a scene choice, so a term whose scenes happened to
+   * offer none had no Back button at all, and a mistapped directive was permanent.
+   */
+  onRewindPoint?: (before: GameState, label: string) => void,
 ): void {
   const era = currentEra();
   let category: Directive['category'] = 'fund';
@@ -333,8 +341,11 @@ export function renderDirectives(
       btn.addEventListener('click', () => {
         const d = all.find((x) => x.id === btn.dataset.id);
         if (!d || !canAfford(s, d)) return;
+        // Snapshot before the spend, not after, or Back restores the state it is undoing.
+        const before = cloneState(s);
         sfxSelect();
         takeDirective(s, d);
+        onRewindPoint?.(before, d.name);
         onChange?.();
         if (d.endsTurn) {
           onAdvance();

@@ -307,6 +307,12 @@ function directivePhase(): void {
       nextTurn();
     },
     refreshTopbar,
+    // A purchase is an undo point like any other choice. The queue is empty because there are
+    // no scenes left to replay — going back just reopens the board with the money unspent.
+    (before, label) => {
+      rewind = { at: { state: before, choice: label }, queue: [], then: directivePhase };
+      refreshTopbar();
+    },
   );
 }
 
