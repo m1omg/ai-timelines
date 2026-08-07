@@ -1,4 +1,4 @@
-import { all, any, fam, leadFamily, mature, notMature } from '../../engine/conditions';
+import { all, any, fam, leadFamily, mature, notMature, resource } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -231,6 +231,79 @@ export const MILESTONES: Scene[] = [
           { kind: 'resource', key: 'capability', op: 'add', value: 12 },
           { kind: 'patron', patron: 'corporate', op: 'add', value: 12 },
           { kind: 'family', family: 'substrate', field: 'momentum', op: 'add', value: 12 },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'm-it-works',
+    act: 'any',
+    years: [2022, 2042],
+    priority: 8,
+    backdrop: 'city-night',
+    title: 'What Is New',
+    /*
+     * Written to correct a bias in this game that I did not argue for and had not noticed.
+     *
+     * The Archivist's register is deflationary — "the popular account is wrong", "no new idea
+     * was introduced", "the dataset was the contribution". Applied to a marginal school that
+     * reads as vindication; applied to the dominant one it reads as a grudge. Every line about
+     * this school's results arrived with a qualifier attached, and a narrator who only ever
+     * undercuts the winner is not being rigorous, it is being reflexive. This is the one scene
+     * where the case is made straight, and it is put in the same mouth so it costs something.
+     */
+    when: all(mature('scaling-regime'), resource('deployment', '>', 45)),
+    lines: [
+      {
+        who: 'archivist',
+        text: 'I have been careful, all century, to say what was not new. The architecture existed in 1989. The objective was defined in 1951. The credit assignment is the chain rule. Every one of those is true and I have used all of them to take something away from a result.',
+      },
+      {
+        who: 'archivist',
+        text: 'So let me be equally careful about what is. Nothing in the previous seventy years could read an unfamiliar document and answer questions about it. Nothing could write working code from a description. Nothing could translate between two languages it was never paired on, hold a conversation across an hour, or be handed a problem in a field it was not built for and be useful anyway.',
+      },
+      {
+        who: 'archivist',
+        text: 'Generality was the thing the field said it wanted from 1956 and could not get. It did not arrive by anybody understanding intelligence. It arrived from a prediction objective, a great deal of text and a great deal of silicon, which is a genuinely humiliating way for a fifty-year question to be answered — and it is still an answer.',
+      },
+      {
+        who: 'archivist',
+        text: 'Hundreds of millions of people use this daily, for work they were previously doing worse or not at all. I record the caveats because they are load-bearing and because nobody else in the room will. I do not want the caveats mistaken for the verdict.',
+      },
+      {
+        who: 'second',
+        text: 'You sound like you are conceding something.',
+      },
+      {
+        who: 'archivist',
+        text: 'I am. The habit of deflation is a bias like any other, and it is the one this archive is most prone to, because it is the one that sounds most like rigour.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Say it plainly in public. The field should be able to state its own successes.',
+        hint: 'It will be quoted back at you in the next winter.',
+        effects: [
+          { kind: 'resource', key: 'credibility', op: 'add', value: 16 },
+          { kind: 'resource', key: 'attention', op: 'add', value: 14 },
+          { kind: 'resource', key: 'deployment', op: 'add', value: 12 },
+          { kind: 'family', family: 'connectionist', field: 'momentum', op: 'add', value: 12 },
+          { kind: 'patron', patron: 'public', op: 'add', value: 12 },
+          { kind: 'promises', op: 'add', value: 6 },
+        ],
+      },
+      {
+        text: 'Both halves, together, every time. The successes and the units nobody can name.',
+        hint: 'Harder to say, harder to quote, and it survives contact with the next decade.',
+        cost: 5,
+        effects: [
+          { kind: 'resource', key: 'credibility', op: 'add', value: 12 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 16 },
+          { kind: 'resource', key: 'deployment', op: 'add', value: 8 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: -10 },
+          { kind: 'promises', op: 'add', value: -6 },
+          { kind: 'flag', flag: 'sawTheFrame', op: 'set', value: true },
         ],
       },
     ],

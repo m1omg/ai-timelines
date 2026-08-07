@@ -1,5 +1,21 @@
 import type { Paradigm } from '../../engine/types';
 
+/*
+ * A note on brittleness in this file, because it is the number that decides how often a
+ * connectionist century collapses.
+ *
+ * Brittleness scales the expectation a node opens that delivery has to close — it means
+ * *over-promises relative to what it produces*, not *is loud about it*. Those were conflated
+ * here for a long time, which priced this school as loud and hollow when the honest reading is
+ * loud and substantially correct. Convolutional nets read cheques for a banking system.
+ * Accelerated training ended an argument by demonstration. Attention is what the last decade
+ * runs on. Those delivered, and they no longer carry a hollowness penalty.
+ *
+ * What stays high: the Perceptron, where the press genuinely outran the bench by a wide margin
+ * and the field paid for it in 1969; the scaling regime, where the curves are real and the
+ * extrapolation was sold in units nobody could name; and everything past 2026, which is
+ * speculative and should be priced as such.
+ */
 export const CONNECTIONIST: Paradigm[] = [
   {
     id: 'formal-neuron',
@@ -84,7 +100,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 12,
     understanding: 7,
     hype: 30,
-    brittleness: 0.45,
+    brittleness: 0.34,
     anchor: { year: 1986, who: 'Rumelhart, Hinton & Williams (after Werbos, 1974)' },
     codex:
       'The credit-assignment problem — which of the hidden units was responsible for the error? — answered by the chain rule, run backwards through the network. Werbos had it in his 1974 thesis and it went unnoticed; when the PDP volumes carried it to the field in 1986 the effect was seismic. Multi-layer networks stopped being a matter of faith.',
@@ -137,7 +153,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 14,
     understanding: 8,
     hype: 18,
-    brittleness: 0.3,
+    brittleness: 0.22,
     anchor: { year: 1989, who: 'Yann LeCun (after Fukushima’s Neocognitron, 1980)' },
     codex:
       'If the thing you are looking for can appear anywhere in the image, share the weights across positions. That one architectural prior — translation equivariance, local receptive fields, pooling — cut the parameter count enormously and made vision learnable on 1989 hardware. It read cheques for the American banking system throughout the 1990s while the field considered neural networks a dead end.',
@@ -155,7 +171,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 12,
     understanding: 9,
     hype: 12,
-    brittleness: 0.35,
+    brittleness: 0.28,
     anchor: { year: 1997, who: 'Hochreiter & Schmidhuber — LSTM' },
     codex:
       'Gradients travelling back through many time steps either vanish or explode; Hochreiter diagnosed this precisely in 1991. The long short-term memory cell answers it with a protected internal state and multiplicative gates that decide what to keep, write and forget. For fifteen years it was how machines handled sequence, from handwriting to speech to translation.',
@@ -172,7 +188,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 16,
     understanding: 6,
     hype: 26,
-    brittleness: 0.4,
+    brittleness: 0.32,
     anchor: { year: 2006, who: 'Hinton, Osindero & Teh' },
     codex:
       'Deep networks were believed untrainable — until unsupervised layer-by-layer pre-training gave them a sensible starting point, and the resulting depth turned out to matter enormously. Within a few years better initialisation, rectified units and sheer data made the pre-training step unnecessary, but the rebranding stuck. This is the moment "neural networks" became "deep learning".',
@@ -191,7 +207,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 26,
     understanding: 4,
     hype: 48,
-    brittleness: 0.5,
+    brittleness: 0.32,
     anchor: { year: 2012, who: 'Krizhevsky, Sutskever & Hinton — ImageNet' },
     codex:
       'The ingredients had been on the table for twenty years: convolutional nets, backpropagation, gradient descent. What was missing was a million labelled images and a pair of gaming cards. The 2012 result did not introduce an idea so much as end an argument, and the field reorganised around it within eighteen months.',
@@ -209,7 +225,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 30,
     understanding: 6,
     hype: 42,
-    brittleness: 0.45,
+    brittleness: 0.3,
     anchor: { year: 2017, who: 'Vaswani et al. — the transformer' },
     codex:
       'Recurrence forces information through a sequential bottleneck. Attention replaces it with a learned, content-addressed lookup where every element can consult every other in a single parallel step — which is both a better inductive bias for language and, crucially, a shape that modern accelerators can saturate. The architecture that made scaling worth doing.',
@@ -242,7 +258,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 26,
     understanding: 5,
     hype: 40,
-    brittleness: 0.5,
+    brittleness: 0.34,
     anchor: { year: 2018, who: 'the pretraining era' },
     codex:
       'Predicting the next token, or the masked one, needs no annotator — which removes the ceiling that labelled data had imposed on every previous method. The objective is Shannon\u2019s, exactly: minimise the cross-entropy of the next symbol given the context, the quantity he defined and measured by hand in 1951. What emerges is not a next-word predictor but whatever internal machinery next-word prediction requires, which turns out to be a great deal more than anyone expected and considerably less than the marketing claimed.',
@@ -259,7 +275,7 @@ export const CONNECTIONIST: Paradigm[] = [
     capability: 40,
     understanding: 3,
     hype: 60,
-    brittleness: 0.6,
+    brittleness: 0.46,
     anchor: { year: 2020, who: 'the empirical scaling laws' },
     codex:
       'Loss falls as a clean power law in parameters, data and compute across many orders of magnitude — which converts research into forecasting and forecasting into capital expenditure. Nothing in the curves says what capability appears at which loss, so the industry that grew around them was betting on an extrapolation whose units it could not name.',

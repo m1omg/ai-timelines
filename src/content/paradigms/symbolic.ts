@@ -1,5 +1,16 @@
 import type { Paradigm } from '../../engine/types';
 
+/*
+ * This school's hype was under-priced for a long time, which flattered it. It is the one that
+ * promised a chess champion within ten years in 1958, a machine that would read Shakespeare and
+ * do everything a mind does, a national programme of inference engines, and a knowledge base
+ * that would contain common sense. Those were not modest claims and they were not met, and the
+ * five nodes that made them now carry the expectation they actually generated.
+ *
+ * Which is separate from the school being right about a great deal — see the four nodes from
+ * 2001 onward, whose hype is deliberately near zero because nobody promised anything about them
+ * and they simply worked.
+ */
 export const SYMBOLIC: Paradigm[] = [
   {
     id: 'logic-theorist',
@@ -48,8 +59,8 @@ export const SYMBOLIC: Paradigm[] = [
     computeNeed: 5.2,
     capability: 3,
     understanding: 5,
-    hype: 12,
-    brittleness: 0.5,
+    hype: 26,
+    brittleness: 0.7,
     anchor: { year: 1959, who: 'Newell & Simon — General Problem Solver' },
     codex:
       'Measure the difference between the current state and the goal, find an operator that reduces that difference, apply it, repeat. Its authors believed it modelled how people actually solve problems, and collected think-aloud protocols to check. The word "General" in the name turned out to be the expensive part: it was general over toy problems and helpless outside them.',
@@ -100,8 +111,8 @@ export const SYMBOLIC: Paradigm[] = [
     computeNeed: 6.8,
     capability: 6,
     understanding: 8,
-    hype: 14,
-    brittleness: 0.4,
+    hype: 20,
+    brittleness: 0.55,
     anchor: { year: 1972, who: 'Colmerauer & Kowalski — Prolog' },
     codex:
       'If resolution can derive anything entailed by your axioms, then writing the axioms *is* programming. Prolog made that practical by fixing a search order, which meant the declarative dream came with a very procedural set of things you had to know about clause ordering. Europe and later Japan bet heavily on it.',
@@ -117,7 +128,7 @@ export const SYMBOLIC: Paradigm[] = [
     computeNeed: 6.5,
     capability: 9,
     understanding: 4,
-    hype: 34,
+    hype: 40,
     brittleness: 0.85,
     anchor: { year: 1972, who: 'Feigenbaum, Buchanan & Shortliffe — DENDRAL, MYCIN' },
     codex:
@@ -135,8 +146,8 @@ export const SYMBOLIC: Paradigm[] = [
     computeNeed: 8,
     capability: 6,
     understanding: 10,
-    hype: 22,
-    brittleness: 0.7,
+    hype: 30,
+    brittleness: 0.78,
     anchor: { year: 1984, who: 'Douglas Lenat — Cyc' },
     codex:
       'Lenat’s diagnosis was that expert systems were brittle because they lacked the ordinary background knowledge every human has, so he set out to enter it by hand: millions of assertions, decades of work. It is the most sustained bet ever placed on the symbolic hypothesis. Whether it was too small a bet or the wrong bet is still argued.',
@@ -153,8 +164,8 @@ export const SYMBOLIC: Paradigm[] = [
     computeNeed: 8,
     capability: 5,
     understanding: 14,
-    hype: 12,
-    brittleness: 0.3,
+    hype: 22,
+    brittleness: 0.55,
     anchor: { year: 1983, who: 'Newell, Laird & Rosenbloom — Soar; Anderson — ACT*' },
     codex:
       'Newell’s complaint was that the field produced a new theory for every experiment and never assembled them. A cognitive architecture is a fixed set of mechanisms — production memory, chunking, a decision cycle — proposed as the substrate of *all* thinking, and then tested against human reaction times. Its ambition and its obscurity have the same cause: it refused to specialise.',
