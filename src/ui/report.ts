@@ -1,5 +1,5 @@
 import { ERAS, eraForAct } from '../art/palette';
-import { plateCredit, plateUrl } from '../art/plate';
+import { plateClass, plateCredit, plateUrl } from '../art/plate';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
 import { resolveEnding } from '../engine/endings';
@@ -62,7 +62,7 @@ export function renderReport(root: HTMLElement, s: GameState, r: TickReportLike,
     ${
       plate
         ? `<figure class="plate-strip">
-             <img class="plate" src="${plate}" alt="">
+             <img class="${plateClass(era)}" src="${plate}" alt="">
              <figcaption>${escapeHtml(plateCredit(era) ?? '')}</figcaption>
            </figure>`
         : ''
@@ -94,7 +94,7 @@ export function renderActBreak(host: HTMLElement, act: number, onDone: () => voi
   const el = document.createElement('div');
   el.className = 'actbreak';
   el.innerHTML = `
-    ${plate ? `<div class="plate-bed"><img class="plate" src="${plate}" alt=""></div>` : ''}
+    ${plate ? `<div class="plate-bed"><img class="${plateClass(era)}" src="${plate}" alt=""></div>` : ''}
     <div class="numeral">${roman(act)}</div>
     <div class="rule"></div>
     <div class="title">${escapeHtml(ACT_TITLES[act - 1] ?? '')}</div>

@@ -1,5 +1,5 @@
 import { ERAS, familyColour } from '../art/palette';
-import { plateFor, plateUrl } from '../art/plate';
+import { plateClass, plateFor, plateUrl } from '../art/plate';
 import { CHARACTERS, familyAt } from '../content/characters';
 import { FAMILIES, PARADIGMS } from '../content/paradigms';
 import { CODEX_ESSAYS } from '../content/codex';
@@ -89,9 +89,9 @@ export function renderCodex(root: HTMLElement, s: GameState, onClose: () => void
 
     if (tab === 'plates') {
       /*
-       * Where the photographs come from, and where they are credited. Each is shown in its own
-       * era's palette rather than the one you are currently looking at, so the tab doubles as a
-       * record of how the interface has aged — and only the acts you have reached are listed.
+       * Where the photographs come from, and where they are credited — and, read top to bottom,
+       * a record of how much of a photograph each generation of display could actually carry.
+       * Only the acts the run has reached are listed.
        */
       const reached = ERAS.filter((e) => e.act <= s.act && plateFor(e));
       if (reached.length === 0) return '<p style="color:var(--dim)">Nothing yet.</p>';
@@ -99,11 +99,15 @@ export function renderCodex(root: HTMLElement, s: GameState, onClose: () => void
         .map((e) => {
           const plate = plateFor(e)!;
           const url = plateUrl(e);
+          const treatment =
+            plate.tones > 0
+              ? `Reduced to ${plate.w}×${plate.h} in ${plate.tones} ${plate.tones === 2 ? 'tones — one bit, the way a photograph reached a reader through a halftone screen' : "tones, dithered against this act's palette"}`
+              : `Shown at ${plate.w}×${plate.h} in full colour, which by this act the display can finally carry`;
           return `<div class="entry plate-entry" style="--fam:${e.accent}">
-            ${url ? `<img class="plate" src="${url}" alt="${escapeHtml(plate.caption)}">` : ''}
+            ${url ? `<img class="${plateClass(e)}" src="${url}" alt="${escapeHtml(plate.caption)}">` : ''}
             <h4>${escapeHtml(plate.caption)}</h4>
             <div class="meta">${escapeHtml(plate.year)} · act ${e.act}, ${escapeHtml(e.name)}</div>
-            <p>${escapeHtml(plate.credit)}. Reduced to ${plate.w}×${plate.h} in ${plate.tones} tones and painted in this act's palette; the game ships no photograph, only the indices.</p>
+            <p>${escapeHtml(plate.credit)}. ${escapeHtml(treatment)}.</p>
             <div class="src">${escapeHtml(plate.source)}</div>
           </div>`;
         })

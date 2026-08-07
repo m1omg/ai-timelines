@@ -1,6 +1,6 @@
 import './styles/base.css';
 
-import { plateUrl } from './art/plate';
+import { plateClass, plateUrl, prefetchPlates } from './art/plate';
 
 import { SCENES, SCENE_BY_ID } from './content/scenes';
 import { CHARACTERS } from './content/characters';
@@ -161,8 +161,11 @@ function renderMenu(el: HTMLElement, close: () => void): void {
 function titleScreen(): void {
   const era = applyEra(1);
   const plate = plateUrl(era);
+  // Warm the later acts' plates while the title is on screen. They are wanted at an act break,
+  // where a blank two seconds would land in the middle of the one purely theatrical moment.
+  prefetchPlates();
   app.innerHTML = `<div class="title-screen">
-    ${plate ? `<div class="plate-bed title-bed"><img class="plate" src="${plate}" alt=""></div>` : ''}
+    ${plate ? `<div class="plate-bed title-bed"><img class="${plateClass(era)}" src="${plate}" alt=""></div>` : ''}
     <h1>AI TIMELINES</h1>
     <div class="tag">
       A hundred years of argument about what a mind is — 1950 to 2050 — and your hand on where

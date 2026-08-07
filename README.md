@@ -17,8 +17,9 @@ npm install
 npm run dev      # play at http://localhost:5173
 ```
 
-No runtime dependencies. No downloaded assets. Every portrait, backdrop and sound in the game is
-generated in the browser from a seed.
+No runtime dependencies. Every portrait, backdrop and sound in the game is generated in the
+browser from a seed; the only files it loads are the six era plates, one archival photograph
+per act (act VII has none, deliberately).
 
 ---
 
@@ -87,8 +88,8 @@ src/engine/     the simulation — state, seeded RNG, the condition/effect DSL, 
                 autonomous actors, the scene scheduler, endings, save/load
 src/content/    everything authored: paradigms (8 files, one per school), scenes (7 acts),
                 characters, actors, directives, codex essays, endings
-src/art/        procedural SVG — scanline portraits, 16 backdrops, seven era palettes,
-                and the era plates (palette indices only; see below)
+src/art/        procedural SVG — scanline portraits, 16 backdrops, seven era palettes —
+                plus the one exception, the era plates in src/art/plates/
 src/ui/         theme, synthesised audio, the novel renderer, directive board, tree, codex
 tools/          the content linter, the playtest harness, the era-plate generator
 tests/          Vitest suites for the engine and content
@@ -117,14 +118,19 @@ Each act carries one archival photograph of the machinery of its decade — ENIA
 1950, a CDC 6600 console, a Cray-1, a NASA machine room, a Livermore cluster, a wafer-scale
 chip — shown on the act break, beside each report, and collected in the Codex under **Plates**.
 
-They are not shipped as images. `tools/plates/make-plates.py` reduces each photograph to
-320 × 200 at one or two bits per pixel, ordered-dithered for the eras that used a fixed screen
-and error-diffused for the later ones, and writes the *palette indices* into
-`src/art/plates.ts` as base64. The colours are chosen at draw time from whichever era theme is
-live, so the same negative is ink on fanfold paper in act I and cyan on black in act III — and
-the rule that no binary asset is ever committed still holds. Regenerating needs Pillow and a
-network; playing, building and deploying need neither, because the generated module is checked
-in.
+The fidelity is the point. Act I is a one-bit halftone at 960 × 600 — the way a photograph
+reached a reader in 1950, through a screen, as dots. Act III is 320 × 200 in four fixed
+colours, because that is what a colour graphics adapter had, and the pixels are meant to be
+big enough to count. By act IV colour arrives, and by act V the same kind of photograph shows
+up intact at 1920 × 1200, at a resolution nobody in 1950 could have displayed. The century is
+legible in the pictures as well as in the palette.
+
+`tools/plates/make-plates.py` does the reduction: it crops and resamples each source, dithers
+the early ones against their era's ramp — ordered for the eras that used a fixed screen, error
+diffusion elsewhere — reading those colours out of `src/art/palette.ts` so they are defined in
+one place, and writes `src/art/plates/` plus the `src/art/plates.ts` module that imports them.
+Regenerating needs Pillow and a network; playing, building and deploying need neither, because
+the output is committed.
 
 Every source is public domain or CC0 and every one is of a machine or a room rather than a
 person, which keeps the depiction rules above intact — nobody real is pictured, only what they
@@ -138,6 +144,9 @@ built. Credits, licences and Commons links are in `src/art/plates.ts` and are sh
 | IV | Columbia, NASA Advanced Supercomputing Facility, 2004 | Trower, NASA · public domain |
 | V | Catalyst cluster, Lawrence Livermore, 2013 | U.S. Department of Energy · public domain |
 | VI | A wafer-scale integrated circuit, 2024 | Wikideas1 · CC0 |
+
+Everything else in the game is still drawn at run time — portraits, backdrops, machines, the
+charts — and the plates are the only binary assets in the repository.
 
 Act VII has no plate. Its own device line says no device is specified, and a photograph of a
 machine would answer a question the act is keeping open.

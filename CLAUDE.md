@@ -39,7 +39,7 @@ npm run build          # static site into dist/
 | Scene selection | `src/engine/scheduler.ts` | Trigger-and-priority, not a playlist. |
 | Paradigms | `src/content/paradigms/*.ts` | One file per school; `index.ts` concatenates. |
 | Scenes | `src/content/acts/act1..7.ts` | `scenes.ts` concatenates; act 0 is the opening, played explicitly by `main.ts`. |
-| Art | `src/art/` | Procedural SVG, plus era plates stored as palette indices. No binary assets ship, ever. |
+| Art | `src/art/` | Procedural SVG. The era plates in `src/art/plates/` are the *only* binary assets; nothing else may be. |
 | Era skins | `src/styles/base.css` | Everything above the `era skins` banner is palette-driven; below it, one block per era. |
 
 ## Adding content
@@ -63,8 +63,12 @@ are enforced: `sources` is mandatory, spans are bounded by documented activity, 
 figure may speak in act 6 or later or in any ending. Everyone past 2026 is invented.
 
 **A new era plate** — edit the manifest at the top of `tools/plates/make-plates.py`, then
-`pip install Pillow && python3 tools/plates/make-plates.py`. It rewrites `src/art/plates.ts`,
-which is committed; nothing in the normal build, test or deploy path needs Python or a network.
+`pip install Pillow && python3 tools/plates/make-plates.py`. It rewrites `src/art/plates/` and
+`src/art/plates.ts`, both committed; nothing in the normal build, test or deploy path needs
+Python or a network. Set `tones` to 2 or 4 for an era whose display could not do better, or
+leave it 0 for colour — the ladder from one bit to full colour is the point, so do not flatten
+it. Commons rate-limits hard; the fetcher backs off, and the download cache means a re-run
+after a treatment change costs nothing.
 Two rules the manifest is holding: the source must be public domain or CC0, and it must be of a
 machine or a room — a photograph of a real person would walk straight through the depiction
 rules that the rest of the cast is held to. An era also needs a `plateRamp` in

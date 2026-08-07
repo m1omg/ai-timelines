@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
 """
-Era plates: one archival photograph per act, reduced to something the era could have displayed.
+Era plates: one archival photograph per act, shown at the fidelity its era could manage.
 
-The rule that no binary asset ships is not relaxed here. What ends up in the repository is
-`src/art/plates.ts`: a typed module holding, per era, a base64 string of 1- or 2-bit palette
-indices. The colours are not in the file at all — the renderer maps indices onto whichever
-era theme is live, so a plate follows the palette instead of fighting it.
+The fidelity is the point. Act I is a one-bit halftone, the way a photograph reached a reader
+in 1950 — through a screen, as dots. Act III is 320 x 200 in four fixed colours, because that
+is what a colour graphics adapter had. By act V the same kind of photograph arrives intact, in
+colour, at a resolution nobody in 1950 could have displayed. The century is legible in the
+pictures as well as in the palette.
 
-Sources are public-domain or CC0 and are named in full in the generated module, which is also
-where the credits shown in-game come from. Every image is of a machine or a room. No
-photograph of an identifiable person is used, which keeps the depiction rules in
-`src/content/characters.ts` intact: nobody real is *pictured*, only what they built.
+The early plates are dithered against their era's own ramp, read out of src/art/palette.ts so
+there is one source of truth for those colours; the later ones are left alone. Everything is
+written into src/art/plates/ as ordinary image files and imported by src/art/plates.ts, which
+this script also generates.
 
-Run it when the source list or the treatment changes; the generated module is committed, so a
-normal build, test run or deploy never needs Python or a network:
+Sources are public domain or CC0. Every image is of a machine or a room. No photograph of an
+identifiable person is used, which keeps the depiction rules in src/content/characters.ts
+intact: nobody real is pictured, only what they built.
+
+Run it when the source list, the treatment or an era ramp changes; the output is committed, so
+a normal build, test run or deploy never needs Python or a network:
 
     pip install Pillow
     python3 tools/plates/make-plates.py
@@ -23,21 +28,22 @@ Downloads are cached in tools/plates/cache/, which is git-ignored.
 
 from __future__ import annotations
 
-import base64
+import json
 import os
 import re
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, "cache")
-OUT = os.path.normpath(os.path.join(HERE, "..", "..", "src", "art", "plates.ts"))
-
-# CGA's own resolution, which every era's plate is reduced to. Wide enough to read as a room,
-# coarse enough that the dither is the point rather than an artefact.
-W, H = 320, 200
+ART = os.path.normpath(os.path.join(HERE, "..", "..", "src", "art"))
+OUT_DIR = os.path.join(ART, "plates")
+OUT_TS = os.path.join(ART, "plates.ts")
+PALETTE = os.path.join(ART, "palette.ts")
 
 
 @dataclass
@@ -45,33 +51,39 @@ class Source:
     era: str
     file: str
     """Wikimedia Commons file name, without the File: prefix."""
-    tones: int
-    dither: str
-    """'ordered' for the eras that would have used a fixed screen, 'diffusion' for the later ones."""
+    size: tuple[int, int]
     caption: str
     credit: str
     year: str
+    tones: int = 0
+    """0 leaves the photograph in colour; 2 or 4 dithers it against the era ramp."""
+    dither: str = "ordered"
+    """'ordered' for the eras that would have used a fixed screen, 'diffusion' for the rest."""
     crop: tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0)
     """Fractional box taken before the 8:5 fit, for images that need reframing."""
     adjust: dict = field(default_factory=dict)
-    """gamma / floor / ceil, applied before quantisation so each plate uses its full range."""
+    """gamma / floor / ceil / contrast / saturation, applied before quantisation."""
 
 
 SOURCES = [
     Source(
         era="teletype",
         file="ARL ENIAC 03.png",
+        # A halftone screen is fine-grained — it is the *tone* that is one bit, not the detail.
+        # 960 across gives the dots something to describe.
+        size=(960, 600),
         tones=2,
         dither="ordered",
         caption="ENIAC, Ballistic Research Laboratory, Building 328",
         credit="U.S. Army photograph · public domain",
         year="1947",
         crop=(0.02, 0.06, 0.98, 0.94),
-        adjust={"gamma": 0.92, "contrast": 0.72},
+        adjust={"gamma": 0.92, "contrast": 0.74},
     ),
     Source(
         era="phosphor",
         file="Control Data 6600 mainframe.jpg",
+        size=(640, 400),
         tones=4,
         dither="ordered",
         caption="Control Data 6600 console, with its two round displays",
@@ -83,6 +95,9 @@ SOURCES = [
     Source(
         era="cga",
         file="Cray-1 (1).jpg",
+        # Not upscaled, deliberately: 320 x 200 is the mode, and the whole look depends on the
+        # pixels being big enough to count.
+        size=(320, 200),
         tones=4,
         dither="ordered",
         caption="Cray-1, Computer History Museum",
@@ -94,35 +109,31 @@ SOURCES = [
     Source(
         era="web",
         file="Columbia Supercomputer - NASA Advanced Supercomputing Facility.jpg",
-        tones=4,
-        dither="diffusion",
+        # Colour arrives, and with it a resolution a browser of the day could plausibly show.
+        size=(1280, 800),
         caption="Columbia, NASA Advanced Supercomputing Facility",
         credit="Trower, NASA · public domain",
         year="2004",
         crop=(0.0, 0.05, 1.0, 0.95),
-        adjust={"gamma": 1.06},
+        adjust={"saturation": 0.92},
     ),
     Source(
         era="glass",
         file="The catalyst high performance computing (HPC).jpg",
-        tones=4,
-        dither="diffusion",
+        size=(1920, 1200),
         caption="Catalyst cluster, Lawrence Livermore National Laboratory",
         credit="U.S. Department of Energy · public domain",
         year="2013",
         crop=(0.0, 0.04, 1.0, 0.96),
-        adjust={"gamma": 0.98},
     ),
     Source(
         era="ambient",
         file="Wafer-scale integrated circuit.png",
-        tones=4,
-        dither="diffusion",
+        size=(1600, 1000),
         caption="A wafer-scale integrated circuit",
         credit="Wikideas1 · CC0",
         year="2024",
         crop=(0.04, 0.06, 0.96, 0.94),
-        adjust={"gamma": 1.16, "ceil": 0.88, "contrast": 0.8},
     ),
     # Act VII has no plate, and that is deliberate: its own device line says no device is
     # specified. A photograph of a machine would answer a question the act keeps open.
@@ -140,40 +151,89 @@ BAYER8 = [
 ]
 
 
+def ramps() -> dict[str, list[str]]:
+    """Era id → plate ramp, parsed out of palette.ts so the colours are defined in one place."""
+    text = open(PALETTE).read()
+    out: dict[str, list[str]] = {}
+    era = None
+    for line in text.splitlines():
+        m = re.search(r"^\s*id: '([a-z]+)',", line)
+        if m:
+            era = m.group(1)
+        m = re.search(r"^\s*plateRamp: \[([^\]]+)\]", line)
+        if m and era:
+            out[era] = re.findall(r"'(#[0-9a-fA-F]{6})'", m.group(1))
+    return out
+
+
+UA = {"User-Agent": "ai-timelines-plates/1.0 (era plate generator; run rarely)"}
+
+
+def get(url: str, tries: int = 8) -> bytes:
+    """One request, backing off politely. Commons rate-limits, and it is right to."""
+    for attempt in range(tries):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=240) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 503) or attempt == tries - 1:
+                raise
+            wait = 30 * (attempt + 1)
+            print(f"    rate-limited, waiting {wait}s")
+            time.sleep(wait)
+    raise RuntimeError("unreachable")
+
+
 def fetch(name: str) -> str:
+    """
+    The original upload, not a thumbnail: asking the thumbnailer for an arbitrary width is the
+    thing Commons asks people not to do at volume, and the originals are served from cache.
+    """
     os.makedirs(CACHE, exist_ok=True)
     dest = os.path.join(CACHE, re.sub(r"[^A-Za-z0-9._-]", "_", name))
     if os.path.exists(dest) and os.path.getsize(dest) > 0:
         return dest
-    url = ("https://commons.wikimedia.org/wiki/Special:FilePath/"
-           + urllib.parse.quote(name.replace(" ", "_")) + "?width=1400")
-    req = urllib.request.Request(url, headers={"User-Agent": "ai-timelines-plates/1.0"})
+
+    api = "https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode({
+        "action": "query", "format": "json", "prop": "imageinfo",
+        "iiprop": "url", "titles": f"File:{name}",
+    })
+    pages = json.loads(get(api).decode())["query"]["pages"]
+    info = next(iter(pages.values())).get("imageinfo")
+    if not info:
+        raise SystemExit(f"no such file on Commons: {name}")
+
     print(f"  fetching {name}")
-    with urllib.request.urlopen(req, timeout=120) as r, open(dest, "wb") as f:
-        f.write(r.read())
+    with open(dest, "wb") as f:
+        f.write(get(info[0]["url"].split("?")[0]))
+    time.sleep(2)
     return dest
 
 
-def prepare(src: Source):
-    from PIL import Image, ImageOps
+def framed(src: Source):
+    """Crop to the era's aspect and resample once, still in colour."""
+    from PIL import Image
 
-    im = Image.open(fetch(src.file)).convert("L")
+    im = Image.open(fetch(src.file)).convert("RGB")
     w, h = im.size
     l, t, r, b = src.crop
     im = im.crop((int(l * w), int(t * h), int(r * w), int(b * h)))
 
-    # Fit to 8:5 by taking the largest centred box of that shape, then resample once.
+    tw, th = src.size
     w, h = im.size
-    if w / h > W / H:
-        nw = int(h * W / H)
+    if w / h > tw / th:
+        nw = int(h * tw / th)
         im = im.crop(((w - nw) // 2, 0, (w - nw) // 2 + nw, h))
     else:
-        nh = int(w * H / W)
+        nh = int(w * th / tw)
         im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
-    im = im.resize((W, H), Image.LANCZOS)
-    im = ImageOps.autocontrast(im, cutoff=1)
+    return im.resize((tw, th), Image.LANCZOS)
 
-    px = [p / 255 for p in im.tobytes()]
+
+def greys(src: Source, im) -> list[float]:
+    from PIL import ImageOps
+
+    g = ImageOps.autocontrast(im.convert("L"), cutoff=1)
     gamma = src.adjust.get("gamma", 1.0)
     floor = src.adjust.get("floor", 0.0)
     ceil = src.adjust.get("ceil", 1.0)
@@ -183,67 +243,70 @@ def prepare(src: Source):
     contrast = src.adjust.get("contrast", 1.0)
     span = max(1e-6, ceil - floor)
     out = []
-    for v in px:
-        v = ((v ** gamma) - floor) / span
+    for v in g.tobytes():
+        v = ((v / 255) ** gamma - floor) / span
         v = 0.5 + (v - 0.5) * contrast
         out.append(min(1.0, max(0.0, v)))
     return out
 
 
-def quantise(px: list[float], tones: int, dither: str) -> list[int]:
+def quantise(px: list[float], size: tuple[int, int], tones: int, dither: str) -> list[int]:
     """Grey to palette indices. The dithering method ages with the era it is drawn for."""
+    w, h = size
     top = tones - 1
-    out = [0] * (W * H)
+    out = [0] * (w * h)
     if dither == "ordered":
-        for y in range(H):
-            for x in range(W):
+        for y in range(h):
+            for x in range(w):
                 threshold = (BAYER8[y % 8][x % 8] + 0.5) / 64 - 0.5
-                v = px[y * W + x] + threshold / top
-                out[y * W + x] = min(top, max(0, round(v * top)))
+                out[y * w + x] = min(top, max(0, round((px[y * w + x] + threshold / top) * top)))
         return out
 
     buf = list(px)
-    for y in range(H):
-        for x in range(W):
-            i = y * W + x
+    for y in range(h):
+        for x in range(w):
+            i = y * w + x
             want = min(1.0, max(0.0, buf[i]))
             got = min(top, max(0, round(want * top)))
             out[i] = got
             err = want - got / top
-            # Floyd–Steinberg, serpentine-free: the plates are static, so the classic
-            # left-to-right pass is fine and keeps the texture directional, like a print.
-            if x + 1 < W:
+            if x + 1 < w:
                 buf[i + 1] += err * 7 / 16
-            if y + 1 < H:
+            if y + 1 < h:
                 if x > 0:
-                    buf[i + W - 1] += err * 3 / 16
-                buf[i + W] += err * 5 / 16
-                if x + 1 < W:
-                    buf[i + W + 1] += err * 1 / 16
+                    buf[i + w - 1] += err * 3 / 16
+                buf[i + w] += err * 5 / 16
+                if x + 1 < w:
+                    buf[i + w + 1] += err * 1 / 16
     return out
 
 
-def pack(indices: list[int], bits: int) -> str:
-    per = 8 // bits
-    data = bytearray()
-    for i in range(0, len(indices), per):
-        byte = 0
-        for j in range(per):
-            v = indices[i + j] if i + j < len(indices) else 0
-            byte = (byte << bits) | (v & ((1 << bits) - 1))
-        data.append(byte)
-    return base64.b64encode(bytes(data)).decode("ascii")
-
-
-def preview(src: Source, indices: list[int]) -> None:
-    """A PNG of what the plate will look like in flat greys, for eyeballing before committing."""
+def write_dithered(src: Source, ramp: list[str]) -> str:
+    """An indexed PNG in the era's own colours — a handful of kilobytes, and exact."""
     from PIL import Image
 
-    top = src.tones - 1
-    im = Image.new("L", (W, H))
-    im.putdata([round(255 * v / top) for v in indices])
-    os.makedirs(os.path.join(CACHE, "preview"), exist_ok=True)
-    im.save(os.path.join(CACHE, "preview", f"{src.era}.png"))
+    indices = quantise(greys(src, framed(src)), src.size, src.tones, src.dither)
+    im = Image.new("P", src.size)
+    palette = []
+    for hexcolour in ramp[: src.tones]:
+        palette += [int(hexcolour[i:i + 2], 16) for i in (1, 3, 5)]
+    im.putpalette(palette + [0] * (768 - len(palette)))
+    im.putdata(indices)
+    name = f"{src.era}.png"
+    im.save(os.path.join(OUT_DIR, name), optimize=True, bits=1 if src.tones <= 2 else 2)
+    return name
+
+
+def write_photo(src: Source) -> str:
+    from PIL import ImageEnhance, ImageOps
+
+    im = ImageOps.autocontrast(framed(src), cutoff=0.5)
+    sat = src.adjust.get("saturation")
+    if sat:
+        im = ImageEnhance.Color(im).enhance(sat)
+    name = f"{src.era}.webp"
+    im.save(os.path.join(OUT_DIR, name), quality=82, method=6)
+    return name
 
 
 def main() -> int:
@@ -253,66 +316,78 @@ def main() -> int:
         print("Pillow is required: pip install Pillow", file=sys.stderr)
         return 1
 
-    chunks = []
-    total = 0
+    os.makedirs(OUT_DIR, exist_ok=True)
+    ramp_by_era = ramps()
+
+    imports, chunks, total = [], [], 0
     for src in SOURCES:
-        px = prepare(src)
-        indices = quantise(px, src.tones, src.dither)
-        preview(src, indices)
-        bits = 1 if src.tones <= 2 else 2
-        data = pack(indices, bits)
-        total += len(data)
-        print(f"  {src.era:9} {src.tones} tones  {len(data) / 1024:6.1f} kB of base64")
+        if src.tones:
+            ramp = ramp_by_era.get(src.era)
+            if not ramp or len(ramp) < src.tones:
+                print(f"{src.era}: needs a plateRamp of {src.tones} colours in palette.ts", file=sys.stderr)
+                return 1
+            name = write_dithered(src, ramp)
+            treatment = f"{src.tones} tones, {'ordered dither' if src.dither == 'ordered' else 'error diffusion'}"
+        else:
+            name = write_photo(src)
+            treatment = "colour"
+
+        size = os.path.getsize(os.path.join(OUT_DIR, name))
+        total += size
+        print(f"  {src.era:9} {src.size[0]:>4}×{src.size[1]:<4} {treatment:28} {size / 1024:7.1f} kB")
+
+        ident = f"{src.era}Url"
+        imports.append(f"import {ident} from './plates/{name}';")
         chunks.append(f"""  {src.era}: {{
-    w: {W},
-    h: {H},
-    bits: {bits},
+    url: {ident},
+    w: {src.size[0]},
+    h: {src.size[1]},
     tones: {src.tones},
     caption: {js(src.caption)},
     year: {js(src.year)},
     credit: {js(src.credit)},
     source: {js('https://commons.wikimedia.org/wiki/File:' + src.file.replace(' ', '_'))},
-    data:
-      {js(data)},
   }},""")
 
-    body = "\n".join(chunks)
     header = f'''/**
  * Era plates — GENERATED by tools/plates/make-plates.py. Do not edit by hand.
  *
- * One archival photograph per act, reduced to the kind of image its era could actually put on
- * a screen: {W}×{H}, one or two bits per pixel, ordered dither for the early eras and error
- * diffusion for the later ones. What is stored is palette *indices*, so src/art/plate.ts can
- * paint the same plate in whichever era theme is live.
+ * One archival photograph per act, at the fidelity its era could manage: a one-bit halftone in
+ * 1950, four fixed colours at 320 × 200 in the 1980s, and full colour at a resolution nobody
+ * then could have displayed by the 2010s. The images live in src/art/plates/ and are imported
+ * here so the bundler fingerprints them.
+ *
+ * `tones` is 0 for a plate left in colour, or the number of palette entries a dithered one was
+ * reduced to — the renderer uses it to decide whether the image wants pixel-exact scaling.
  *
  * Every source is public domain or CC0, and every one is of a machine or a room rather than a
  * person — see the depiction rules in src/content/characters.ts. Credits are shown in game on
  * the act break and collected in the codex.
  */
 
+{chr(10).join(imports)}
+
 export interface Plate {{
+  /** Bundled asset URL. */
+  url: string;
   w: number;
   h: number;
-  /** Bits per pixel: 1 or 2. */
-  bits: number;
-  /** Distinct palette entries this plate uses, 2 or 4. */
+  /** 0 for a colour plate; 2 or 4 for one dithered against the era ramp. */
   tones: number;
   caption: string;
   year: string;
   credit: string;
   source: string;
-  /** Row-major palette indices, high bits first, base64. */
-  data: string;
 }}
 
 /** Keyed by era id. Act VII has no plate on purpose. */
 export const PLATES: Record<string, Plate> = {{
-{body}
+{chr(10).join(chunks)}
 }};
 '''
-    with open(OUT, "w") as f:
+    with open(OUT_TS, "w") as f:
         f.write(header)
-    print(f"\n  wrote {OUT} — {total / 1024:.1f} kB of base64 across {len(SOURCES)} plates")
+    print(f"\n  wrote {OUT_TS} and {len(SOURCES)} images — {total / 1024:.0f} kB total")
     return 0
 
 

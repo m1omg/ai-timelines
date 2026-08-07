@@ -7,7 +7,12 @@ export default defineConfig({
   build: {
     target: 'es2022',
     outDir: 'dist',
-    assetsInlineLimit: 100_000,
+    /*
+     * Never inline an asset. The era plates are the only ones there are, and base64-ing the
+     * small ones into the bundle cost 38 kB of gzip and made every plate un-cacheable and
+     * un-lazy — they would download with the game rather than when an act reaches them.
+     */
+    assetsInlineLimit: 0,
   },
   test: {
     environment: 'node',
