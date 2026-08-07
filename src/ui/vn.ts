@@ -65,8 +65,16 @@ export function playScene(
     applyEffects(s, scene.onEnter);
     if (!s.seenScenes.includes(scene.id)) s.seenScenes.push(scene.id);
 
-    // Anyone who speaks in a scene has, by definition, been met.
-    for (const line of scene.lines) {
+    /*
+     * Lines can be gated on the state, so a scene can tell the truth about the century the
+     * player actually built rather than the one that happened. Resolved once, at scene entry —
+     * after `onEnter` so the scene's own effects count, and before anything reads the list, so
+     * the text cannot change under the reader mid-scene.
+     */
+    const lines = scene.lines.filter((l) => evaluate(l.when, s));
+
+    // Anyone who actually speaks has, by definition, been met. A line filtered out did not.
+    for (const line of lines) {
       if (!line.who) continue;
       const st = s.characters[line.who];
       if (st) {
@@ -161,7 +169,7 @@ export function playScene(
     const finishTyping = () => {
       if (timer !== undefined) window.clearTimeout(timer);
       typing = false;
-      const line = scene.lines[i]!;
+      const line = lines[i]!;
       textEl.textContent = line.text;
       contEl.hidden = false;
     };
@@ -188,7 +196,7 @@ export function playScene(
     };
 
     const showLine = () => {
-      const line = scene.lines[i];
+      const line = lines[i];
       if (!line) return endOfLines();
       if (line.backdrop && line.backdrop !== backdrop) {
         backdrop = line.backdrop;
@@ -246,7 +254,7 @@ export function playScene(
         return;
       }
       i += 1;
-      if (i >= scene.lines.length) endOfLines();
+      if (i >= lines.length) endOfLines();
       else showLine();
     };
 

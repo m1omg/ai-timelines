@@ -45,8 +45,29 @@ function allConditionsIn(scene: Scene): { c: Condition; negated: boolean }[] {
   const out: { c: Condition; negated: boolean }[] = [];
   const collect = (c: Condition, negated: boolean) => out.push({ c, negated });
   walkConditions(scene.when, collect);
+  for (const l of scene.lines) walkConditions(l.when, collect);
   for (const ch of scene.choices ?? []) walkConditions(ch.when, collect);
   return out;
+}
+
+/**
+ * A scene whose every line is conditional can resolve to nothing at all, which plays as a blank
+ * dialogue box the player has to click through. Whenever lines are gated, at least one must be
+ * unconditional so there is always something to say.
+ */
+function checkEmptyScenes(): void {
+  for (const s of ALL_SCENES) {
+    if (s.lines.length === 0) {
+      err(`${s.id}: has no lines`);
+      continue;
+    }
+    if (s.lines.every((l) => l.when)) {
+      err(
+        `${s.id}: every line is conditional, so the scene can resolve to nothing — ` +
+          `leave at least one line ungated`,
+      );
+    }
+  }
 }
 
 function allEffectsIn(scene: Scene): Effect[] {
@@ -592,6 +613,7 @@ function checkCoverage(): void {
 function main(): void {
   checkReferences();
   checkVacuousGates();
+  checkEmptyScenes();
   checkDeadGates();
   checkAnachronisms();
   checkCycles();

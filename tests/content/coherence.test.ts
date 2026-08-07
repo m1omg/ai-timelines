@@ -152,3 +152,38 @@ describe('the shape of the tree across the century', () => {
     }
   });
 });
+
+describe('scenes that describe the state of the field', () => {
+  /*
+   * Reported from play: a 2002 scene told a player nobody had won in a century where
+   * connectionism plainly had, and a 2006 scene said neural networks had been unfundable for
+   * fifteen years in a run that had funded them throughout. A scene may assert a fact about the
+   * field only when the run actually supports it.
+   */
+  const linesOf = (id: string) => ALL_SCENES.find((s) => s.id === id)!.lines;
+
+  it('gates the claim that no school is dominant', () => {
+    const claim = linesOf('a4-hybrid-window').find((l) => /no school is dominant/.test(l.text))!;
+    expect(claim.when).toBeDefined();
+    // And there is an alternative for the case where one plainly is.
+    expect(linesOf('a4-hybrid-window').some((l) => /the network people are winning/.test(l.text))).toBe(true);
+  });
+
+  it('gates the claim that neural networks were unfundable', () => {
+    const claim = linesOf('a4-deep-belief').find((l) => /unfundable for fifteen years/.test(l.text))!;
+    expect(claim.when).toBeDefined();
+    expect(linesOf('a4-deep-belief').some((l) => /funded throughout/.test(l.text))).toBe(true);
+  });
+
+  it('never lets a scene resolve to no lines at all', () => {
+    for (const s of ALL_SCENES) {
+      expect(s.lines.some((l) => !l.when), `${s.id} has only conditional lines`).toBe(true);
+    }
+  });
+
+  it('makes the safety incident a consequence of exposure, not of a date', () => {
+    const supply = ALL_SCENES.find((s) => s.id === 'm-supply-chain')!;
+    const json = JSON.stringify(supply.when);
+    expect(json).toContain('exposure');
+  });
+});

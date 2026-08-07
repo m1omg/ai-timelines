@@ -387,6 +387,19 @@ export interface Line {
   /** Character id, or omitted for narration. */
   who?: string;
   text: string;
+  /**
+   * Show this line only when the run warrants it.
+   *
+   * Scenes make factual assertions about the state of the field — "no school is dominant",
+   * "neural networks had been unfundable for fifteen years" — which are true of the historical
+   * path and can be flatly false of the century the player actually built. Gating at the line
+   * rather than duplicating whole scenes keeps one scene one beat, and lets the historical text
+   * stay exactly as written for the run that earned it.
+   *
+   * A scene must never end up with no lines: give every conditional group an unconditional or
+   * complementary fallback, which the linter checks.
+   */
+  when?: Condition;
   /** Overrides the scene backdrop from this line on. */
   backdrop?: BackdropId;
   /** Procedural sound cue id, see src/ui/audio.ts. */

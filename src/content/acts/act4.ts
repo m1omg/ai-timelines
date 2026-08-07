@@ -1,4 +1,4 @@
-import { all, any, mature, notMature } from '../../engine/conditions';
+import { all, any, fam, leadFamily, mature, not, notMature } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -478,9 +478,21 @@ export const ACT4: Scene[] = [
         who: 'archivist',
         text: 'Within five years better activations and more data make the pre-training step unnecessary, and the technique is quietly dropped. What survives is the discovery that depth was never the obstacle, and a new name for the field.',
       },
+      /*
+       * The rebranding only means anything if the old name was in disgrace. In a century where
+       * the player kept the networks funded the whole way through, telling them the work had
+       * been unfundable is simply false, and the more interesting observation is available
+       * instead: the rename happened anyway, because a name is a fundraising instrument.
+       */
       {
         who: 'archivist',
+        when: not(fam('connectionist', 'insight', '>', 55)),
         text: 'Renaming a research programme is not a trivial act. "Neural networks" had been unfundable for fifteen years. "Deep learning" had no history at all.',
+      },
+      {
+        who: 'archivist',
+        when: fam('connectionist', 'insight', '>', 55),
+        text: 'Renaming a research programme is not a trivial act, and in your century it is not even a rescue. These people have been funded throughout. They take the new name anyway, because a name is an instrument for raising money and this one has no failures attached to it yet.',
       },
     ],
     choices: [
@@ -668,9 +680,33 @@ export const ACT4: Scene[] = [
         who: 'archivist',
         text: 'Something is available to you right now that will not be available in ten years, and I want to make sure you can see it.',
       },
+      /*
+       * This asserted a genuinely contested field, which is true of 2002 as it happened and can
+       * be flatly wrong about the century in front of the player. Reported from play: it told
+       * someone nobody had won in a run where connectionism plainly had.
+       *
+       * The point of the scene survives either way — the hybrid window is open now and will
+       * close — but the reason it is open is different, and worth saying differently.
+       */
       {
         who: 'archivist',
+        when: not(any(leadFamily('connectionist'), leadFamily('symbolic'), leadFamily('statistical'))),
         text: 'At this moment no school is dominant. The kernel people have the theory, the network people have the momentum, the logicians still have the departments, and the probabilists have Pearl. Nobody has won.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'At this moment the network people are winning and everybody in the room knows it. That is precisely why the window is open: a school that is ahead can afford to be curious, and a school that is behind will still take the meeting. Neither of those will be true in ten years.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'At this moment the logicians are winning, which is not how it went and does not make them generous. They have the departments and the funding and no particular reason to learn anybody else\u2019s vocabulary — which is exactly the position the network people will be in shortly, and will handle no better.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'At this moment the probabilists are winning, on the strength of having been right about generalisation before anyone could demonstrate it. It is the most defensible lead in the game and the least secure, because a school whose advantage is theory loses it the moment somebody else\u2019s method simply works.',
       },
       {
         who: 'archivist',
