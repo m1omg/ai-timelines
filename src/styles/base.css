@@ -360,6 +360,46 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
    reusing it here tore every one of these lines out of the grid and stacked them off-screen. */
 .standing .breakdown { grid-column: 2 / -1; font-size: 10.5px; color: var(--dim); letter-spacing: 0.04em; }
 
+/* The alliance graphs. Same left-rule-in-the-school's-hue idiom as .fam and .twig, so a row
+   reads as belonging to a school before any of its text is parsed. */
+.pacts { display: flex; flex-direction: column; gap: 14px; max-width: 900px; }
+.pactrow {
+  border-left: 2px solid var(--fam);
+  padding: 2px 0 6px 12px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.pacthead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.pacthead .who {
+  color: var(--fam); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.pacthead .creed {
+  font-family: var(--font-body); font-size: 12.5px; color: var(--dim); line-height: 1.5;
+}
+.pactline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px; font-size: 11px; }
+.pactline .tag {
+  color: var(--dim); letter-spacing: 0.08em; min-width: 108px; font-size: 10px;
+  text-transform: uppercase;
+}
+.pactline .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.pact {
+  font-size: 10.5px; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px;
+  color: var(--fam, var(--dim));
+  border: 1px solid color-mix(in srgb, var(--fam, var(--dim)) 40%, transparent);
+}
+.pact.ally { background: color-mix(in srgb, var(--fam) 12%, transparent); }
+/* The binding constraint on a join, which is the one thing in this view a player can act on. */
+.pact.ally.thin { border-style: dashed; background: none; }
+.pact.ally.thin::after { content: ' · thin'; color: var(--dim); }
+.pact.rival { border-style: dotted; }
+.pact.rival::before { content: '× '; }
+.pact.none { color: var(--dim); border-color: transparent; padding-left: 0; font-style: italic; }
+.pactsum {
+  display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px;
+  font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums;
+}
+.pactsum .up { color: var(--fam); }
+.pactsum .down { color: color-mix(in srgb, var(--ink) 70%, var(--dim)); }
+
 .chart-wrap { border: 1px solid color-mix(in srgb, var(--dim) 30%, transparent); border-radius: var(--radius); overflow: hidden; }
 .chart { display: block; width: 100%; height: clamp(180px, 26vh, 300px); background: color-mix(in srgb, var(--dim) 8%, transparent); }
 /* The decade scale lives outside the SVG: the plot is stretched to the panel's width, and any

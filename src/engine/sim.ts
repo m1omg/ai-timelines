@@ -28,6 +28,18 @@ const ATTENTION_DECAY = 0.82;
 const WINTER_STRAIN = 7;
 const WINTER_STREAK = 2;
 
+/*
+ * The two inter-school graphs, exported because the Balance panel shows the player what they are
+ * currently worth and must not carry its own copy of the numbers. A display that drifts from the
+ * rule it describes is worse than no display: it teaches the wrong model of the game.
+ */
+/** Momentum a school loses per point of an ascendant rival's momentum. */
+export const RIVAL_PRESSURE = 0.25;
+/** Momentum a school gains per point of an ascendant ally's momentum. Weaker than rivalry. */
+export const ALLY_LIFT = 0.1;
+/** Insight per turn from the *weakest* ally's insight — a join is only as good as its thin side. */
+export const ALLY_INSIGHT = 0.022;
+
 export interface TickReport {
   year: number;
   matured: string[];
@@ -243,9 +255,9 @@ function updateMomentumAndTalent(s: GameState, matured: string[]): void {
   for (const f of FAMILY_IDS) {
     const def = FAMILIES[f];
     let rivalPressure = 0;
-    for (const r of def.rivals) rivalPressure += Math.max(0, before[r]!) * 0.25;
+    for (const r of def.rivals) rivalPressure += Math.max(0, before[r]!) * RIVAL_PRESSURE;
     let allyLift = 0;
-    for (const a of def.allies) allyLift += Math.max(0, before[a]!) * 0.10;
+    for (const a of def.allies) allyLift += Math.max(0, before[a]!) * ALLY_LIFT;
     const fresh = freshByFamily[f] ?? 0;
     s.families[f].momentum = s.families[f].momentum * 0.65 + fresh * 9 - rivalPressure + allyLift;
     s.families[f].momentum = Math.max(-50, Math.min(100, s.families[f].momentum));
@@ -262,7 +274,7 @@ function updateMomentumAndTalent(s: GameState, matured: string[]): void {
     if (def.allies.length > 0) {
       let weakest = Infinity;
       for (const a of def.allies) weakest = Math.min(weakest, insightBefore[a]!);
-      s.families[f].insight += weakest * 0.022;
+      s.families[f].insight += weakest * ALLY_INSIGHT;
     }
   }
 
