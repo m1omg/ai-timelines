@@ -917,5 +917,78 @@ export const ACT1: Scene[] = [
     ],
   },
 
-
+  {
+    id: 'a1-entropy-of-english',
+    act: 1,
+    years: [1951, 1962],
+    priority: 7,
+    backdrop: 'workshop',
+    title: 'One Bit Per Letter',
+    /*
+     * The 1951 paper, and the reason it is in the game at all: the objective every language
+     * model is trained on is the quantity defined here, and the field spent seventy years
+     * building a better predictor for a benchmark that had already been set and measured. The
+     * connectionist path is gated on the statistical school partly on the strength of this
+     * scene, so the player ought to actually meet it.
+     */
+    when: notMature('language-entropy'),
+    lines: [
+      {
+        who: 'shannon',
+        text: 'I have a passage from a novel and a person who has not read it. She guesses the next letter. If she is right we move on; if she is wrong I tell her the letter and she carries on from there. What I record is only the number of guesses.',
+      },
+      {
+        text: 'The subject is Betty Shannon, a numerical analyst at the same laboratory. The apparatus is a pencil.',
+      },
+      {
+        who: 'shannon',
+        text: 'From the tables I can compute how surprising a letter is given the one before it, and the two before it, and the three. Four point seven bits if you know nothing. Four point one from frequencies alone. Three and a half from pairs. It keeps falling and I cannot get further, because no table holds a hundred letters of context.',
+      },
+      {
+        who: 'shannon',
+        text: 'She does. So I use her as the instrument. English comes out at something on the order of one bit per letter, and roughly three quarters of what you write is redundant.',
+      },
+      {
+        who: 'archivist',
+        text: 'I want to be exact about what has just been defined, because it does not look like much. He has written down a number that measures a language, and a procedure for measuring it: predict the next symbol given everything before it, and score yourself on how surprised you were.',
+      },
+      {
+        who: 'archivist',
+        text: 'Every system this century calls a language model is trained by minimising that quantity, and reports it under another name. The objective was set in 1951, by hand, with a pencil, by a man who thought he was working on telephones. What was left was seventy years of finding a better instrument than his wife.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Fund prediction as the measure. If you can guess the next word you have understood something.',
+        hint: 'A benchmark the field can be scored against for the next century.',
+        cost: 4,
+        effects: [
+          { kind: 'paradigm', id: 'language-entropy', op: 'progress', value: 22 },
+          { kind: 'family', family: 'statistical', field: 'insight', op: 'add', value: 14 },
+          { kind: 'family', family: 'connectionist', field: 'insight', op: 'add', value: 8 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 8 },
+        ],
+      },
+      {
+        text: 'It measures English, not thought. Do not let it become the target.',
+        hint: 'A correct objection. It will be raised again about every benchmark that follows.',
+        effects: [
+          { kind: 'family', family: 'statistical', field: 'insight', op: 'add', value: 10 },
+          { kind: 'family', family: 'symbolic', field: 'momentum', op: 'add', value: 8 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 12 },
+          { kind: 'promises', op: 'add', value: -4 },
+        ],
+      },
+      {
+        text: 'Take the engineering. Three quarters redundant means three quarters compressible.',
+        hint: 'The application nobody argues about, and it pays.',
+        effects: [
+          { kind: 'paradigm', id: 'language-entropy', op: 'progress', value: 12 },
+          { kind: 'resource', key: 'deployment', op: 'add', value: 8 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 12 },
+          { kind: 'family', family: 'statistical', field: 'momentum', op: 'add', value: 8 },
+        ],
+      },
+    ],
+  },
 ];

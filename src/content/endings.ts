@@ -419,7 +419,13 @@ export const ENDINGS: Ending[] = [
     when: all(
       { kind: 'winterCount', op: '<=', value: 1 },
       ratio('understanding', 'capability', '>=', 0.7),
-      { kind: 'resource', key: 'capability', op: '<', value: 195 },
+      /*
+       * 250, raised from 195. The ceiling encodes "the field stayed modest", and what counts as
+       * modest is relative to the economy around it — the tree has grown by thirteen nodes and
+       * a careful century now ends near 245 where it used to end near 190. At 195 this stopped
+       * being rare and started being unreachable: zero firings in 6240 runs.
+       */
+      { kind: 'resource', key: 'capability', op: '<', value: 250 },
     ),
     epigraph: 'It never once got ahead of itself. Nobody made a film about it.',
     lines: [
