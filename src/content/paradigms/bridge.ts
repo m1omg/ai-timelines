@@ -235,4 +235,22 @@ export const BRIDGE: Paradigm[] = [
       'Not the victory of a paradigm but the end of paradigms: an architecture in which learned perception, formal inference, probabilistic belief, embodied control and the physics of the substrate are aspects of one design rather than rival accounts of it. Eight schools spent ninety years each proving the others incomplete. All of them were right.',
     tags: ['speculative', 'endgame'],
   },
+  {
+    id: 'translatable-competence',
+    family: 'bridge',
+    name: 'Translatable Competence',
+    short: 'Move a skill between paradigms without retraining it',
+    earliest: 2042,
+    prereqs: ['compositional-semantics'],
+    cost: 150,
+    computeNeed: 25,
+    capability: 28,
+    understanding: 30,
+    hype: 20,
+    brittleness: 0.3,
+    anchor: { year: 2042, who: '' },
+    codex:
+      'A century of the field produced competences locked to their substrate: what a network knows is in its weights, what a rule base knows is in its assertions, what an embodied system knows is in a body. Translation between them was always possible in principle and never once economic. Doing it properly means an interlingua for competence itself — and the moment one exists, the argument this whole century was about becomes a question of engineering convenience rather than of what a mind is.',
+    tags: ['speculative'],
+  },
 ];

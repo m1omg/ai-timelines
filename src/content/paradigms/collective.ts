@@ -217,4 +217,22 @@ export const COLLECTIVE: Paradigm[] = [
       'The oldest known method for making self-interested parties collectively trustworthy is not persuasion but institutional design: courts, audits, separated powers, adversarial process. Applied to machine collectives it produces systems whose good behaviour is a property of the arrangement rather than of any component — the only alignment story that does not require solving anyone’s interior.',
     tags: ['speculative', 'governance'],
   },
+  {
+    id: 'delegated-authority',
+    family: 'collective',
+    name: 'Delegated Authority',
+    short: 'Agents that can grant and revoke each other powers',
+    earliest: 2041,
+    prereqs: ['institutional-alignment'],
+    cost: 145,
+    computeNeed: 24,
+    capability: 30,
+    understanding: 20,
+    hype: 22,
+    brittleness: 0.5,
+    anchor: { year: 2041, who: '' },
+    codex:
+      'A collective becomes an institution at the moment its members can hand each other authority and take it back — a chain of delegation with revocation, attenuation and an audit trail, which is a thing lawyers have understood for eight hundred years and distributed systems have not. It makes a swarm accountable in the only sense that matters: you can find out who was permitted to do the thing that happened. It also makes the chain itself the attack surface, and the chain is now longer than any person can hold in mind.',
+    tags: ['speculative', 'governance'],
+  },
 ];

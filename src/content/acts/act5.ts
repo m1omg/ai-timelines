@@ -237,8 +237,15 @@ export const ACT5: Scene[] = [
 
   {
     id: 'a5-scaling-laws',
-    act: 5,
-    years: [2022, 2026],
+    /*
+     * Era-free, because the window it needs is the gap between self-supervision maturing and
+     * the scaling regime following it, and that gap moves with the run. Once the LLM path was
+     * put behind statistical insight, self-supervision started landing around 2030 in a typical
+     * century — past the end of act V, so the scene's window had already closed by the time its
+     * condition could be true, and it stopped firing at all.
+     */
+    act: 'any',
+    years: [2018, 2042],
     priority: 8,
     backdrop: 'datacenter-vast',
     when: all(mature('self-supervision'), notMature('scaling-regime')),

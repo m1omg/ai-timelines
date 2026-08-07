@@ -403,7 +403,19 @@ export const ENDINGS: Ending[] = [
   {
     id: 'the-quiet-century',
     name: 'The Century That Kept Its Promises',
-    priority: 55,
+    /*
+     * 64, above the school-centuries at 60 rather than below them.
+     *
+     * This is the shadowing failure the project has hit before, from the other direction. Five
+     * of the seven school-century endings are a bare `leadFamily`, so one of them matches in
+     * essentially every run — and at 55 this ending, which carries three conditions and is the
+     * more specific claim, could never be reached past them. It fired once in 3900 runs and
+     * then, when the tree grew, not at all.
+     *
+     * Which school led is a less interesting fact about a century than whether it stayed
+     * honest, so when both are true this one should win.
+     */
+    priority: 64,
     when: all(
       { kind: 'winterCount', op: '<=', value: 1 },
       ratio('understanding', 'capability', '>=', 0.7),

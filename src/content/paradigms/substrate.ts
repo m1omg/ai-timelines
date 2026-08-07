@@ -284,4 +284,23 @@ export const SUBSTRATE: Paradigm[] = [
       'Digital hardware spends most of its energy suppressing thermal noise; a sampler wants that noise and has to synthesise it at enormous cost. Hardware that treats fluctuation as the computational resource rather than the enemy inverts the entire energy budget of probabilistic inference — and makes Bayesian methods cheap for the first time since anyone proposed them.',
     tags: ['speculative', 'hardware'],
   },
+  {
+    id: 'reversible-compute',
+    family: 'substrate',
+    name: 'Reversible Computing',
+    short: 'Computation that does not throw heat away',
+    earliest: 2041,
+    prereqs: ['thermodynamic-compute'],
+    cost: 140,
+    computeNeed: 26,
+    capability: 30,
+    understanding: 18,
+    hype: 18,
+    brittleness: 0.35,
+    dividend: 14,
+    anchor: { year: 2041, who: '' },
+    codex:
+      'Landauer showed in 1961 that erasing a bit has a thermodynamic price and that computation which never erases has none. For eighty years that was a curiosity, because the price was negligible beside everything else wasted. Once the frontier is limited by what can be cooled rather than what can be fabricated, it stops being a curiosity and becomes the only remaining direction — and a machine that must not forget anything in order to run at all is a strange thing to build a mind on.',
+    tags: ['speculative', 'hardware'],
+  },
 ];

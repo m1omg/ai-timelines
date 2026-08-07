@@ -125,3 +125,30 @@ describe('the scheduler', () => {
     for (const sc of pinnedInActOne) expect(picked).toContain(sc.id);
   });
 });
+
+describe('the shape of the tree across the century', () => {
+  it('gives every school something to do after 2000', () => {
+    // Symbolic once stopped dead at 1991 while every other column ran into the 2030s, which
+    // read as a claim that the school ran out of ideas rather than out of press.
+    for (const f of FAMILY_IDS) {
+      const modern = PARADIGMS.filter((p) => p.family === f && p.earliest >= 2000);
+      expect(modern.length, `${f} has nothing from 2000 onward`).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps new approaches arriving into the 2040s', () => {
+    // A century whose last new idea is dated 2033 stops being a century in its last two acts.
+    const late = PARADIGMS.filter((p) => p.earliest >= 2034);
+    expect(late.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(late.map((p) => p.family)).size).toBeGreaterThanOrEqual(6);
+    // And they must still be reachable: nothing so late it cannot mature before 2050.
+    for (const p of late) expect(p.earliest).toBeLessThanOrEqual(2042);
+  });
+
+  it('has no speculative node claiming a real person said it', () => {
+    for (const p of PARADIGMS) {
+      if (p.earliest <= 2026) continue;
+      expect(p.anchor.who, `${p.id} attributes a post-2026 idea to someone`).toBe('');
+    }
+  });
+});

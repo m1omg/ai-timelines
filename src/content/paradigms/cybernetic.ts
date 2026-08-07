@@ -234,4 +234,22 @@ export const CYBERNETIC: Paradigm[] = [
       'The synthesis the cybernetic school waited eighty years for: continuous learning, in a body, under real consequences, without a training set. It is the first architecture whose failures are physical rather than textual, and the first whose competence cannot be evaluated by reading its outputs.',
     tags: ['speculative'],
   },
+  {
+    id: 'developmental-transfer',
+    family: 'cybernetic',
+    name: 'Developmental Transfer',
+    short: 'Pass on what a body learned, without copying it',
+    earliest: 2038,
+    prereqs: ['embodied-general'],
+    cost: 150,
+    computeNeed: 24,
+    capability: 34,
+    understanding: 24,
+    hype: 26,
+    brittleness: 0.35,
+    anchor: { year: 2038, who: '' },
+    codex:
+      'The standing objection to the embodied programme was economic rather than scientific: eleven years of a system living somewhere produces competence that cannot be copied into the next one, so every unit starts from nothing and no investment compounds. Transfer solves it the way people do — not by cloning the state but by teaching, badly and slowly, through demonstration in a shared world. The first generation that inherits rather than starts over is the point at which this school stops being a craft.',
+    tags: ['speculative'],
+  },
 ];

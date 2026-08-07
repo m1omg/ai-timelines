@@ -39,6 +39,13 @@ type PolicyName =
   | 'accelerationist'
   | 'broad'
   | 'synthesis'
+  /**
+   * Plays for understanding and against hype, and takes the directives that talk the field back
+   * down. Added because the game grew a `promises` lever and an ending that rewards never
+   * getting ahead of yourself, and no existing bot played that way — so the outcome read as
+   * unreachable when it is merely a style none of them had.
+   */
+  | 'careful'
   | `focus:${FamilyId}`
   /**
    * Backs a school *and the schools it is complementary with*. Added because the game grew
@@ -125,6 +132,13 @@ function scoreDirective(policy: PolicyName, d: Directive, s: GameState): number 
     return 0.8;
   }
 
+  if (policy === 'careful') {
+    if (d.category === 'field') return 6;
+    if (d.id.startsWith('champion:') || d.id.startsWith('centrepiece:')) return 8;
+    if (d.id.startsWith('concentrate:')) return 0.2;
+    return 1.2;
+  }
+
   if (policy === 'greedy') {
     // Push whatever is closest to finishing.
     if (d.id.startsWith('fund:') || d.id.startsWith('concentrate:')) {
@@ -172,6 +186,15 @@ function effectAppeal(policy: PolicyName, e: Effect): number {
       const f = PARADIGM_BY_ID[e.id]?.family;
       if (f && wanted.has(f)) return (e.value ?? 10) * (f === lead ? 0.5 : 0.35);
     }
+    if (e.kind === 'commons') return e.value * 2;
+    return 0;
+  }
+
+  if (policy === 'careful') {
+    if (e.kind === 'promises') return -e.value * 3;
+    if (e.kind === 'resource' && e.key === 'understanding') return e.value * 3;
+    if (e.kind === 'resource' && e.key === 'attention') return -e.value * 3;
+    if (e.kind === 'resource' && e.key === 'exposure') return -e.value * 2;
     if (e.kind === 'commons') return e.value * 2;
     return 0;
   }
@@ -331,6 +354,7 @@ function main(): void {
     'accelerationist',
     'broad',
     'synthesis',
+    'careful',
     ...FAMILY_IDS.map((f) => `focus:${f}` as PolicyName),
     ...FAMILY_IDS.map((f) => `allied:${f}` as PolicyName),
   ];

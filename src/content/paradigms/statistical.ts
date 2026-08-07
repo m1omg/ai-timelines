@@ -252,4 +252,22 @@ export const STATISTICAL: Paradigm[] = [
       'The oldest complaint about large learned systems is that they are equally fluent when right and when wrong. Fusing genuine posterior machinery with models at scale gives outputs that carry honest error bars — slower, more expensive, and the first version of the technology that an engineer could sign off on.',
     tags: ['speculative', 'governance'],
   },
+  {
+    id: 'causal-discovery',
+    family: 'statistical',
+    name: 'Causal Discovery at Scale',
+    short: 'Read the structure off the data, not the experiment',
+    earliest: 2036,
+    prereqs: ['causal-inference', 'uncertainty-at-scale'],
+    cost: 130,
+    computeNeed: 25,
+    capability: 26,
+    understanding: 32,
+    hype: 18,
+    brittleness: 0.3,
+    anchor: { year: 2036, who: '' },
+    codex:
+      'Pearl gave the field a calculus for reasoning about interventions once you know the causal graph, and the graph was always the part somebody had to supply. Recovering it from observational data alone is impossible in general and merely very hard in practice, and the 2030s finally get it working at the scale of everything that has ever been logged. The consequence is not better prediction. It is that a great many claims about what causes what become checkable, and a large fraction of them do not survive.',
+    tags: ['speculative', 'theory'],
+  },
 ];

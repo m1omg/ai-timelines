@@ -216,4 +216,22 @@ export const EVOLUTIONARY: Paradigm[] = [
       'A genome does not specify an organism, it specifies a process that grows one — which is how twenty thousand genes produce a brain with a hundred trillion synapses. Encodings that develop rather than describe compress astronomically and repair themselves, and they sever the last assumption the field had kept: that a system’s structure is something a person chose.',
     tags: ['speculative'],
   },
+  {
+    id: 'artificial-speciation',
+    family: 'evolutionary',
+    name: 'Artificial Speciation',
+    short: 'Populations that split rather than converge',
+    earliest: 2039,
+    prereqs: ['morphogenetic-systems'],
+    cost: 140,
+    computeNeed: 25,
+    capability: 26,
+    understanding: 22,
+    hype: 16,
+    brittleness: 0.4,
+    anchor: { year: 2039, who: '' },
+    codex:
+      'Every optimiser this century converged, which is what optimisers are for and why none of them stayed interesting. Systems that reward divergence — that reproductively isolate sub-populations the moment they find different ways of being good — stop producing an answer and start producing a lineage. You no longer get the best solution. You get a family tree of solutions, most of them worthless, a few of them doing things nobody specified, and no way to ask for one in particular.',
+    tags: ['speculative'],
+  },
 ];

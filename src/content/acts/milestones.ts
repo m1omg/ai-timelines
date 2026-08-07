@@ -86,7 +86,7 @@ export const MILESTONES: Scene[] = [
     priority: 6,
     backdrop: 'terminal-room',
     title: 'Nine Thousand Lines, Proved',
-    when: all(any(leadFamily('symbolic'), fam('symbolic', 'insight', '>', 70)), mature('resolution')),
+    when: all(any(leadFamily('symbolic'), fam('symbolic', 'insight', '>', 70)), mature('verified-systems')),
     lines: [
       {
         text: 'An operating system kernel is proved correct. Not tested thoroughly — proved, machine-checked, from the C down to a formal specification of what it is supposed to do, with the proof itself an artefact you can rerun.',
