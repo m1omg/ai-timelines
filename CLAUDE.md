@@ -39,7 +39,8 @@ npm run build          # static site into dist/
 | Scene selection | `src/engine/scheduler.ts` | Trigger-and-priority, not a playlist. |
 | Paradigms | `src/content/paradigms/*.ts` | One file per school; `index.ts` concatenates. |
 | Scenes | `src/content/acts/act1..7.ts` | `scenes.ts` concatenates; act 0 is the opening, played explicitly by `main.ts`. |
-| Art | `src/art/` | All procedural SVG. No binary assets ship, ever. |
+| Art | `src/art/` | Procedural SVG, plus era plates stored as palette indices. No binary assets ship, ever. |
+| Era skins | `src/styles/base.css` | Everything above the `era skins` banner is palette-driven; below it, one block per era. |
 
 ## Adding content
 
@@ -60,6 +61,14 @@ distribution afterwards.
 **A real person** — read the depiction rules in the header of `src/content/characters.ts`. They
 are enforced: `sources` is mandatory, spans are bounded by documented activity, and no historical
 figure may speak in act 6 or later or in any ending. Everyone past 2026 is invented.
+
+**A new era plate** — edit the manifest at the top of `tools/plates/make-plates.py`, then
+`pip install Pillow && python3 tools/plates/make-plates.py`. It rewrites `src/art/plates.ts`,
+which is committed; nothing in the normal build, test or deploy path needs Python or a network.
+Two rules the manifest is holding: the source must be public domain or CC0, and it must be of a
+machine or a room — a photograph of a real person would walk straight through the depiction
+rules that the rest of the cast is held to. An era also needs a `plateRamp` in
+`src/art/palette.ts`, darkest colour first, or the plate silently does not render.
 
 ## Balance
 

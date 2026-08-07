@@ -1,4 +1,5 @@
 import { ERAS, eraForAct } from '../art/palette';
+import { plateCredit, plateUrl } from '../art/plate';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
 import { resolveEnding } from '../engine/endings';
@@ -54,8 +55,18 @@ export function renderReport(root: HTMLElement, s: GameState, r: TickReportLike,
   }
 
   const lead = leadingFamily(s);
+  const era = eraForAct(s.act);
+  const plate = plateUrl(era);
 
   root.innerHTML = `<div class="panel"><div class="wrap report">
+    ${
+      plate
+        ? `<figure class="plate-strip">
+             <img class="plate" src="${plate}" alt="">
+             <figcaption>${escapeHtml(plateCredit(era) ?? '')}</figcaption>
+           </figure>`
+        : ''
+    }
     <!-- The four years the previous directive board governed. Must not overlap the next
          board's own label, or it reads as allocating for the same year twice. -->
     <h2>${r.year - 4}–${r.year - 1}</h2>
@@ -73,17 +84,24 @@ export function renderActBreak(host: HTMLElement, act: number, onDone: () => voi
   const [lo, hi] = ACT_TURNS[act - 1]!;
   sfxActBreak(ERAS.indexOf(era));
 
+  // The era's palette has to be live before the plate is painted: it is drawn in the theme's
+  // own colours, and painting it against the outgoing act's ramp is the one order that looks
+  // like a bug rather than a transition.
+  applyEra(act);
+  const plate = plateUrl(era);
+  const credit = plateCredit(era);
+
   const el = document.createElement('div');
   el.className = 'actbreak';
   el.innerHTML = `
+    ${plate ? `<div class="plate-bed"><img class="plate" src="${plate}" alt=""></div>` : ''}
     <div class="numeral">${roman(act)}</div>
     <div class="rule"></div>
     <div class="title">${escapeHtml(ACT_TITLES[act - 1] ?? '')}</div>
     <div class="years">${yearOfTurn(lo)} — ${yearOfTurn(hi)}</div>
-    <div class="device">${escapeHtml(era.device)}</div>`;
+    <div class="device">${escapeHtml(era.device)}</div>
+    ${credit ? `<div class="plate-credit">${escapeHtml(credit)}</div>` : ''}`;
   host.appendChild(el);
-
-  applyEra(act);
 
   // The auto-dismiss timer must be cancelled when the player dismisses it by hand, and finish()
   // must run exactly once. Without both, clicking through an act break in under 5.2s let the

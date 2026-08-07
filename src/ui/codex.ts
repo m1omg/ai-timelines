@@ -1,4 +1,5 @@
-import { familyColour } from '../art/palette';
+import { ERAS, familyColour } from '../art/palette';
+import { plateFor, plateUrl } from '../art/plate';
 import { CHARACTERS, familyAt } from '../content/characters';
 import { FAMILIES, PARADIGMS } from '../content/paradigms';
 import { CODEX_ESSAYS } from '../content/codex';
@@ -6,7 +7,7 @@ import type { GameState } from '../engine/types';
 import { currentEra } from './theme';
 import { escapeHtml } from './vn';
 
-type Tab = 'ideas' | 'people' | 'essays';
+type Tab = 'ideas' | 'people' | 'essays' | 'plates';
 
 /**
  * The Codex is the educational payload, and it only unlocks what the run has actually touched:
@@ -27,6 +28,7 @@ export function renderCodex(root: HTMLElement, s: GameState, onClose: () => void
         <button data-t="ideas" class="${tab === 'ideas' ? 'on' : ''}">Ideas</button>
         <button data-t="people" class="${tab === 'people' ? 'on' : ''}">People</button>
         <button data-t="essays" class="${tab === 'essays' ? 'on' : ''}">On the field</button>
+        <button data-t="plates" class="${tab === 'plates' ? 'on' : ''}">Plates</button>
       </div>
       <div class="codex-list">${body()}</div>
       <div style="height:60px"></div>
@@ -80,6 +82,29 @@ export function renderCodex(root: HTMLElement, s: GameState, onClose: () => void
             ${arc ? `<div class="meta arc">changed schools: ${escapeHtml(arc)}</div>` : ''}
             <p>${escapeHtml(c.bio)}</p>
             ${c.sources?.length ? `<div class="src">Sources: ${c.sources.map(escapeHtml).join(' · ')}</div>` : ''}
+          </div>`;
+        })
+        .join('');
+    }
+
+    if (tab === 'plates') {
+      /*
+       * Where the photographs come from, and where they are credited. Each is shown in its own
+       * era's palette rather than the one you are currently looking at, so the tab doubles as a
+       * record of how the interface has aged — and only the acts you have reached are listed.
+       */
+      const reached = ERAS.filter((e) => e.act <= s.act && plateFor(e));
+      if (reached.length === 0) return '<p style="color:var(--dim)">Nothing yet.</p>';
+      return reached
+        .map((e) => {
+          const plate = plateFor(e)!;
+          const url = plateUrl(e);
+          return `<div class="entry plate-entry" style="--fam:${e.accent}">
+            ${url ? `<img class="plate" src="${url}" alt="${escapeHtml(plate.caption)}">` : ''}
+            <h4>${escapeHtml(plate.caption)}</h4>
+            <div class="meta">${escapeHtml(plate.year)} · act ${e.act}, ${escapeHtml(e.name)}</div>
+            <p>${escapeHtml(plate.credit)}. Reduced to ${plate.w}×${plate.h} in ${plate.tones} tones and painted in this act's palette; the game ships no photograph, only the indices.</p>
+            <div class="src">${escapeHtml(plate.source)}</div>
           </div>`;
         })
         .join('');

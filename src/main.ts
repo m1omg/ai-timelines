@@ -1,5 +1,7 @@
 import './styles/base.css';
 
+import { plateUrl } from './art/plate';
+
 import { SCENES, SCENE_BY_ID } from './content/scenes';
 import { CHARACTERS } from './content/characters';
 import { pickScenes } from './engine/scheduler';
@@ -157,8 +159,10 @@ function renderMenu(el: HTMLElement, close: () => void): void {
 // ---------------------------------------------------------------------------
 
 function titleScreen(): void {
-  applyEra(1);
+  const era = applyEra(1);
+  const plate = plateUrl(era);
   app.innerHTML = `<div class="title-screen">
+    ${plate ? `<div class="plate-bed title-bed"><img class="plate" src="${plate}" alt=""></div>` : ''}
     <h1>AI TIMELINES</h1>
     <div class="tag">
       A hundred years of argument about what a mind is — 1950 to 2050 — and your hand on where

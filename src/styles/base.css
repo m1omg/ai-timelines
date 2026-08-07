@@ -442,6 +442,96 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 .report .crisis { color: var(--warn); }
 .report ul { padding-left: 18px; }
 
+/* ---------------------------------------------------------------- plates */
+
+/* The archival photographs, painted per era by src/art/plate.ts. They are 320×200 and are meant
+   to be seen as such: `pixelated` keeps the dither honest instead of smearing it into grey. */
+.plate {
+  image-rendering: pixelated;
+  display: block;
+}
+
+/* Full-bleed bed behind an act break or the title, dimmed far enough to read across. */
+.plate-bed {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  animation: plateIn 2.4s ease both;
+}
+/* The bed is a sibling of the text rather than a background image, so the text has to be
+   lifted above it explicitly — a negative z-index would put it behind the panel's own paper. */
+.actbreak > *:not(.plate-bed),
+.title-screen > *:not(.plate-bed) { position: relative; z-index: 1; }
+.plate-bed .plate {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+  /* A slow drift: the plate is a still photograph and should not look like a texture tile. */
+  animation: plateDrift 26s ease-in-out infinite alternate;
+}
+.plate-bed::after {
+  /* Two washes: a soft one over the middle so the title has something quiet to sit on, and a
+     hard one at the edges so the photograph resolves out of the page rather than being cropped
+     by it. Without the first, a busy plate turns the act title into a puzzle. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 58% 42% at center, color-mix(in srgb, var(--paper) 78%, transparent), transparent 72%),
+    radial-gradient(ellipse at center, transparent 20%, var(--paper) 92%);
+}
+.title-bed .plate { opacity: 0.22; }
+/* On the two eras whose paper is lighter than their ink, a plate laid over the page at low
+   opacity just fades to nothing. Multiplying instead keeps the dark half of the photograph and
+   lets the paper through the light half, which is what ink on paper does anyway. */
+html[data-era='teletype'] .plate-bed .plate,
+html[data-era='web'] .plate-bed .plate { mix-blend-mode: multiply; opacity: 0.52; }
+html[data-era='teletype'] .title-bed .plate,
+html[data-era='web'] .title-bed .plate { opacity: 0.4; }
+html[data-era='teletype'] .plate-strip .plate,
+html[data-era='web'] .plate-strip .plate { mix-blend-mode: multiply; }
+@keyframes plateIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes plateDrift { from { transform: scale(1.06) translate3d(-1%, -0.5%, 0); } to { transform: scale(1.12) translate3d(1%, 0.5%, 0); } }
+
+.plate-credit {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  max-width: 62ch;
+  margin-top: 6px;
+  opacity: 0.85;
+}
+
+/* On a report, the plate is a print pinned beside the write-up rather than a banner across it.
+   A full-width band of a 320×200 photograph is a 12-pixel slice of it, which reads as noise. */
+.plate-strip {
+  float: right;
+  width: clamp(150px, 26%, 250px);
+  margin: 0 0 14px 20px;
+}
+.plate-strip .plate {
+  width: 100%;
+  height: auto;
+  border: 1px solid color-mix(in srgb, var(--dim) 40%, transparent);
+  border-radius: var(--radius);
+  opacity: 0.85;
+}
+.plate-strip figcaption {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  margin-top: 6px;
+}
+
+.plate-entry .plate {
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  margin-bottom: 8px;
+  border: 1px solid color-mix(in srgb, var(--dim) 40%, transparent);
+}
+
 /* ---------------------------------------------------------------- act break */
 
 .actbreak {
@@ -461,7 +551,7 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 
 /* ---------------------------------------------------------------- title */
 
-.title-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; padding: var(--pad); }
+.title-screen { position: relative; overflow: hidden; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; padding: var(--pad); }
 .title-screen h1 { font-size: clamp(30px, 6vw, 68px); letter-spacing: 0.16em; margin: 0; font-weight: 400; }
 .title-screen .tag { font-family: var(--font-body); font-size: clamp(15px, 1.8vw, 21px); color: var(--dim); max-width: 56ch; line-height: 1.6; }
 .title-screen .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
@@ -492,11 +582,165 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 .detail .wrap { max-width: 780px; margin: 0 auto; }
 .detail p { font-family: var(--font-body); font-size: 15px; line-height: 1.65; }
 
+/* ================================================================ era skins
+
+   Everything above is written once and inherits the era variables. What follows is the part
+   that cannot be expressed as a colour swap: each generation of display had its own *material*
+   — ink pressed into paper, phosphor that glows and smears, a shadow mask, a beige bevel — and
+   the skin is not convincing until the surface changes too, not just the palette.
+   ------------------------------------------------------------------------ */
+
+html { transition: background-color 0.9s ease; }
+body { transition: background-color 0.9s ease, color 0.9s ease; }
+
+/* --- Act I · teleprinter. Not a screen at all: ink on continuous stationery, so no scanlines,
+       no vignette, and a faint fibre with the fold lines of fanfold paper. */
+html[data-era='teletype'] body::after {
+  background:
+    repeating-linear-gradient(to bottom, color-mix(in srgb, var(--ink) 5%, transparent) 0 1px, transparent 1px 2px),
+    repeating-linear-gradient(to bottom, transparent 0 178px, color-mix(in srgb, var(--ink) 13%, transparent) 178px 180px);
+  opacity: 0.5;
+}
+html[data-era='teletype'] .text,
+html[data-era='teletype'] .speaker { text-shadow: 0 0.5px 0 color-mix(in srgb, var(--ink) 22%, transparent); }
+html[data-era='teletype'] .choice,
+html[data-era='teletype'] .card { border-style: dashed; }
+html[data-era='teletype'] .topbar { border-bottom-style: double; border-bottom-width: 3px; }
+
+/* --- Act II · storage tube. A phosphor does not stop at the edge of a glyph: it blooms, it
+       decays, and the whole tube is curved, so the corners fall away. */
+html[data-era='phosphor'] body::after {
+  background:
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.34) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 42%, rgb(0 0 0 / 0.72) 100%);
+  opacity: 0.62;
+}
+html[data-era='phosphor'] .text,
+html[data-era='phosphor'] .speaker,
+html[data-era='phosphor'] .topbar .year,
+html[data-era='phosphor'] .actbreak .numeral {
+  text-shadow: 0 0 7px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+html[data-era='phosphor'] .choice:hover,
+html[data-era='phosphor'] .card:hover:not(:disabled) {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+/* --- Act III · CGA mode 5. Four colours, hard edges, and a shadow mask you can count. Nothing
+       here is allowed to be soft: no rounded corners, no translucency, no antialiased glow. */
+html[data-era='cga'] body::after {
+  background:
+    repeating-linear-gradient(to right, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.3) 0 2px, transparent 2px 4px);
+  opacity: 0.5;
+}
+html[data-era='cga'] .choice,
+html[data-era='cga'] .card,
+html[data-era='cga'] button,
+html[data-era='cga'] .btn {
+  border-width: 2px;
+  border-color: var(--dim);
+  background: transparent;
+}
+html[data-era='cga'] .choice:hover,
+html[data-era='cga'] .choice:focus-visible,
+html[data-era='cga'] .card:hover:not(:disabled),
+html[data-era='cga'] button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--paper);
+  border-color: var(--ink);
+  transform: none;
+}
+html[data-era='cga'] .card:hover .blurb,
+html[data-era='cga'] .card:hover .cost,
+html[data-era='cga'] .choice:hover .hint { color: var(--paper); }
+/* The 50% checkerboard the hardware used wherever it needed a tone it did not have. */
+html[data-era='cga'] .gauge .bar,
+html[data-era='cga'] .standing .track,
+html[data-era='cga'] .patron .bar,
+html[data-era='cga'] .owed .bar {
+  background-image:
+    repeating-conic-gradient(var(--dim) 0% 25%, transparent 0% 50%);
+  background-size: 4px 4px;
+  background-color: transparent;
+}
+html[data-era='cga'] .dialogue .inner { border-left-width: 3px; }
+
+/* --- Act IV · the browser. Beige, bevelled, and laid out by someone who had just been given
+       tables. Panels sit slightly proud of the page; the accent is a link blue. */
+html[data-era='web'] body::after {
+  background: radial-gradient(ellipse at center, transparent 70%, rgb(0 0 0 / 0.12) 100%);
+  opacity: 0.5;
+}
+html[data-era='web'] .choice,
+html[data-era='web'] .card,
+html[data-era='web'] button,
+html[data-era='web'] .btn {
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--ink) 3%, transparent), color-mix(in srgb, var(--ink) 9%, transparent));
+  box-shadow: inset 1px 1px 0 color-mix(in srgb, #fff 70%, transparent), 1px 1px 0 color-mix(in srgb, var(--ink) 22%, transparent);
+}
+html[data-era='web'] .choice:hover,
+html[data-era='web'] .card:hover:not(:disabled) { transform: none; }
+html[data-era='web'] .speaker { text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- Act V · the panel. Everything is glass now: soft shadows, a little depth, and surfaces
+       that blur what is behind them. */
+html[data-era='glass'] .panel,
+html[data-era='glass'] .detail {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(14px);
+}
+html[data-era='glass'] .choice,
+html[data-era='glass'] .card {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  box-shadow: 0 2px 14px rgb(0 0 0 / 0.28);
+}
+html[data-era='glass'] .dialogue .inner {
+  background: linear-gradient(to right, color-mix(in srgb, var(--accent) 7%, transparent), transparent 60%);
+}
+
+/* --- Act VI · the ambient surface. Warm, matte, no hard edges anywhere, and lit from within
+       rather than shone at you. */
+html[data-era='ambient'] body::after {
+  background: radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.4) 100%);
+  opacity: 0.45;
+}
+html[data-era='ambient'] .choice,
+html[data-era='ambient'] .card {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 9%, transparent);
+}
+html[data-era='ambient'] .speaker { letter-spacing: 0.22em; }
+
+/* --- Act VII. The chrome goes away. What is left is the type, and rather a lot of room. */
+html[data-era='lucid'] body::after { opacity: 0; }
+html[data-era='lucid'] .choice,
+html[data-era='lucid'] .card,
+html[data-era='lucid'] button,
+html[data-era='lucid'] .btn { border-color: color-mix(in srgb, var(--dim) 34%, transparent); background: transparent; }
+html[data-era='lucid'] .dialogue .inner { border-left-color: color-mix(in srgb, var(--ink) 55%, transparent); }
+html[data-era='lucid'] .text { letter-spacing: 0.015em; line-height: 1.78; }
+html[data-era='lucid'] .speaker { letter-spacing: 0.3em; }
+
+/* ---------------------------------------------------------------- polish */
+
+/* Keyboard users get the same affordance mouse users do, in the era's own accent. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, .btn:focus-visible, .card:focus-visible { outline-offset: 1px; }
+
+/* The dialogue is the thing you look at for a hundred years; it earns a little depth. */
+.dialogue .inner { transition: border-color 0.6s ease; }
+.text.done + .continue { opacity: 0.7; }
+.choice:active { transform: translateX(1px) scale(0.997); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
 @media (max-width: 720px) {
+  /* Two hundred pixels of photograph beside a paragraph does not leave a paragraph. */
+  .plate-strip { float: none; width: min(100%, 260px); margin: 0 0 16px; }
   .portrait { width: 116px; left: 6px; opacity: 0.9; }
   .dialogue { padding-left: 12px; }
   .text { min-height: 6.5em; }

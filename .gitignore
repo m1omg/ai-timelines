@@ -3,3 +3,6 @@ dist/
 .vite/
 *.log
 .DS_Store
+
+# The plate generator downloads its sources here; nothing under it is ever committed.
+tools/plates/cache/

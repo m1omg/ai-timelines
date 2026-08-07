@@ -87,9 +87,10 @@ src/engine/     the simulation — state, seeded RNG, the condition/effect DSL, 
                 autonomous actors, the scene scheduler, endings, save/load
 src/content/    everything authored: paradigms (8 files, one per school), scenes (7 acts),
                 characters, actors, directives, codex essays, endings
-src/art/        procedural SVG — scanline portraits, 16 backdrops, seven era palettes
+src/art/        procedural SVG — scanline portraits, 16 backdrops, seven era palettes,
+                and the era plates (palette indices only; see below)
 src/ui/         theme, synthesised audio, the novel renderer, directive board, tree, codex
-tools/          the content linter and the Monte Carlo playtest harness
+tools/          the content linter, the playtest harness, the era-plate generator
 tests/          Vitest suites for the engine and content
 ```
 
@@ -109,6 +110,37 @@ every line a paraphrase of a position the person took in print, mandatory source
 private life, and nothing said about events they did not live to see. Everyone appearing after
 2026 is invented. Portraits are deliberately abstract scanline figures — diagrams of a person,
 not likenesses.
+
+### The era plates
+
+Each act carries one archival photograph of the machinery of its decade — ENIAC's panels in
+1950, a CDC 6600 console, a Cray-1, a NASA machine room, a Livermore cluster, a wafer-scale
+chip — shown on the act break, beside each report, and collected in the Codex under **Plates**.
+
+They are not shipped as images. `tools/plates/make-plates.py` reduces each photograph to
+320 × 200 at one or two bits per pixel, ordered-dithered for the eras that used a fixed screen
+and error-diffused for the later ones, and writes the *palette indices* into
+`src/art/plates.ts` as base64. The colours are chosen at draw time from whichever era theme is
+live, so the same negative is ink on fanfold paper in act I and cyan on black in act III — and
+the rule that no binary asset is ever committed still holds. Regenerating needs Pillow and a
+network; playing, building and deploying need neither, because the generated module is checked
+in.
+
+Every source is public domain or CC0 and every one is of a machine or a room rather than a
+person, which keeps the depiction rules above intact — nobody real is pictured, only what they
+built. Credits, licences and Commons links are in `src/art/plates.ts` and are shown in game:
+
+| Act | Plate | Credit |
+|---|---|---|
+| I | ENIAC, Ballistic Research Laboratory, 1947 | U.S. Army photograph · public domain |
+| II | Control Data 6600 console, 1964 | Photograph by Hullie · public domain |
+| III | Cray-1, Computer History Museum, 1976 | Photograph by Ed Toton · public domain |
+| IV | Columbia, NASA Advanced Supercomputing Facility, 2004 | Trower, NASA · public domain |
+| V | Catalyst cluster, Lawrence Livermore, 2013 | U.S. Department of Energy · public domain |
+| VI | A wafer-scale integrated circuit, 2024 | Wikideas1 · CC0 |
+
+Act VII has no plate. Its own device line says no device is specified, and a photograph of a
+machine would answer a question the act is keeping open.
 
 ---
 

@@ -25,6 +25,13 @@ export interface EraTheme {
   grain: number;
   /** Rounded corners on panels. */
   radius: number;
+  /**
+   * Colours the era's plate is painted in, darkest first, one per stored tone — see
+   * src/art/plates.ts. Written out rather than derived from ink/paper/accent because the
+   * ordering that makes a photograph read is luminance, and an era's accent is not reliably
+   * anywhere in particular on that scale. Absent for an era with no plate.
+   */
+  plateRamp?: string[];
 }
 
 export const ERAS: EraTheme[] = [
@@ -41,6 +48,7 @@ export const ERAS: EraTheme[] = [
     scan: 3.4,
     grain: 0.22,
     radius: 0,
+    plateRamp: ['#221c17', '#e8e2d2'],
   },
   {
     id: 'phosphor',
@@ -55,20 +63,28 @@ export const ERAS: EraTheme[] = [
     scan: 2.8,
     grain: 0.3,
     radius: 2,
+    plateRamp: ['#040b06', '#2f7a4c', '#7dfba8', '#c8ffdc'],
   },
   {
+    /*
+     * CGA in mode 5: 320 × 200, four colours, and no choice about which four. The palette is
+     * black plus the high-intensity cyan/red/white set — the one every game that wanted to look
+     * serious used, because the alternative was magenta. `dim` is that same cyan at low
+     * intensity, which is the one thing the hardware would actually let you vary.
+     */
     id: 'cga',
     act: 3,
     name: 'Colour Adapter',
-    device: 'Colour graphics adapter · 320 × 200 · four fixed colours',
-    ink: '#e8e4d8',
-    paper: '#101828',
-    dim: '#5a7099',
-    accent: '#ffb03a',
-    warn: '#ff5a5a',
+    device: 'Colour graphics adapter · mode 5 · 320 × 200 · black, cyan, red, white',
+    ink: '#ffffff',
+    paper: '#000000',
+    dim: '#00aaaa',
+    accent: '#55ffff',
+    warn: '#ff5555',
     scan: 2.4,
     grain: 0.18,
     radius: 0,
+    plateRamp: ['#000000', '#ff5555', '#55ffff', '#ffffff'],
   },
   {
     id: 'web',
@@ -83,6 +99,7 @@ export const ERAS: EraTheme[] = [
     scan: 2.0,
     grain: 0.06,
     radius: 6,
+    plateRamp: ['#1c2431', '#5b6a80', '#a9b6c8', '#eef1f6'],
   },
   {
     id: 'glass',
@@ -97,6 +114,7 @@ export const ERAS: EraTheme[] = [
     scan: 1.7,
     grain: 0.05,
     radius: 12,
+    plateRamp: ['#0d1117', '#2f4459', '#7fa3c4', '#e6ecf5'],
   },
   {
     id: 'ambient',
@@ -111,6 +129,7 @@ export const ERAS: EraTheme[] = [
     scan: 1.4,
     grain: 0.03,
     radius: 18,
+    plateRamp: ['#14100e', '#4a3a2c', '#b08558', '#efeae2'],
   },
   {
     id: 'lucid',
