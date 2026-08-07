@@ -2,6 +2,7 @@ import { familyColour } from '../art/palette';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
 import { familyShares, familyStanding } from '../engine/describe';
+import { ALLY_INSIGHT, ALLY_LIFT, RIVAL_PRESSURE } from '../engine/sim';
 import { END_YEAR, START_YEAR } from '../engine/state';
 import type { Decision, FamilyId, GameState, TurnSnapshot } from '../engine/types';
 import { FAMILY_IDS } from '../engine/types';
@@ -9,7 +10,7 @@ import { PATRONS } from './console';
 import { currentEra } from './theme';
 import { escapeHtml } from './vn';
 
-type Tab = 'schools' | 'decisions';
+type Tab = 'schools' | 'alliances' | 'decisions';
 
 /**
  * Two views of the same question — who is winning, and what you did about it.
@@ -31,13 +32,16 @@ export function renderBalance(root: HTMLElement, s: GameState, onClose: () => vo
       <div class="sub">${
         tab === 'schools'
           ? 'Standing is matured work first, then accumulated insight, share of the field and momentum. A school can hold the field for decades on insight alone and have nothing to show for it, which is most of what this chart is for.'
-          : 'Every choice and every directive you have taken, in order, with what each one did. Consequences that arrived later — an idea maturing, the money leaving — are attached to the term they landed in.'
+          : tab === 'alliances'
+            ? 'Which schools make each other easier, and which take each other’s hiring lines. Two separate graphs — a pair can be on both, and the most consequential pair in the century is.'
+            : 'Every choice and every directive you have taken, in order, with what each one did. Consequences that arrived later — an idea maturing, the money leaving — are attached to the term they landed in.'
       }</div>
       <div class="filterbar tabs">
         <button data-t="schools" class="${tab === 'schools' ? 'on' : ''}">Balance of power</button>
+        <button data-t="alliances" class="${tab === 'alliances' ? 'on' : ''}">Alliances</button>
         <button data-t="decisions" class="${tab === 'decisions' ? 'on' : ''}">Decisions <span class="n">${(s.decisions ?? []).length}</span></button>
       </div>
-      ${tab === 'schools' ? schoolsView() : decisionsView()}
+      ${tab === 'schools' ? schoolsView() : tab === 'alliances' ? alliancesView() : decisionsView()}
       <div style="height:60px"></div>
     </div></div>`;
 
@@ -113,6 +117,93 @@ export function renderBalance(root: HTMLElement, s: GameState, onClose: () => vo
              </div>
              <p class="chart-note">The gap between the two lines is where exposure comes from: consequence accumulating faster than the theory that would let anyone see it coming.</p>`
       }`;
+  };
+
+  // ---------------------------------------------------------------- alliances
+
+  /**
+   * The two graphs the tick applies every turn and the interface never showed.
+   *
+   * Every number here is recomputed from the live state with the tick's own exported
+   * coefficients, so what the player reads is what the simulation is about to do — not a
+   * restatement of the rule in prose, which would be free to drift away from it.
+   *
+   * The insight column is the interesting one. Allies pay from the *weakest* of them, so a
+   * school with three allies and one neglected one is getting almost nothing, and naming that
+   * bottleneck is the whole reason this view is worth a tab.
+   */
+  const alliancesView = (): string => {
+    const rows = FAMILY_IDS.slice()
+      .sort((a, b) => s.families[b].insight - s.families[a].insight)
+      .map((f) => {
+        const def = FAMILIES[f];
+
+        const lift = def.allies.reduce(
+          (n, a) => n + Math.max(0, s.families[a].momentum) * ALLY_LIFT,
+          0,
+        );
+        const pressure = def.rivals.reduce(
+          (n, r) => n + Math.max(0, s.families[r].momentum) * RIVAL_PRESSURE,
+          0,
+        );
+
+        // The thin side of the join: whichever ally has the least insight to give.
+        let weakest: FamilyId | null = null;
+        for (const a of def.allies) {
+          if (weakest === null || s.families[a].insight < s.families[weakest].insight) weakest = a;
+        }
+        const gain = weakest === null ? 0 : s.families[weakest].insight * ALLY_INSIGHT;
+
+        const chip = (o: FamilyId, cls: string, note: string) =>
+          `<span class="pact ${cls}" style="--fam:${colour(o)}" title="${escapeHtml(note)}">${escapeHtml(FAMILIES[o].name)}</span>`;
+
+        const allies = def.allies.length
+          ? def.allies
+              .map((a) =>
+                chip(
+                  a,
+                  a === weakest && def.allies.length > 1 ? 'ally thin' : 'ally',
+                  a === weakest && def.allies.length > 1
+                    ? `${FAMILIES[a].name} is the thinnest side of this join — the insight ${def.name} receives is set by this school alone.`
+                    : `${FAMILIES[a].name} makes ${def.name}'s work easier.`,
+                ),
+              )
+              .join('')
+          : '<span class="pact none">stands alone</span>';
+
+        const rivals = def.rivals.length
+          ? def.rivals
+              .map((r) =>
+                chip(r, 'rival', `${FAMILIES[r].name} competes with ${def.name} for the field.`),
+              )
+              .join('')
+          : '<span class="pact none">no rivals</span>';
+
+        return `<div class="pactrow" style="--fam:${colour(f)}">
+          <div class="pacthead">
+            <span class="who">${escapeHtml(def.name)}</span>
+            <span class="creed">${escapeHtml(def.creed)}</span>
+          </div>
+          <div class="pactline"><span class="tag">strengthened by</span><span class="chips">${allies}</span></div>
+          <div class="pactline"><span class="tag">contested by</span><span class="chips">${rivals}</span></div>
+          <div class="pactsum">
+            <span class="${lift > 0.4 ? 'up' : 'flat'}">momentum ${lift > 0 ? '+' : ''}${lift.toFixed(1)} from allies</span>
+            <span class="${pressure > 0.4 ? 'down' : 'flat'}">${pressure > 0 ? `−${pressure.toFixed(1)} from rivals` : 'nothing pulling against it'}</span>
+            <span class="${gain > 0.15 ? 'up' : 'flat'}">insight +${gain.toFixed(2)}/turn${
+              weakest !== null && def.allies.length > 1
+                ? ` · capped by ${escapeHtml(FAMILIES[weakest].name)}`
+                : ''
+            }</span>
+          </div>
+        </div>`;
+      })
+      .join('');
+
+    return `
+      <div class="section-head">The two graphs · ${s.year}</div>
+      <p class="lede">Alliance and rivalry are <b>not</b> opposites here, and a pair can sit on both lists. Rivalry moves <b>momentum</b>, which is fashion and can be taken back. Alliance moves <b>insight</b>, which cannot.</p>
+      <div class="pacts">${rows}</div>
+      <p class="chart-note">Rivals bite harder than allies lift — ${RIVAL_PRESSURE.toFixed(2)} against ${ALLY_LIFT.toFixed(2)} per point of the other school's momentum — so a century spent feuding runs down hill for everyone in it. Insight is paid from the <b>weakest</b> ally rather than the sum: backing one school of a pair and neglecting the other buys the join nothing, which is why the bridge column needs a portfolio and not a favourite.</p>`;
   };
 
   // ---------------------------------------------------------------- decisions
