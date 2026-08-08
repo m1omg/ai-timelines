@@ -101,6 +101,15 @@ export interface TopbarHandlers {
   onBack?: () => void;
   /** The choice `onBack` would undo, quoted back in the tooltip. */
   backLabel?: string;
+  /**
+   * Influence committed to directives selected but not yet confirmed.
+   *
+   * Shown as already gone, because to the player it is — that is what selecting a card means.
+   * It is *not* taken out of the state: a save taken mid-selection, or a glance at the menu,
+   * would otherwise record influence that has not been spent and cannot be got back. The gauge
+   * lies helpfully for a few seconds; the century does not.
+   */
+  heldInfluence?: number;
 }
 
 /**
@@ -158,12 +167,17 @@ function owedHtml(s: GameState): string {
 }
 
 export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): void {
+  const held = Math.max(0, h.heldInfluence ?? 0);
   const gauges = GAUGES.map((g) => {
-    const v = s.resources[g.key];
+    const raw = s.resources[g.key];
+    const v = g.key === 'influence' ? Math.max(0, raw - held) : raw;
     const pct = Math.max(0, Math.min(100, (v / g.max) * 100));
     const warn = g.warnAbove ? v > 45 : false;
-    return `<div class="gauge${warn ? ' warn' : ''}" title="${escapeHtml(g.hint)}">
-      <b>${g.label}</b>
+    const holding = g.key === 'influence' && held > 0;
+    return `<div class="gauge${warn ? ' warn' : ''}${holding ? ' holding' : ''}" title="${escapeHtml(
+      holding ? `${gaugeValue(raw, true)} influence, ${held} of it committed to directives you have selected but not confirmed. Deselect a card to get it back.` : g.hint,
+    )}">
+      <b>${g.label}${holding ? ` <i class="held">−${held}</i>` : ''}</b>
       <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
       <span class="val">${gaugeValue(v, g.spendable)}</span>
     </div>`;
@@ -259,6 +273,8 @@ export function renderDirectives(
    * offer none had no Back button at all, and a mistapped directive was permanent.
    */
   onRewindPoint?: (before: GameState, label: string) => void,
+  /** Influence committed to selected-but-unconfirmed cards, for the gauge to show as spent. */
+  onHold?: (amount: number) => void,
 ): void {
   const era = currentEra();
   let category: Directive['category'] = 'fund';
@@ -414,6 +430,8 @@ export function renderDirectives(
           else selected = [...selected.filter((id) => !all.find((x) => x.id === id)?.endsTurn), d.id];
         }
         sfxSelect();
+        onHold?.(committed(all));
+        onChange?.();
         draw();
       });
     });
@@ -440,6 +458,7 @@ export function renderDirectives(
       }
 
       selected = [];
+      onHold?.(0);
       if (applied > 0) {
         onRewindPoint?.(before, applied === 1 ? chosen[0]!.name : `${applied} directives`);
         onChange?.();
@@ -451,7 +470,12 @@ export function renderDirectives(
       draw();
     });
 
-    root.querySelector('#adv')!.addEventListener('click', onAdvance);
+    root.querySelector('#adv')!.addEventListener('click', () => {
+      // Advancing with cards still selected releases them: nothing was spent, so nothing is owed.
+      selected = [];
+      onHold?.(0);
+      onAdvance();
+    });
   };
 
   const card = (d: Directive, all: Directive[]) => {
