@@ -9,6 +9,7 @@
  */
 
 import { ACT_TITLE_VARIANTS } from '../src/content/act-titles';
+import { APPLICATIONS } from '../src/content/applications';
 import { ACTORS } from '../src/content/actors';
 import { CHARACTER_BY_ID, CHARACTERS } from '../src/content/characters';
 import { CODEX_ESSAYS } from '../src/content/codex';
@@ -589,6 +590,37 @@ function checkDepiction(): void {
  * entirely on the last entry carrying no condition. A conditional final entry would fall through
  * to the fixed title silently, which is the bug the variants exist to fix, reintroduced quietly.
  */
+/*
+ * Applications are consequences of the tree, so every one has to hang off a real paradigm — and
+ * off the right school, or the panel groups it under a column that did not do the work. A `from`
+ * before the paradigm could exist would be an application nobody could have deployed.
+ */
+function checkApplications(): void {
+  const seen = new Set<string>();
+  for (const a of APPLICATIONS) {
+    if (seen.has(a.id)) err(`application ${a.id}: duplicate id`);
+    seen.add(a.id);
+    const p = PARADIGM_BY_ID[a.paradigm];
+    if (!p) {
+      err(`application ${a.id}: unknown paradigm "${a.paradigm}"`);
+      continue;
+    }
+    if (p.family !== a.family) {
+      err(`application ${a.id}: filed under ${a.family} but ${a.paradigm} belongs to ${p.family}`);
+    }
+    if (a.from < p.earliest) {
+      err(`application ${a.id}: deployed ${a.from}, before ${a.paradigm} could exist (${p.earliest})`);
+    }
+    if (a.from > END_YEAR) err(`application ${a.id}: deployed ${a.from}, after the century ends`);
+    if (a.from > 2026 && !a.projected) {
+      err(`application ${a.id}: ${a.from} is past the record and must be marked projected`);
+    }
+    if (a.from <= 2026 && a.projected) {
+      warn(`application ${a.id}: marked projected but ${a.from} is inside the record`);
+    }
+  }
+}
+
 function checkActTitles(): void {
   if (ACT_TITLE_VARIANTS.length !== ACT_TITLES.length) {
     err(`act titles: ${ACT_TITLE_VARIANTS.length} variant lists for ${ACT_TITLES.length} acts`);
@@ -665,6 +697,7 @@ function main(): void {
   checkEndings();
   checkDepiction();
   checkActTitles();
+  checkApplications();
   checkCoverage();
 
   console.log('AI Timelines — content lint');
