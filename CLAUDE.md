@@ -16,6 +16,13 @@ npm run build          # static site into dist/
 
 `npm run verify` is the gate. Everything below exists because one of those checks caught it.
 
+## Shipping
+
+Changes go live by default. Once `npm run verify` is clean, merge to `main` and let the Pages
+workflow deploy — do not stop at a pushed branch waiting to be asked. The one thing worth doing
+after a deploy is checking the built assets on `gh-pages` actually contain the change, because a
+green workflow only proves the build ran.
+
 ## Two rules that shape everything
 
 1. **Content is typed TypeScript, never JSON.** Paradigms, scenes, characters, endings and

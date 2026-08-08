@@ -6,7 +6,7 @@ import { SCENES, SCENE_BY_ID } from './content/scenes';
 import { CHARACTERS } from './content/characters';
 import { pickScenes } from './engine/scheduler';
 import { advanceTurn } from './engine/sim';
-import { clearSave, exportSave, hasSave, importSave, loadGame, saveGame } from './engine/save';
+import { clearSave, exportSlot, hasSave, importSave, listSlots, loadGame, mostRecentSlot, saveGame } from './engine/save';
 import { TOTAL_TURNS, createState } from './engine/state';
 import type { GameState, Scene } from './engine/types';
 import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady } from './ui/audio';
@@ -40,6 +40,15 @@ let rewind: { at: Rewind; queue: string[]; then: () => void } | null = null;
 
 /** Lets the Back button cut short whatever scene is currently on screen. */
 let sceneAbort: AbortController | null = null;
+
+/**
+ * The slot this run autosaves into — where it was loaded from, or last saved to.
+ *
+ * Without this the per-turn autosave went to slot 1 unconditionally, which would quietly
+ * overwrite whatever century the player had parked there the moment they took a turn in a
+ * different one. A run stays with its own slot.
+ */
+let activeSlot = 1;
 
 // ---------------------------------------------------------------------------
 // Shell
@@ -80,15 +89,69 @@ function openOverlay(render: (el: HTMLElement, close: () => void) => void): void
   render(overlayEl, close);
 }
 
+/**
+ * The four save slots.
+ *
+ * A century is a hundred years long, and the interesting thing to do with one is fork it — same
+ * seed, different policy, compare the endings. One slot made that impossible without pasting
+ * codes into a text file. Each row saves over itself, loads, exports and clears independently,
+ * and a slot holding an unfinished run says which year it stopped in rather than a timestamp
+ * nobody can place.
+ */
+function slotRows(): string {
+  return listSlots()
+    .map((info, i) => {
+      const n = i + 1;
+      const here = info && info.seed === state.seed && info.turn === state.turn;
+      return `<div class="slot${info ? '' : ' empty'}${here ? ' current' : ''}">
+        <span class="n">${n}</span>
+        <span class="what">${
+          info
+            ? `<b>${info.year}</b> · turn ${info.turn + 1} of ${TOTAL_TURNS} · seed ${info.seed}`
+            : '<i>empty</i>'
+        }</span>
+        <span class="acts">
+          <button data-slot-save="${n}">${info ? 'Overwrite' : 'Save here'}</button>
+          ${info ? `<button data-slot-load="${n}">Load</button>` : ''}
+          ${info ? `<button data-slot-export="${n}">Copy code</button>` : ''}
+          ${info ? `<button data-slot-clear="${n}">Clear</button>` : ''}
+        </span>
+      </div>`;
+    })
+    .join('');
+}
+
+/**
+ * Replace the running century with a loaded one, from a slot or a pasted code.
+ *
+ * A scene may still be playing behind the overlay, holding the state being replaced — it has to
+ * be aborted before the swap or it will keep writing into the old object and then hand control
+ * back into a turn that no longer exists.
+ */
+function adoptLoadedState(loaded: GameState, close: () => void): void {
+  const running = sceneAbort;
+  sceneAbort = null;
+  running?.abort();
+  rewind = null;
+
+  state = loaded;
+  close();
+  applyEra(state.act);
+  refreshTopbar();
+  void beginTurn();
+}
+
 function renderMenu(el: HTMLElement, close: () => void): void {
   el.innerHTML = `<div class="panel"><div class="wrap report">
     <div style="display:flex;align-items:baseline;gap:14px">
       <h2>Menu</h2><span style="flex:1"></span><button id="m-close">Close</button>
     </div>
     <div class="sub">Seed <b>${state.seed}</b> · turn ${state.turn + 1} of ${TOTAL_TURNS}. The whole run is deterministic from that seed plus the choices you made, so an exported code replays exactly.</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px">
-      <button id="m-save">Save</button>
-      <button id="m-export">Copy save code</button>
+
+    <div class="section-head">Saved centuries</div>
+    <div class="slots">${slotRows()}</div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:22px 0">
       <button id="m-import">Paste save code</button>
       <button id="m-audio">${audioEnabled() ? 'Sound: on' : 'Sound: off'}</button>
       <button id="m-quit">Abandon this century</button>
@@ -110,19 +173,49 @@ function renderMenu(el: HTMLElement, close: () => void): void {
 
   const msg = el.querySelector<HTMLElement>('#m-msg')!;
   el.querySelector('#m-close')!.addEventListener('click', close);
-  el.querySelector('#m-save')!.addEventListener('click', () => {
-    saveGame(state);
-    msg.textContent = 'Saved to this browser.';
-  });
-  el.querySelector('#m-export')!.addEventListener('click', async () => {
-    const code = exportSave(state);
+  /** Offer a code by clipboard, falling back to a selectable box where clipboard is refused. */
+  const offerCode = async (code: string, what: string) => {
     try {
       await navigator.clipboard.writeText(code);
-      msg.textContent = 'Save code copied to the clipboard.';
+      msg.textContent = `${what} copied to the clipboard.`;
     } catch {
       msg.innerHTML = `<textarea style="width:100%;height:80px;background:transparent;color:inherit;border:1px solid var(--dim)">${escapeHtml(code)}</textarea>`;
     }
-  });
+  };
+
+  el.querySelectorAll<HTMLButtonElement>('[data-slot-save]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const n = Number(b.dataset.slotSave);
+      saveGame(state, n);
+      activeSlot = n;
+      renderMenu(el, close);
+      el.querySelector<HTMLElement>('#m-msg')!.textContent = `Saved to slot ${n}.`;
+    }),
+  );
+  el.querySelectorAll<HTMLButtonElement>('[data-slot-export]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const code = exportSlot(Number(b.dataset.slotExport));
+      if (!code) return void (msg.textContent = 'That slot is empty.');
+      void offerCode(code, `Slot ${b.dataset.slotExport}`);
+    }),
+  );
+  el.querySelectorAll<HTMLButtonElement>('[data-slot-clear]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const n = Number(b.dataset.slotClear);
+      clearSave(n);
+      renderMenu(el, close);
+      el.querySelector<HTMLElement>('#m-msg')!.textContent = `Slot ${n} cleared.`;
+    }),
+  );
+  el.querySelectorAll<HTMLButtonElement>('[data-slot-load]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const n = Number(b.dataset.slotLoad);
+      const loaded = loadGame(n);
+      if (!loaded) return void (msg.textContent = 'That slot could not be read.');
+      activeSlot = n;
+      adoptLoadedState(loaded, close);
+    }),
+  );
   el.querySelector('#m-import')!.addEventListener('click', () => {
     const code = window.prompt('Paste a save code:');
     if (!code) return;
@@ -131,24 +224,15 @@ function renderMenu(el: HTMLElement, close: () => void): void {
       msg.textContent = 'That code could not be read.';
       return;
     }
-    // A scene may be mid-play behind this overlay, still holding the state we are replacing.
-    const running = sceneAbort;
-    sceneAbort = null;
-    running?.abort();
-    rewind = null;
-
-    state = loaded;
-    close();
-    applyEra(state.act);
-    refreshTopbar();
-    void beginTurn();
+    adoptLoadedState(loaded, close);
   });
   el.querySelector('#m-audio')!.addEventListener('click', () => {
     setAudioEnabled(!audioEnabled());
     renderMenu(el, close);
   });
   el.querySelector('#m-quit')!.addEventListener('click', () => {
-    clearSave();
+    // Abandoning the run in progress, not the saved centuries. Clearing every slot here used to
+    // be harmless when there was only one; with four it would throw away three untouched games.
     close();
     titleScreen();
   });
@@ -188,7 +272,9 @@ function titleScreen(): void {
 
   document.getElementById('t-new')!.addEventListener('click', () => start(Date.now() & 0x7fffffff));
   document.getElementById('t-cont')?.addEventListener('click', () => {
-    const loaded = loadGame();
+    const slot = mostRecentSlot() ?? 1;
+    activeSlot = slot;
+    const loaded = loadGame(slot);
     if (loaded) start(loaded.seed, loaded);
     else start(Date.now() & 0x7fffffff);
   });
@@ -310,7 +396,7 @@ function directivePhase(): void {
     state,
     () => {
       sfxAdvance();
-      saveGame(state);
+      saveGame(state, activeSlot);
       nextTurn();
     },
     refreshTopbar,
@@ -358,10 +444,10 @@ function nextTurn(): void {
 async function finish(): Promise<void> {
   stageEl.innerHTML = '';
   await renderEnding(stageEl, stageEl, state, () => {
-    clearSave();
+    clearSave(activeSlot);
     titleScreen();
   });
-  saveGame(state);
+  saveGame(state, activeSlot);
 }
 
 // ---------------------------------------------------------------------------
