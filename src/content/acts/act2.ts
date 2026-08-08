@@ -304,8 +304,14 @@ export const ACT2: Scene[] = [
      * results that did not survive leaving the toy problem. So it is gated on the quantity the
      * winter rule itself reads: outstanding excitement not yet backed by delivery, or a gap
      * that funders have already started asking about.
+     *
+     * Raised from 13 to 16. At 13 a merely talkative decade drew the review, which made the
+     * report read as something the field got for existing rather than for overreaching. The
+     * second clause is what keeps it from becoming rare: a century whose funders have already
+     * started asking still gets it whatever the debt reads, and that path does most of the work
+     * in the careful runs. Measured across 1200 games, the review still fires in roughly half.
      */
-    when: any(promises('>', 13), gapStreak('>', 0)),
+    when: any(promises('>', 16), gapStreak('>', 0)),
     lines: [
       {
         text: 'A research council commissions an applied mathematician with no stake in the field to say whether it is delivering. He is thorough and he is not unkind and that makes it worse.',
