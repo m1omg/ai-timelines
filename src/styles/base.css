@@ -645,14 +645,14 @@ html[data-era='web'] .plate-bed::after {
 html { transition: background-color 0.9s ease; }
 body { transition: background-color 0.9s ease, color 0.9s ease; }
 
-/* --- Act I · teleprinter. Not a screen at all: ink on continuous stationery, so no scanlines,
-       no vignette, and a faint fibre with the fold lines of fanfold paper. */
-html[data-era='teletype'] body::after {
-  background:
-    repeating-linear-gradient(to bottom, color-mix(in srgb, var(--ink) 5%, transparent) 0 1px, transparent 1px 2px),
-    repeating-linear-gradient(to bottom, transparent 0 178px, color-mix(in srgb, var(--ink) 13%, transparent) 178px 180px);
-  opacity: 0.5;
-}
+/* --- Act I · teleprinter.
+       The argument for overriding the base texture here was that a teleprinter is not a screen,
+       so it should have paper fibre and fold lines rather than scanlines and a vignette. That is
+       true of the machine and wrong on the page: at 5% ink the fibre is invisible at any normal
+       size, and the act lost the ruled ground the rest of the interface reads against. The base
+       treatment — a line every 3px, and grain 0.22 driving it — is what act I is supposed to
+       look like, so it is left to apply. Do not add an override back without looking at the
+       board at full width first. */
 html[data-era='teletype'] .text,
 html[data-era='teletype'] .speaker { text-shadow: 0 0.5px 0 color-mix(in srgb, var(--ink) 22%, transparent); }
 html[data-era='teletype'] .choice,
