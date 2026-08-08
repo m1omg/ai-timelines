@@ -348,8 +348,6 @@ export function renderDirectives(
         </div>`
       : '';
 
-    const last = s.turn >= TOTAL_TURNS - 1;
-    const spend = committed(all);
     const taken = takenThisTerm();
     const ledger = taken.length
       ? `<div class="section-head">Taken this term</div>
@@ -364,6 +362,13 @@ export function renderDirectives(
            .join('')}</div>`
       : '';
 
+    /*
+     * A redraw replaces `.panel`, which is the element that scrolls, so the reading position has
+     * to be carried across by hand. Confirming a directive halfway down a long board otherwise
+     * threw the player back to the top to look at a card they had just finished with.
+     */
+    const wasAt = root.querySelector('.panel')?.scrollTop ?? 0;
+
     root.innerHTML = `<div class="panel"><div class="wrap">
       <h2>Directives · ${s.year}–${s.year + 3}</h2>
       <div class="sub">
@@ -376,29 +381,15 @@ export function renderDirectives(
       <div class="section-head">${CATEGORY_LABEL[category]}${school !== null ? ` · ${escapeHtml(FAMILIES[school].name)}` : ''}</div>
       <div class="cards">${shown.map((d) => card(d, all)).join('') || '<p style="color:var(--dim)">Nothing here this term.</p>'}</div>
       ${ledger}
-      ${
-        selected.length
-          ? `<div class="pending">
-               <span class="lab">Selected</span>
-               <span class="items">${selected
-                 .map((id) => all.find((d) => d.id === id))
-                 .filter((d): d is Directive => Boolean(d))
-                 .map((d) => `<i>${escapeHtml(d.name)}${d.cost ? ` · ${d.cost}` : ''}</i>`)
-                 .join('')}</span>
-               <span class="tot">${spend} of ${spendableInfluence(s)} influence</span>
-             </div>`
-          : ''
-      }
-      <div style="margin:34px 0 60px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        ${
-          selected.length
-            ? `<button class="primary" id="confirm">Confirm ${selected.length === 1 ? 'this directive' : `these ${selected.length}`} ▸</button>`
-            : ''
-        }
-        <button class="${selected.length ? '' : 'primary'}" id="adv">${last ? 'Let the century finish ▸' : `Advance to ${s.year + 4} ▸`}</button>
-        <span style="color:var(--dim);font-size:11px">${describeState(s)}</span>
-      </div>
+      <div class="board-foot">${footHtml(all)}</div>
     </div></div>`;
+
+    const panel = root.querySelector('.panel');
+    if (panel && wasAt > 0) {
+      // The entry animation is for opening the board, not for returning to the same place in it.
+      panel.classList.add('no-entry');
+      panel.scrollTop = wasAt;
+    }
 
     root.querySelectorAll<HTMLButtonElement>('[data-cat]').forEach((btn) =>
       btn.addEventListener('click', () => {
@@ -432,11 +423,45 @@ export function renderDirectives(
         sfxSelect();
         onHold?.(committed(all));
         onChange?.();
-        draw();
+        syncSelection();
       });
     });
 
-    root.querySelector('#confirm')?.addEventListener('click', () => {
+    /*
+     * Update the cards and the footer in place.
+     *
+     * A tap used to call draw(), which rewrites the panel — and `.panel` is the element that
+     * scrolls, so every selection threw the page back to the top and replayed the entry
+     * animation. Nothing about picking a card changes the card list, the tabs or the ledger, so
+     * nothing but the cards' own state and the footer needs to move.
+     */
+    function syncSelection(): void {
+      const remaining = spendableInfluence(s) - committed(all);
+      root.querySelectorAll<HTMLButtonElement>('.card').forEach((el) => {
+        const d = all.find((x) => x.id === el.dataset.id);
+        if (!d) return;
+        const picked = selected.includes(d.id);
+        const afford = picked || d.cost <= remaining;
+        el.classList.toggle('picked', picked);
+        el.classList.toggle('unaffordable', !afford);
+        el.disabled = !afford;
+        el.setAttribute('aria-pressed', String(picked));
+        const cost = el.querySelector('.cost');
+        if (cost) cost.textContent = costLabel(d, picked, remaining);
+      });
+      const foot = root.querySelector('.board-foot');
+      if (!foot) return;
+      foot.innerHTML = footHtml(all);
+      bindFoot();
+    }
+
+    /** The footer is replaced wholesale, so its two buttons are rebound each time. */
+    function bindFoot(): void {
+      root.querySelector('#confirm')?.addEventListener('click', onConfirm);
+      root.querySelector('#adv')?.addEventListener('click', onAdvanceClick);
+    }
+
+    function onConfirm(): void {
       const chosen = selected
         .map((id) => all.find((d) => d.id === id))
         .filter((d): d is Directive => Boolean(d));
@@ -467,15 +492,18 @@ export function renderDirectives(
         onAdvance();
         return;
       }
+      // A confirmed batch changes the card list and the ledger, so this one is a real redraw.
       draw();
-    });
+    }
 
-    root.querySelector('#adv')!.addEventListener('click', () => {
+    function onAdvanceClick(): void {
       // Advancing with cards still selected releases them: nothing was spent, so nothing is owed.
       selected = [];
       onHold?.(0);
       onAdvance();
-    });
+    }
+
+    bindFoot();
   };
 
   const card = (d: Directive, all: Directive[]) => {
@@ -493,16 +521,46 @@ export function renderDirectives(
       <span class="name">${escapeHtml(d.name)}</span>
       <span class="blurb">${escapeHtml(d.blurb)}</span>
       ${short.length ? `<span class="effects">${short.map((e) => `<i>${escapeHtml(e)}</i>`).join('')}${effects.length > short.length ? `<i class="more">+${effects.length - short.length} more</i>` : ''}</span>` : ''}
-      <span class="cost">${
-        picked
-          ? 'selected — tap to remove'
-          : d.cost === 0
-            ? 'free'
-            : afford
-              ? `${d.cost} influence`
-              : `${d.cost} influence — ${remaining} left`
-      }</span>
+      <span class="cost">${costLabel(d, picked, remaining)}</span>
     </button>`;
+  };
+
+  /** Written both into fresh markup and, on a selection change, straight into the live node. */
+  const costLabel = (d: Directive, picked: boolean, remaining: number): string =>
+    picked
+      ? 'selected — tap to remove'
+      : d.cost === 0
+        ? 'free'
+        : d.cost <= remaining
+          ? `${d.cost} influence`
+          : `${d.cost} influence — ${remaining} left`;
+
+  /** The pending strip and the two buttons: everything a selection changes below the cards. */
+  const footHtml = (all: Directive[]): string => {
+    const last = s.turn >= TOTAL_TURNS - 1;
+    const chosen = selected
+      .map((id) => all.find((d) => d.id === id))
+      .filter((d): d is Directive => Boolean(d));
+    return `${
+      chosen.length
+        ? `<div class="pending">
+             <span class="lab">Selected</span>
+             <span class="items">${chosen
+               .map((d) => `<i>${escapeHtml(d.name)}${d.cost ? ` · ${d.cost}` : ''}</i>`)
+               .join('')}</span>
+             <span class="tot">${committed(all)} of ${spendableInfluence(s)} influence</span>
+           </div>`
+        : ''
+    }
+    <div style="margin:34px 0 60px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      ${
+        chosen.length
+          ? `<button class="primary" id="confirm">Confirm ${chosen.length === 1 ? 'this directive' : `these ${chosen.length}`} ▸</button>`
+          : ''
+      }
+      <button class="${chosen.length ? '' : 'primary'}" id="adv">${last ? 'Let the century finish ▸' : `Advance to ${s.year + 4} ▸`}</button>
+      <span style="color:var(--dim);font-size:11px">${describeState(s)}</span>
+    </div>`;
   };
 
   draw();
