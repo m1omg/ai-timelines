@@ -480,7 +480,14 @@ export const MILESTONES: Scene[] = [
     when: all(resource('exposure', '>', 45), resource('deployment', '>', 40)),
     lines: [
       {
+        when: mature('gpu-scale'),
         text: 'The weights are the artefact everybody ships, and the format everybody ships them in executes code when you open it. This was known. It was documented. It was in the file format specification.',
+      },
+      {
+        // The same failure without the weights: whatever a century ships, it ships in a format
+        // somebody specified once and nobody revisited.
+        when: notMature('gpu-scale'),
+        text: 'Whatever your century packages its systems into is the artefact everybody ships, and the format everybody ships it in executes code when you open it. This was known. It was documented. It was in the file format specification.',
       },
       {
         who: 'archivist',

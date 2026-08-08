@@ -1,4 +1,4 @@
-import { all, flagSet, mature, notMature } from '../../engine/conditions';
+import { all, any, flagSet, mature, notMature } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -48,7 +48,13 @@ export const ACT6: Scene[] = [
     years: [2030, 2038],
     priority: 8,
     backdrop: 'datacenter-vast',
-    when: { kind: 'compute', op: '>', value: 24 },
+    /*
+     * Compute alone was the wrong gate. The Moore's-law floor lifts every century, symbolic ones
+     * included, so a run that never trained anything crossed 10^24 and was told what its frontier
+     * training run costs. Concentration is a fact about a century that assembles its hardware in
+     * one place, which is what the scaling paradigms are; a theorem prover is not that customer.
+     */
+    when: all({ kind: 'compute', op: '>', value: 24 }, any(mature('gpu-scale'), mature('scaling-regime'))),
     lines: [
       {
         text: 'A frontier training run now costs more than a national research budget and requires its own generating capacity.',

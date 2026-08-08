@@ -16,6 +16,16 @@ export const ACT5: Scene[] = [
     priority: 9,
     backdrop: 'server-floor',
     title: 'Eighteen Months',
+    /*
+     * Pinned and ungated, this asserted that convolution plus two graphics cards ended the
+     * argument — in centuries where neither had ever matured. A symbolic run was told its
+     * departments had reorganised around a result it never produced, and that the kernel people
+     * were gone from committees they in fact still ran.
+     *
+     * The scene is about one specific demonstration, so it is gated on that demonstration having
+     * happened. A century that did not build it does not get told that it did.
+     */
+    when: all(mature('convnet'), mature('gpu-scale')),
     lines: [
       {
         text: 'A result on an image benchmark cuts the error rate almost in half. Within eighteen months there is no serious computer vision research being done any other way.',
@@ -664,9 +674,20 @@ export const ACT5: Scene[] = [
     priority: 1,
     once: false,
     backdrop: 'datacenter-vast',
+    /*
+     * The repeatable act 5 filler, so it must play in every century — which is exactly why it
+     * cannot assert one. It described a substation and a loss curve to runs that had neither.
+     * Gated at the line rather than the scene: the observation underneath is about a field that
+     * has found a number it can make go down, and every school gets one of those.
+     */
     lines: [
       {
+        when: mature('gpu-scale'),
         text: 'A building with its own substation. Nobody inside it can tell you what the model has learned, and every one of them can tell you the loss to four decimal places.',
+      },
+      {
+        when: notMature('gpu-scale'),
+        text: 'A machine room that has outgrown two buildings. Nobody inside it can tell you what the system actually understands, and every one of them can tell you its score on the standard set to four decimal places.',
       },
       {
         who: 'archivist',
