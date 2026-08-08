@@ -93,6 +93,22 @@ function checkReferences(): void {
     seen.add(s.id);
   }
 
+  /*
+   * The other half of the `linkOnly` bargain. The scheduler will not select one, so a reply
+   * nothing links to can never play at all — dead content that no other check can see, because
+   * it is well-formed, satisfiable and in a real act.
+   */
+  const linked = new Set<string>();
+  for (const s of ALL_SCENES) {
+    if (s.next) linked.add(s.next);
+    for (const ch of s.choices ?? []) if (ch.goto) linked.add(ch.goto);
+  }
+  for (const s of ALL_SCENES) {
+    if (s.linkOnly && !linked.has(s.id)) {
+      err(`${s.id}: linkOnly but nothing links to it — the scheduler will never play it`);
+    }
+  }
+
   for (const s of ALL_SCENES) {
     if (s.next && !sceneIds.has(s.next)) err(`${s.id}: next -> unknown scene "${s.next}"`);
     for (const ch of s.choices ?? []) {
@@ -569,7 +585,9 @@ function checkDepiction(): void {
 
 function checkCoverage(): void {
   for (let act = 1; act <= ACT_TURNS.length; act++) {
-    const inAct = ALL_SCENES.filter((s) => s.act === act);
+    // Replies do not count as cover: one cannot fill an empty turn, because nothing would have
+    // linked to it. Counting them would let a year read as covered by a scene that cannot play.
+    const inAct = ALL_SCENES.filter((s) => s.act === act && !s.linkOnly);
     if (inAct.length === 0) {
       err(`act ${act} has no scenes at all`);
       continue;

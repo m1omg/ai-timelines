@@ -10,7 +10,7 @@
  * an unreachable ending, a school nobody can win with).
  */
 
-import { ALL_SCENES, SCENES } from '../src/content/scenes';
+import { ALL_SCENES, SCENES, SCENE_BY_ID } from '../src/content/scenes';
 import { FAMILIES, PARADIGMS, PARADIGM_BY_ID } from '../src/content/paradigms';
 import { ENDINGS } from '../src/content/endings';
 import { evaluate, leadingFamily } from '../src/engine/conditions';
@@ -242,11 +242,11 @@ function effectAppeal(policy: PolicyName, e: Effect): number {
   }
 }
 
-function pickChoice(policy: PolicyName, s: GameState, scene: Scene): void {
+function pickChoice(policy: PolicyName, s: GameState, scene: Scene): Choice | null {
   const choices = (scene.choices ?? []).filter(
     (c) => evaluate(c.when, s) && (!c.cost || s.resources.influence >= c.cost),
   );
-  if (choices.length === 0) return;
+  if (choices.length === 0) return null;
 
   let c: Choice;
   if (policy === 'random') {
@@ -262,9 +262,11 @@ function pickChoice(policy: PolicyName, s: GameState, scene: Scene): void {
 
   if (c.cost) s.resources.influence = Math.max(0, s.resources.influence - c.cost);
   applyEffects(s, c.effects);
+  return c;
 }
 
-function playSceneHeadless(policy: PolicyName, s: GameState, scene: Scene): void {
+/** One scene. Returns the scene it hands off to, if any — a choice's `goto` beats `next`. */
+function playSceneHeadless(policy: PolicyName, s: GameState, scene: Scene): string | undefined {
   applyEffects(s, scene.onEnter);
   if (!s.seenScenes.includes(scene.id)) s.seenScenes.push(scene.id);
   for (const line of scene.lines) {
@@ -275,7 +277,26 @@ function playSceneHeadless(policy: PolicyName, s: GameState, scene: Scene): void
       st.active = true;
     }
   }
-  pickChoice(policy, s, scene);
+  const chosen = pickChoice(policy, s, scene);
+  return chosen?.goto ?? scene.next;
+}
+
+/*
+ * Follow a scene to the end of its chain, exactly as main.ts does.
+ *
+ * The harness used to stop at the first scene and drop every `goto`, so a reply — a scene the
+ * scheduler is forbidden to select — could never be reached, and the coverage report listed all
+ * of them as unplayed content. Following the chain is also the only way the effects behind a
+ * chained scene get exercised at all.
+ */
+function playChainHeadless(policy: PolicyName, s: GameState, start: Scene): void {
+  const guard = new Set<string>();
+  let sc: Scene | undefined = start;
+  while (sc && !guard.has(sc.id) && guard.size < 24) {
+    guard.add(sc.id);
+    const nextId: string | undefined = playSceneHeadless(policy, s, sc);
+    sc = nextId ? SCENE_BY_ID[nextId] : undefined;
+  }
 }
 
 function runOnce(policy: PolicyName, seed: number): RunResult {
@@ -283,10 +304,13 @@ function runOnce(policy: PolicyName, seed: number): RunResult {
   let crashed: string | null = null;
 
   try {
-    for (const sc of OPENING) playSceneHeadless(policy, s, sc);
+    // The opening is a chain from open-1, not a list: iterating OPENING played every branch of
+    // its disposition reply in the same run, which no real play can do.
+    const first = OPENING[0];
+    if (first) playChainHeadless(policy, s, first);
 
     for (let guard = 0; guard < TOTAL_TURNS + 4; guard++) {
-      for (const sc of pickScenes(s, SCENES, SCENES_PER_TURN)) playSceneHeadless(policy, s, sc);
+      for (const sc of pickScenes(s, SCENES, SCENES_PER_TURN)) playChainHeadless(policy, s, sc);
 
       // Directive phase: spend down influence.
       for (let i = 0; i < 12; i++) {

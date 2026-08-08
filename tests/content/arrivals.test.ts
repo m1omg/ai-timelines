@@ -39,7 +39,9 @@ describe('the arrivals', () => {
   });
 
   it('fires only for the school that actually holds the field', () => {
-    for (const s of ARRIVALS) {
+    // Replies are excluded: a linkOnly scene is never selected, so it cannot fire for the wrong
+    // school. It plays because the arrival it answers already passed this gate.
+    for (const s of ARRIVALS.filter((sc) => !sc.linkOnly)) {
       expect(conditionsIn(s.when).some((c) => c.kind === 'leadFamily')).toBe(true);
     }
   });
