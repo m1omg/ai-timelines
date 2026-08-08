@@ -461,11 +461,18 @@ export function renderDirectives(
       root.querySelector('#adv')?.addEventListener('click', onAdvanceClick);
     }
 
-    function onConfirm(): void {
+    /**
+     * Spend whatever is selected. Returns whether a card ended the term.
+     *
+     * Shared by both buttons, because confirming is no longer a step the player has to take:
+     * advancing takes what is selected on the way out. Making them press Confirm and *then*
+     * Advance was a toll on every single turn to say something the selection already said.
+     */
+    function applySelected(): { applied: number; endsTurn: boolean } {
       const chosen = selected
         .map((id) => all.find((d) => d.id === id))
         .filter((d): d is Directive => Boolean(d));
-      if (chosen.length === 0) return;
+      if (chosen.length === 0) return { applied: 0, endsTurn: false };
 
       // One snapshot for the whole batch, taken before anything is applied. Back now undoes a
       // decision the player made rather than an individual click they may not remember.
@@ -488,6 +495,26 @@ export function renderDirectives(
         onRewindPoint?.(before, applied === 1 ? chosen[0]!.name : `${applied} directives`);
         onChange?.();
       }
+      return { applied, endsTurn };
+    }
+
+    /*
+     * Confirming without advancing survives for one reason, and it is a real one: taking a
+     * directive can put a new directive on the board within the same turn, and that card is
+     * unreachable if everything resolves at the moment the turn ends.
+     *
+     * The case that exists today is the champion/centrepiece chain. Championing an unaffiliated
+     * figure adds 18 affinity, so backing someone already at 17 or more carries them over the
+     * centrepiece bar of 35 and their card — 7 influence, −14 owed — appears immediately.
+     * Verified: Dreyfus at 20 goes to 38 and `centrepiece:dreyfus` is offered on the next call to
+     * availableDirectives.
+     *
+     * Note it is *not* "champion twice in a turn": champion is not repeatable, so the second one
+     * is gone until the term turns over. Anything relying on that would silently never fire.
+     */
+    function onConfirm(): void {
+      const { applied, endsTurn } = applySelected();
+      if (applied === 0) return;
       if (endsTurn) {
         onAdvance();
         return;
@@ -497,9 +524,9 @@ export function renderDirectives(
     }
 
     function onAdvanceClick(): void {
-      // Advancing with cards still selected releases them: nothing was spent, so nothing is owed.
-      selected = [];
-      onHold?.(0);
+      // Anything still selected is taken on the way out. Leaving the board used to throw the
+      // selection away, which meant the only route to spending it was the extra button.
+      applySelected();
       onAdvance();
     }
 
@@ -553,12 +580,16 @@ export function renderDirectives(
         : ''
     }
     <div style="margin:34px 0 60px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="primary" id="adv">${
+        last
+          ? `${chosen.length ? `Take ${chosen.length === 1 ? 'it' : `all ${chosen.length}`} and let` : 'Let'} the century finish ▸`
+          : `${chosen.length ? `Take ${chosen.length === 1 ? 'it' : `all ${chosen.length}`} and advance` : 'Advance'} to ${s.year + 4} ▸`
+      }</button>
       ${
         chosen.length
-          ? `<button class="primary" id="confirm">Confirm ${chosen.length === 1 ? 'this directive' : `these ${chosen.length}`} ▸</button>`
+          ? `<button id="confirm" title="Spend it now without ending the term, then keep choosing with what is left. Worth it when a directive puts a new one on the board: championing someone you have already backed can carry them over the line, and their centrepiece appears the same turn.">Take ${chosen.length === 1 ? 'it' : 'them'} now, keep choosing</button>`
           : ''
       }
-      <button class="${chosen.length ? '' : 'primary'}" id="adv">${last ? 'Let the century finish ▸' : `Advance to ${s.year + 4} ▸`}</button>
       <span style="color:var(--dim);font-size:11px">${describeState(s)}</span>
     </div>`;
   };
