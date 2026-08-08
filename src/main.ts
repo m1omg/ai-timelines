@@ -53,6 +53,15 @@ let activeSlot = 1;
 /** A seed chosen on the title screen, applied to the next century begun in an empty slot. */
 let pendingSeed: number | null = null;
 
+/**
+ * Influence committed to directives the player has selected but not confirmed.
+ *
+ * Display only. The board owns the selection; this is the number the gauge subtracts so that
+ * picking a card visibly costs something and dropping it visibly refunds. Deliberately not held
+ * in GameState — a save taken mid-selection must record the influence the century actually has.
+ */
+let heldInfluence = 0;
+
 // ---------------------------------------------------------------------------
 // Shell
 // ---------------------------------------------------------------------------
@@ -77,6 +86,7 @@ function refreshTopbar(): void {
     onMenu: () => openOverlay((el, close) => renderMenu(el, close)),
     onBack: rewind ? goBack : undefined,
     backLabel: rewind?.at.choice,
+    heldInfluence: heldInfluence,
   });
 }
 
@@ -136,6 +146,7 @@ function adoptLoadedState(loaded: GameState, close: () => void): void {
   sceneAbort = null;
   running?.abort();
   rewind = null;
+  heldInfluence = 0;
 
   state = loaded;
   close();
@@ -409,6 +420,7 @@ function goBack(): void {
   const r = rewind;
   if (!r) return;
   rewind = null;
+  heldInfluence = 0;
   state = r.at.state;
   applyEra(state.act);
   refreshCharacters();
@@ -454,12 +466,16 @@ function directivePhase(): void {
       rewind = { at: { state: before, choice: label }, queue: [], then: directivePhase };
       refreshTopbar();
     },
+    (amount) => {
+      heldInfluence = amount;
+    },
   );
 }
 
 function nextTurn(): void {
   // Four years are about to pass. Past this point the choice is history like everything else.
   rewind = null;
+  heldInfluence = 0;
   refreshTopbar();
 
   if (state.turn >= TOTAL_TURNS - 1) {

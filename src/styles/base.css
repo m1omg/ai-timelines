@@ -86,6 +86,13 @@ body::after {
 .gauge .bar { height: 4px; background: color-mix(in srgb, var(--dim) 30%, transparent); position: relative; }
 .gauge .bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); transition: width 0.6s ease; }
 .gauge.warn .bar i { background: var(--warn); }
+/* Influence held against cards selected but not confirmed. The bar is drawn short and the label
+   says what is missing, so the number going down never looks like money that vanished. */
+.gauge.holding .bar i { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+.gauge.holding .val { color: var(--accent); }
+.gauge b .held {
+  font-style: normal; color: var(--accent); letter-spacing: 0.04em; margin-left: 3px;
+}
 .gauge .val { font-size: 11px; color: var(--ink); font-variant-numeric: tabular-nums; }
 
 /* Who is paying. A different kind of quantity from the gauges above — not something you hold,
