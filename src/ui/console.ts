@@ -265,6 +265,21 @@ export function renderDirectives(
   /** null means every school. */
   let school: FamilyId | null = null;
 
+  /*
+   * Directives are chosen, not bought one at a time.
+   *
+   * The board used to spend on the click: the card applied immediately and the only way back was
+   * the Back button, which restored a whole snapshot and read as undoing history rather than
+   * changing your mind. Selection is now free until it is confirmed — tap to add, tap again to
+   * remove, and nothing touches the state until the player says so.
+   *
+   * Order is kept because directives are applied in sequence and one can open or close another;
+   * a Set would lose the order the player expressed.
+   */
+  let selected: string[] = [];
+  const committed = (all: Directive[]) =>
+    selected.reduce((n, id) => n + (all.find((d) => d.id === id)?.cost ?? 0), 0);
+
   /** What was taken this term, newest first, so the board shows its own consequences. */
   const takenThisTerm = () =>
     (s.decisions ?? []).filter((d) => d.kind === 'directive' && d.turn === s.turn);
@@ -318,6 +333,7 @@ export function renderDirectives(
       : '';
 
     const last = s.turn >= TOTAL_TURNS - 1;
+    const spend = committed(all);
     const taken = takenThisTerm();
     const ledger = taken.length
       ? `<div class="section-head">Taken this term</div>
@@ -342,10 +358,28 @@ export function renderDirectives(
       <div class="filterbar tabs">${tabs}</div>
       ${schoolTabs}
       <div class="section-head">${CATEGORY_LABEL[category]}${school !== null ? ` · ${escapeHtml(FAMILIES[school].name)}` : ''}</div>
-      <div class="cards">${shown.map(card).join('') || '<p style="color:var(--dim)">Nothing here this term.</p>'}</div>
+      <div class="cards">${shown.map((d) => card(d, all)).join('') || '<p style="color:var(--dim)">Nothing here this term.</p>'}</div>
       ${ledger}
+      ${
+        selected.length
+          ? `<div class="pending">
+               <span class="lab">Selected</span>
+               <span class="items">${selected
+                 .map((id) => all.find((d) => d.id === id))
+                 .filter((d): d is Directive => Boolean(d))
+                 .map((d) => `<i>${escapeHtml(d.name)}${d.cost ? ` · ${d.cost}` : ''}</i>`)
+                 .join('')}</span>
+               <span class="tot">${spend} of ${spendableInfluence(s)} influence</span>
+             </div>`
+          : ''
+      }
       <div style="margin:34px 0 60px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <button class="primary" id="adv">${last ? 'Let the century finish ▸' : `Advance to ${s.year + 4} ▸`}</button>
+        ${
+          selected.length
+            ? `<button class="primary" id="confirm">Confirm ${selected.length === 1 ? 'this directive' : `these ${selected.length}`} ▸</button>`
+            : ''
+        }
+        <button class="${selected.length ? '' : 'primary'}" id="adv">${last ? 'Let the century finish ▸' : `Advance to ${s.year + 4} ▸`}</button>
         <span style="color:var(--dim);font-size:11px">${describeState(s)}</span>
       </div>
     </div></div>`;
@@ -368,40 +402,81 @@ export function renderDirectives(
     root.querySelectorAll<HTMLButtonElement>('.card').forEach((btn) => {
       btn.addEventListener('click', () => {
         const d = all.find((x) => x.id === btn.dataset.id);
-        if (!d || !canAfford(s, d)) return;
-        // Snapshot before the spend, not after, or Back restores the state it is undoing.
-        const before = cloneState(s);
-        sfxSelect();
-        takeDirective(s, d);
-        onRewindPoint?.(before, d.name);
-        onChange?.();
-        if (d.endsTurn) {
-          onAdvance();
-          return;
+        if (!d) return;
+        const at = selected.indexOf(d.id);
+        if (at >= 0) {
+          selected.splice(at, 1);
+        } else {
+          // A card that ends the term cannot be combined with anything: it is the decision to
+          // spend the term deciding nothing. Picking it clears the rest, and picking anything
+          // else clears it.
+          if (d.endsTurn) selected = [d.id];
+          else selected = [...selected.filter((id) => !all.find((x) => x.id === id)?.endsTurn), d.id];
         }
+        sfxSelect();
         draw();
       });
     });
+
+    root.querySelector('#confirm')?.addEventListener('click', () => {
+      const chosen = selected
+        .map((id) => all.find((d) => d.id === id))
+        .filter((d): d is Directive => Boolean(d));
+      if (chosen.length === 0) return;
+
+      // One snapshot for the whole batch, taken before anything is applied. Back now undoes a
+      // decision the player made rather than an individual click they may not remember.
+      const before = cloneState(s);
+      let endsTurn = false;
+      let applied = 0;
+      for (const d of chosen) {
+        // Applying one directive can make the next unaffordable or unavailable, so each is
+        // re-checked against the state it actually lands in rather than the one it was picked in.
+        if (!canAfford(s, d)) continue;
+        if (!availableDirectives(s).some((x) => x.id === d.id)) continue;
+        takeDirective(s, d);
+        applied += 1;
+        if (d.endsTurn) endsTurn = true;
+      }
+
+      selected = [];
+      if (applied > 0) {
+        onRewindPoint?.(before, applied === 1 ? chosen[0]!.name : `${applied} directives`);
+        onChange?.();
+      }
+      if (endsTurn) {
+        onAdvance();
+        return;
+      }
+      draw();
+    });
+
     root.querySelector('#adv')!.addEventListener('click', onAdvance);
   };
 
-  const card = (d: Directive) => {
-    const afford = canAfford(s, d);
+  const card = (d: Directive, all: Directive[]) => {
+    const picked = selected.includes(d.id);
+    // What is left after everything already selected. A picked card is always clickable, because
+    // clicking it is how you get the influence back.
+    const remaining = spendableInfluence(s) - committed(all);
+    const afford = picked || d.cost <= remaining;
     const fam = effectFamily(d.effects);
     const effects = describeEffects(d.effects);
     const short = effects.slice(0, 3);
-    return `<button class="card${afford ? '' : ' unaffordable'}" data-id="${escapeHtml(d.id)}" ${afford ? '' : 'disabled'}${
+    return `<button class="card${picked ? ' picked' : ''}${afford ? '' : ' unaffordable'}" data-id="${escapeHtml(d.id)}" ${afford ? '' : 'disabled'}${
       fam ? ` style="--fam:${familyColour(FAMILIES[fam].hue, era)}"` : ''
-    }>
+    } aria-pressed="${picked}">
       <span class="name">${escapeHtml(d.name)}</span>
       <span class="blurb">${escapeHtml(d.blurb)}</span>
       ${short.length ? `<span class="effects">${short.map((e) => `<i>${escapeHtml(e)}</i>`).join('')}${effects.length > short.length ? `<i class="more">+${effects.length - short.length} more</i>` : ''}</span>` : ''}
       <span class="cost">${
-        d.cost === 0
-          ? 'free'
-          : afford
-            ? `${d.cost} influence`
-            : `${d.cost} influence — you have ${spendableInfluence(s)}`
+        picked
+          ? 'selected — tap to remove'
+          : d.cost === 0
+            ? 'free'
+            : afford
+              ? `${d.cost} influence`
+              : `${d.cost} influence — ${remaining} left`
       }</span>
     </button>`;
   };
