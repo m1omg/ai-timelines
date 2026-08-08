@@ -524,7 +524,17 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         when: leadFamily('symbolic'),
-        text: 'That is a defensible position and it is the one I would defend. It is not an exemption. The cheaper road was there the whole time and you declined it, which is a different thing from it not existing.',
+        text: 'That is a defensible position and it is the one I would defend. It is not an exemption: the cheaper road was there the whole time and you declined it, which is a different thing from it not existing.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'And I would watch that word. The cheaper road wins on the axis it is measured on, and it wins there decisively — I am not going to soften that for you. What it does not do is win on every axis at once. It arrives without an explanation attached, and what you bought at the higher price is a century somebody can read.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'Both of those are true together, and this field has never been much good at holding two true things at the same time. That is most of what the winters were.',
       },
       {
         who: 'archivist',
