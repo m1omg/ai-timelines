@@ -20,24 +20,6 @@ export function plateUrl(era: EraTheme): string | null {
   return plateFor(era)?.url ?? null;
 }
 
-/**
- * Eras that do not lay their plate in as a full-bleed bed behind the title and the act break.
- *
- * Act I opts out. Its plate is a single bit of ink multiplied over paper lighter than itself,
- * which is the honest way to print it and exactly wrong at full bleed: the photograph stops
- * reading as a photograph and becomes a texture over the whole page. The teleprinter act should
- * open on bare paper, which is what it did before the plates arrived.
- *
- * The plate itself is untouched — act I still carries it beside each report and in the Codex,
- * where it is captioned and credited rather than serving as decoration.
- */
-const NO_BED = new Set(['teletype']);
-
-/** The plate to use as a background bed, or null for an era that opens on bare paper. */
-export function plateBedUrl(era: EraTheme): string | null {
-  return NO_BED.has(era.id) ? null : plateUrl(era);
-}
-
 /** Class list for an <img>: pixel-exact for the eras that were, smooth for the ones that were not. */
 export function plateClass(era: EraTheme): string {
   const p = plateFor(era);

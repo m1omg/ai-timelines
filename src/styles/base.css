@@ -524,16 +524,20 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
     radial-gradient(ellipse at center, transparent 20%, var(--paper) 92%);
 }
 .title-bed .plate { opacity: 0.22; }
+/* On the two eras whose paper is lighter than their ink, a plate laid over the page at low
+   opacity just fades to nothing. Multiplying instead keeps the dark half of the photograph and
+   lets the paper through the light half, which is what ink on paper does anyway. */
 /* Act I's plate is one bit of ink on a page lighter than it. Laid over at low opacity it fades
-   to nothing, so it multiplies instead — which is what ink on paper does anyway. It gets no
-   full-bleed bed (see NO_BED in src/art/plate.ts), so this applies to the report strip alone;
-   the teleprinter act opens on bare paper. */
+   to nothing, so it multiplies instead — which is what ink on paper does anyway. Act IV's paper
+   is light too, but its plate is a colour photograph, and multiplying a photograph muddies it. */
+html[data-era='teletype'] .plate-bed .plate { mix-blend-mode: multiply; opacity: 0.52; }
+html[data-era='teletype'] .title-bed .plate { opacity: 0.4; }
 html[data-era='teletype'] .plate-strip .plate { mix-blend-mode: multiply; }
 html[data-era='web'] .plate-bed .plate { opacity: 0.38; }
 /* Light paper needs a heavier wash under the title than dark does: a photograph's own whites
    have nothing to separate them from the page, so the type is competing with the brightest
-   part of the image rather than sitting on the dimmest. Act IV is the only light-paper era with
-   a bed left — act I no longer takes one. */
+   part of the image rather than sitting on the dimmest. */
+html[data-era='teletype'] .plate-bed::after,
 html[data-era='web'] .plate-bed::after {
   background:
     radial-gradient(ellipse 62% 46% at center, color-mix(in srgb, var(--paper) 88%, transparent), transparent 74%),
@@ -641,14 +645,14 @@ html[data-era='web'] .plate-bed::after {
 html { transition: background-color 0.9s ease; }
 body { transition: background-color 0.9s ease, color 0.9s ease; }
 
-/* --- Act I · teleprinter. Not a screen at all: ink on continuous stationery, so no scanlines,
-       no vignette, and a faint fibre with the fold lines of fanfold paper. */
-html[data-era='teletype'] body::after {
-  background:
-    repeating-linear-gradient(to bottom, color-mix(in srgb, var(--ink) 5%, transparent) 0 1px, transparent 1px 2px),
-    repeating-linear-gradient(to bottom, transparent 0 178px, color-mix(in srgb, var(--ink) 13%, transparent) 178px 180px);
-  opacity: 0.5;
-}
+/* --- Act I · teleprinter.
+       The argument for overriding the base texture here was that a teleprinter is not a screen,
+       so it should have paper fibre and fold lines rather than scanlines and a vignette. That is
+       true of the machine and wrong on the page: at 5% ink the fibre is invisible at any normal
+       size, and the act lost the ruled ground the rest of the interface reads against. The base
+       treatment — a line every 3px, and grain 0.22 driving it — is what act I is supposed to
+       look like, so it is left to apply. Do not add an override back without looking at the
+       board at full width first. */
 html[data-era='teletype'] .text,
 html[data-era='teletype'] .speaker { text-shadow: 0 0.5px 0 color-mix(in srgb, var(--ink) 22%, transparent); }
 html[data-era='teletype'] .choice,

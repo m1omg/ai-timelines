@@ -1,6 +1,6 @@
 import './styles/base.css';
 
-import { plateBedUrl, plateClass, prefetchPlates } from './art/plate';
+import { plateClass, plateUrl, prefetchPlates } from './art/plate';
 
 import { SCENES, SCENE_BY_ID } from './content/scenes';
 import { CHARACTERS } from './content/characters';
@@ -160,7 +160,7 @@ function renderMenu(el: HTMLElement, close: () => void): void {
 
 function titleScreen(): void {
   const era = applyEra(1);
-  const plate = plateBedUrl(era);
+  const plate = plateUrl(era);
   // Warm the later acts' plates while the title is on screen. They are wanted at an act break,
   // where a blank two seconds would land in the middle of the one purely theatrical moment.
   prefetchPlates();
