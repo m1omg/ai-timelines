@@ -343,6 +343,26 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
   color: var(--dim); margin-left: 6px;
 }
 
+/* The other endings this century qualified for. Quieter than the headline, because one of them
+   had to win — but not dimmed to the point of looking like footnotes, since each is as true. */
+.verdicts { display: flex; flex-direction: column; gap: 10px; max-width: 82ch; }
+.verdict {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  padding: 2px 0 2px 12px;
+}
+.verdict b {
+  display: block; font-weight: 500; color: var(--accent);
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 3px;
+}
+.verdict span { font-family: var(--font-body); font-size: 14px; line-height: 1.6; color: var(--dim); }
+
+/* Who was left doing the work, as one bar rather than eight numbers. A split field and a field
+   with one school at seventy per cent are different centuries and should not look alike. */
+.dist { display: flex; gap: 2px; height: 14px; margin: 4px 0 2px; max-width: 900px; }
+.dist i { display: block; background: var(--fam); min-width: 2px; transition: flex 0.6s ease; }
+.log-line.led b { color: var(--fam); }
+.log-line.led span { color: var(--ink); }
+
 /* The four save slots. One row each, so the slot number and the century in it read before any
    of the buttons do. */
 .slots { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
