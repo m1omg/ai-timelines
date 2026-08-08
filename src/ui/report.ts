@@ -1,5 +1,5 @@
 import { ERAS, eraForAct } from '../art/palette';
-import { plateClass, plateCredit, plateUrl } from '../art/plate';
+import { plateBedUrl, plateClass, plateCredit, plateUrl } from '../art/plate';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
 import { resolveEnding } from '../engine/endings';
@@ -88,8 +88,9 @@ export function renderActBreak(host: HTMLElement, act: number, onDone: () => voi
   // own colours, and painting it against the outgoing act's ramp is the one order that looks
   // like a bug rather than a transition.
   applyEra(act);
-  const plate = plateUrl(era);
-  const credit = plateCredit(era);
+  // The credit line exists to attribute the bed, so it goes with it on an era that has none.
+  const plate = plateBedUrl(era);
+  const credit = plate ? plateCredit(era) : null;
 
   const el = document.createElement('div');
   el.className = 'actbreak';
