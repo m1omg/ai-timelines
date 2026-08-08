@@ -23,6 +23,30 @@ workflow deploy — do not stop at a pushed branch waiting to be asked. The one 
 after a deploy is checking the built assets on `gh-pages` actually contain the change, because a
 green workflow only proves the build ran.
 
+Rebuild the single-file copy after a deploy, too, so the offline version never lags the site.
+It is one HTML file with the bundle, the stylesheet and all six plates inlined as data URIs —
+no server, no network, nothing to install. Build it with a throwaway config, never by editing
+`vite.config.ts`: that file sets `assetsInlineLimit: 0` on purpose, and inlining the plates
+into the hosted build would cost ~38 kB of gzip and stop them being cached or loaded per act.
+
+```ts
+// vite.single.config.ts — build, send, delete. Do not commit.
+import { defineConfig } from 'vite';
+export default defineConfig({
+  base: './',
+  build: {
+    target: 'es2022', outDir: '<somewhere outside the repo>', emptyOutDir: true,
+    cssCodeSplit: false, assetsInlineLimit: 100_000_000,
+    rollupOptions: { output: { inlineDynamicImports: true } },
+  },
+} as never);
+```
+
+Then fold the emitted `.js` and `.css` into `dist-single/index.html` — escaping `</script` in
+the bundle, or a string in the content closes the tag early — and check it from a `file://`
+open with every non-file request blocked. Saves are per-origin, so a century saved in the file
+never appears on the site; the per-slot **Copy code** button is how a run moves between them.
+
 ## Two rules that shape everything
 
 1. **Content is typed TypeScript, never JSON.** Paradigms, scenes, characters, endings and
