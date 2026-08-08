@@ -507,20 +507,29 @@ export const ACT5: Scene[] = [
         text: 'Both of them have been right about something important for thirty years. This is the last argument in the century where the participants are people rather than institutions.',
       },
       /*
-       * The lesson is a claim about a record, and the player has been writing a different one for
-       * seventy years. Firing the historical framing unchanged into a century that disproved it
-       * was the same error as the scaling scenes, in a subtler place: the text was not false
-       * about the world, it was silent about the run. Additive, so both speakers keep the floor.
+       * The lesson holds in every century — it is a claim about what cheap computation does to a
+       * field, not about which school won, and a run that went another way did not refute it.
+       * What a run changes is the price it paid to go another way, which is the interesting thing
+       * and the thing the scene was silent about.
+       *
+       * These must not read as exemptions. The earlier draft had the Archivist telling a symbolic
+       * century that the seventy years "are not yours", which turns a hard lesson into a
+       * congratulation. Additive, so both speakers keep the floor.
        */
       {
         who: 'archivist',
         when: leadFamily('symbolic'),
-        text: 'Though I would note, for the record, that he is describing a history you did not write. In your century the general methods lost, repeatedly, to people who sat down and wrote the rules out. He is not wrong about his seventy years. They are not yours.',
+        text: 'He is not describing your century, and I would not have you mistake that for a refutation. You have spent seventy years paying people to write down what a larger machine would eventually have found on its own. The bill arrived every decade and you paid it every decade, because you judged what you got in return to be worth the difference.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'That is a defensible position and it is the one I would defend. It is not an exemption. The cheaper road was there the whole time and you declined it, which is a different thing from it not existing.',
       },
       {
         who: 'archivist',
         when: leadFamily('cybernetic'),
-        text: 'Note the shared assumption neither of them states: that the thing being scaled or structured is a computation you can run twice. Nothing your century built has that property. The argument in this room does not quite reach you.',
+        text: 'Your century did not escape him either. It bought its competence with eleven years of a body in a house rather than a fortnight of a datacentre, which is the same purchase made at a different counter. What you declined was never the leverage. It was the shortcut.',
       },
       {
         who: 'archivist',
@@ -530,7 +539,7 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         when: leadFamily('collective'),
-        text: 'Both of them are arguing about the right way to build one system. Your century declined the premise and built the traffic between many, and no lesson stated in the singular has anything to say about it.',
+        text: 'They are arguing about the right way to build one system and you built the traffic between many, which changes the shape of the claim and not its force. Your traffic runs on the same cheap computation, and it became cheap for the same reasons, on somebody else\'s schedule.',
       },
     ],
     choices: [
