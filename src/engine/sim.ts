@@ -40,6 +40,41 @@ export const ALLY_LIFT = 0.1;
 /** Insight per turn from the *weakest* ally's insight — a join is only as good as its thin side. */
 export const ALLY_INSIGHT = 0.022;
 
+/*
+ * The compute frontier, in log10 FLOPs per turn (four years). These are the most sensitive
+ * numbers in the file — see the header of advanceTurn's growth block for what each one means.
+ *
+ * Calibrated against the record rather than by eye. Frontier training compute tracked hardware
+ * at roughly 1.3-1.5x a year until the early 2010s, then ran at something like 4-5x a year for
+ * over a decade once the field started buying scale rather than waiting for it. Those are two
+ * different mechanisms and the model now has both.
+ */
+/**
+ * The floor: the largest machine a single experiment can command, absent any AI boom.
+ *
+ * Not per-chip Moore, which is slower. What this tracks is the biggest assembled machine — the
+ * Top500 kind of number, bought for weather, physics and genomics by people with no opinion
+ * about minds at all. No school and no winter stops it.
+ *
+ * It decays, because it did. That curve ran at roughly 2x a year through the nineties and
+ * flattened towards 1.3x as Dennard scaling ended and the easy parallelism was spent. Holding it
+ * constant across a century was the other unrealistic thing here: compounded over twenty-five
+ * turns a flat floor put a century that never trained anything at 10^32.
+ */
+const MOORE_EARLY = 0.68;
+const MOORE_LATE = 0.4;
+const MOORE_DECAY = 0.014;
+/** Scale-up per turn at full appetite and full funding, once scale has been demonstrated. */
+const SCALEUP_RATE = 1.15;
+/** Concentration available before anyone has shown that scale pays. Deliberately small. */
+const PRE_BOOM_RATE = 0.16;
+/** Any of these maturing is a century showing that assembled scale pays. */
+const SCALE_DEMONSTRATIONS = ['gpu-scale', 'massively-parallel', 'gpu-general-compute'];
+/** Where power and capital start to bite, in log10 FLOPs. */
+const POWER_WALL_FROM = 24;
+/** Drag per order of magnitude beyond that, before substrate relief. */
+const POWER_WALL_RATE = 0.15;
+
 export interface TickReport {
   year: number;
   matured: string[];
@@ -473,22 +508,54 @@ export function advanceTurn(s: GameState): TickReport {
    * stops it, which is why a century with no interest in scale still ends far above where it
    * started.
    *
-   * On top of that sits concentration — how much of that cheap hardware anyone actually
-   * assembles in one place, which depends entirely on what the leading school is trying to do.
-   * A frontier training run and a theorem prover are not the same customer. This is where the
-   * connectionist century pulls away, and it is the honest version of the thing the previous
-   * comment here was trying to avoid: the LLM appetite for compute is not the yardstick for
-   * everyone, but it is emphatically the yardstick for them.
+   * On top of that sits scale-up — how much of that cheap hardware anyone actually assembles in
+   * one place, which depends on what the leading school is trying to do and on who is paying.
+   * A frontier training run and a theorem prover are not the same customer.
+   *
+   * Scale-up has two regimes, because the record does. Until somebody demonstrates that buying
+   * more of it pays, the frontier tracks the hardware and very little else; a lab does not
+   * spend a national research budget on a single run to prove a point nobody has proved. Once
+   * it has been shown — `gpu-scale` maturing is that demonstration — the money arrives and the
+   * frontier detaches from Moore entirely. That is the difference between ~1.4x a year before
+   * the early 2010s and ~4x a year after it, and modelling both as one smooth curve was the
+   * single least true thing in this function.
+   *
+   * Against that runs the wall. A frontier run eventually needs its own generating capacity,
+   * and past that point every further order of magnitude costs disproportionately more in power
+   * and capital. Substrate work is the only thing that moves the wall, which is what that school
+   * is *for* — it is the difference between a century that stalls at its own power budget and
+   * one that keeps going because it made the operations cheaper.
    */
   const substrateBonus = s.families.substrate.matured * 0.020;
   const industryBonus = (s.patrons.corporate / 100) * 0.12;
-  const moore = 0.58 + substrateBonus + industryBonus * 0.4;
+  // Decelerating, and never below the late-century floor.
+  const mooreNow = Math.max(MOORE_LATE, MOORE_EARLY - s.turn * MOORE_DECAY);
+  const moore = mooreNow + substrateBonus + industryBonus * 0.4;
 
   const appetite = FAMILIES[leadingFamily(s)].computeAppetite;
   const lateEraBonus = Math.max(0, (s.turn - 12) * 0.012);
-  const concentration = (0.14 + lateEraBonus) * appetite + industryBonus * 0.6;
+  // Scale is bought, so it is bounded by who is paying. Industry buys the most of it; defence
+  // buys a great deal and asks for delivery sooner.
+  const money = (s.patrons.corporate * 0.65 + s.patrons.military * 0.35) / 100;
+  /*
+   * Has this century demonstrated that assembling hardware in one place pays?
+   *
+   * Keyed on gpu-scale alone this was a connectionist question, so no other school could ever
+   * have a boom and the floor had to be inflated to compensate — which put a century that never
+   * trained anything at 10^32. Massively parallel machines and general-purpose accelerators are
+   * the same demonstration made by the substrate school, and a century that built either has
+   * every bit as much right to the money that follows.
+   */
+  const scaleProven = SCALE_DEMONSTRATIONS.some((id) => s.paradigms[id]?.status === 'mature');
+  const scaleUp = scaleProven
+    ? appetite * money * (SCALEUP_RATE + lateEraBonus) * (s.inWinter ? 0.15 : 1)
+    : appetite * (PRE_BOOM_RATE + lateEraBonus) + industryBonus * 0.8;
 
-  const computeGain = Math.max(0.25, moore + concentration - (s.inWinter ? 0.14 : 0));
+  // Power and capital. Substrate insight is the relief, and it is the only relief.
+  const relief = s.families.substrate.insight * 0.02 + s.families.substrate.matured * 0.3;
+  const wall = Math.max(0, (s.computeLog - POWER_WALL_FROM - relief) * POWER_WALL_RATE);
+
+  const computeGain = Math.max(0.18, moore + scaleUp - wall - (s.inWinter ? 0.14 : 0));
   s.computeLog += computeGain;
   report.computeGain = computeGain;
 
