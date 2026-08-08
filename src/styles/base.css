@@ -276,6 +276,38 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 .card.picked .name::after { content: ' ✓'; color: var(--fam, var(--accent)); }
 .card.picked .cost { color: var(--fam, var(--accent)); }
 
+/* What the century is actually being used for. Same column-per-school idiom as the tree, so the
+   two tabs read as two views of one thing. */
+.usegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.uses { border-top: 2px solid var(--fam); padding-top: 8px; }
+.uses h3 {
+  margin: 0 0 8px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--fam);
+}
+.uses h3 .n { color: var(--dim); letter-spacing: 0.04em; margin-left: 4px; }
+.use {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 7px 0 7px 10px;
+  border-left: 2px solid color-mix(in srgb, var(--fam) 40%, transparent);
+  margin-bottom: 4px;
+}
+.use .yr { font-size: 11px; color: var(--fam); font-variant-numeric: tabular-nums; min-width: 3.2em; }
+.use .body { display: flex; flex-direction: column; gap: 3px; }
+.use .body b { font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em; }
+.use .body i {
+  font-style: normal; font-family: var(--font-body); font-size: 12.5px;
+  color: var(--dim); line-height: 1.55;
+}
+/* Past the record. Dashed rather than dimmed: it is not less certain to the people living in it,
+   it is simply not something anybody wrote down. */
+.use.projected { border-left-style: dashed; }
+.use.projected .yr::after { content: ' ·'; }
+.use.projected .body b::after {
+  content: ' projected';
+  font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--dim); margin-left: 6px;
+}
+
 /* The four save slots. One row each, so the slot number and the century in it read before any
    of the buttons do. */
 .slots { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
