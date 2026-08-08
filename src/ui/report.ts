@@ -1,8 +1,8 @@
-import { ERAS, eraForAct } from '../art/palette';
+import { ERAS, eraForAct, familyColour } from '../art/palette';
 import { plateClass, plateCredit, plateUrl } from '../art/plate';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
-import { resolveEnding } from '../engine/endings';
+import { qualifyingEndings, resolveEnding } from '../engine/endings';
 import { ACT_TURNS, yearOfTurn } from '../engine/state';
 import { actTitle } from '../content/act-titles';
 import type { GameState, TickReportLike } from './types';
@@ -145,10 +145,51 @@ export async function renderEnding(
     lines: [{ system: true, text: ending.epigraph }, ...ending.lines],
   });
 
-  const families = FAMILY_IDS.map((f) => {
-    const st = s.families[f];
-    return `<div class="log-line"><b>${st.matured}</b><span>${escapeHtml(FAMILIES[f].name)} — insight ${Math.round(st.insight)}, ${(st.talent * 100).toFixed(0)}% of the field at the close</span></div>`;
-  }).join('');
+  /*
+   * The verdict is one ending, but a century usually satisfies several. Reporting only the
+   * winner told a run that broke the concentration and led with substrate about the first and
+   * never the second — the player could see 27% of the field on the same screen and no mention
+   * of what it meant. The rest are shown as things that are also true of the century.
+   */
+  const alsoTrue = qualifyingEndings(s).filter((e) => e.id !== ending.id);
+  const alsoHtml = alsoTrue.length
+    ? `<div class="section-head">Also true of this century</div>
+       <div class="verdicts">${alsoTrue
+         .map(
+           (e) => `<div class="verdict">
+             <b>${escapeHtml(e.name)}</b>
+             <span>${escapeHtml(e.verdict)}</span>
+           </div>`,
+         )
+         .join('')}</div>
+       <p class="chart-note">Endings resolve most-specific-first, so one of these had to be the headline. The others were true as well, and outranked rather than refuted.</p>`
+    : '';
+
+  // The shape of the field at the close, drawn rather than only listed: a century that ended
+  // split four ways and one that ended with a single school at 70% both read as "the schools"
+  // in a list of numbers, and they are not remotely the same outcome.
+  const shares = FAMILY_IDS.map((f) => ({ f, share: s.families[f].talent })).sort(
+    (a, b) => b.share - a.share,
+  );
+  const era = eraForAct(s.act);
+  const distribution = `<div class="dist">${shares
+    .map(
+      ({ f, share }) =>
+        `<i style="--fam:${familyColour(FAMILIES[f].hue, era)};flex:${Math.max(0.4, share * 100)}" title="${escapeHtml(
+          `${FAMILIES[f].name} — ${(share * 100).toFixed(0)}% of the field`,
+        )}"></i>`,
+    )
+    .join('')}</div>
+    <p class="chart-note">Who was left doing the work in 2050. A century that ends split five ways and one that ends with a single school holding seventy per cent are different outcomes, and the verdict above names only one of them.</p>`;
+
+  const families = FAMILY_IDS.slice()
+    .sort((a, b) => s.families[b].talent - s.families[a].talent)
+    .map((f) => {
+      const st = s.families[f];
+      const lead = f === leadingFamily(s);
+      return `<div class="log-line${lead ? ' led' : ''}" style="--fam:${familyColour(FAMILIES[f].hue, era)}"><b>${st.matured}</b><span>${escapeHtml(FAMILIES[f].name)} — insight ${Math.round(st.insight)}, ${(st.talent * 100).toFixed(0)}% of the field at the close${lead ? ' · held the field' : ''}</span></div>`;
+    })
+    .join('');
 
   const winters = s.winters.length
     ? s.winters
@@ -172,7 +213,10 @@ export async function renderEnding(
       <div class="log-line"><b>10^${s.computeLog.toFixed(1)}</b><span>the compute frontier you left behind</span></div>
     </div>
 
-    <div class="section-head">The schools</div>
+    ${alsoHtml}
+
+    <div class="section-head">The shape of the field</div>
+    ${distribution}
     <div class="log-list">${families}</div>
 
     <div class="section-head">Winters</div>
