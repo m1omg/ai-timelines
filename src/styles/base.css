@@ -383,6 +383,25 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
   color: var(--accent);
 }
 .pending .tot { margin-left: auto; color: var(--ink); font-variant-numeric: tabular-nums; }
+/* What the selection adds up to, and what it would put on the board. Its own line: the cards
+   each state their effects, but nobody sums four of them in their head. */
+.pending .proj {
+  flex-basis: 100%; color: var(--dim); line-height: 1.6;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
+  padding-top: 7px; margin-top: 2px;
+}
+.pending .proj b { color: var(--ink); font-weight: 500; letter-spacing: 0.06em; }
+.pending .proj.unlocks { border-top: none; padding-top: 0; color: var(--accent); }
+/* A directive the selection would put on the board. Selectable from here, so the chain that
+   applying-on-click used to give for free costs no extra step now that selection is deferred. */
+.pending .reveal {
+  font-size: 10.5px; padding: 3px 9px; border-radius: 999px; margin: 0 4px 0 0;
+  border: 1px dashed var(--accent); color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  text-transform: none; letter-spacing: 0.02em;
+}
+.pending .reveal:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); border-style: solid; }
+.pending .proj .hint { color: var(--dim); }
 /* A school-tagged card carries its school's colour on the left edge, so the board reads as
    eight columns of argument even when it is a single grid of cards. */
 .card { border-left: 2px solid var(--fam, color-mix(in srgb, var(--dim) 45%, transparent)); }

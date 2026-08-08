@@ -293,8 +293,27 @@ export function renderDirectives(
    * a Set would lose the order the player expressed.
    */
   let selected: string[] = [];
+
+  /**
+   * Directives that are not on the board yet but would be, given what is already selected.
+   *
+   * Taking a directive can reveal another — funding a paradigm offers concentrating on it, and
+   * championing someone already backed can put their centrepiece up. Those used to be reachable
+   * for free, because a card applied the moment it was clicked. Deferring selection took that
+   * away and a Confirm button was added to buy it back, which is a button to pay for a problem
+   * the redesign introduced.
+   *
+   * So a revealed directive can simply be selected too. It applies after the one that reveals
+   * it, because the batch is applied in the order it was picked and each is re-checked against
+   * the state it lands in — the same rule that already made a partly-unaffordable batch safe.
+   */
+  let revealed: Directive[] = [];
+
+  const resolveDir = (id: string, all: Directive[]): Directive | undefined =>
+    all.find((d) => d.id === id) ?? revealed.find((d) => d.id === id);
+
   const committed = (all: Directive[]) =>
-    selected.reduce((n, id) => n + (all.find((d) => d.id === id)?.cost ?? 0), 0);
+    selected.reduce((n, id) => n + (resolveDir(id, all)?.cost ?? 0), 0);
 
   /** What was taken this term, newest first, so the board shows its own consequences. */
   const takenThisTerm = () =>
@@ -381,7 +400,7 @@ export function renderDirectives(
       <div class="section-head">${CATEGORY_LABEL[category]}${school !== null ? ` · ${escapeHtml(FAMILIES[school].name)}` : ''}</div>
       <div class="cards">${shown.map((d) => card(d, all)).join('') || '<p style="color:var(--dim)">Nothing here this term.</p>'}</div>
       ${ledger}
-      <div class="board-foot">${footHtml(all)}</div>
+      <div class="board-foot">${footHtml(all, project(all))}</div>
     </div></div>`;
 
     const panel = root.querySelector('.panel');
@@ -421,8 +440,6 @@ export function renderDirectives(
           else selected = [...selected.filter((id) => !all.find((x) => x.id === id)?.endsTurn), d.id];
         }
         sfxSelect();
-        onHold?.(committed(all));
-        onChange?.();
         syncSelection();
       });
     });
@@ -436,6 +453,20 @@ export function renderDirectives(
      * nothing but the cards' own state and the footer needs to move.
      */
     function syncSelection(): void {
+      /*
+       * Prune before anything is drawn. A selection can become unreachable when the card that
+       * revealed it is dropped, and leaving it in `selected` held its cost on the gauge while
+       * showing nothing in the strip — money the player could watch leaving but never see spent.
+       */
+      let proj = project(all);
+      if (proj && proj.unreachable.length > 0) {
+        const gone = proj.unreachable;
+        selected = selected.filter((id) => !gone.includes(id));
+        proj = project(all);
+      }
+      onHold?.(committed(all));
+      onChange?.();
+
       const remaining = spendableInfluence(s) - committed(all);
       root.querySelectorAll<HTMLButtonElement>('.card').forEach((el) => {
         const d = all.find((x) => x.id === el.dataset.id);
@@ -449,16 +480,24 @@ export function renderDirectives(
         const cost = el.querySelector('.cost');
         if (cost) cost.textContent = costLabel(d, picked, remaining);
       });
+
       const foot = root.querySelector('.board-foot');
       if (!foot) return;
-      foot.innerHTML = footHtml(all);
+      foot.innerHTML = footHtml(all, proj);
       bindFoot();
     }
 
-    /** The footer is replaced wholesale, so its two buttons are rebound each time. */
+    /** The footer is replaced wholesale, so everything in it is rebound each time. */
     function bindFoot(): void {
-      root.querySelector('#confirm')?.addEventListener('click', onConfirm);
       root.querySelector('#adv')?.addEventListener('click', onAdvanceClick);
+      root.querySelectorAll<HTMLButtonElement>('[data-add]').forEach((btn) =>
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.add!;
+          if (!selected.includes(id)) selected = [...selected, id];
+          sfxSelect();
+          syncSelection();
+        }),
+      );
     }
 
     /**
@@ -470,7 +509,7 @@ export function renderDirectives(
      */
     function applySelected(): { applied: number; endsTurn: boolean } {
       const chosen = selected
-        .map((id) => all.find((d) => d.id === id))
+        .map((id) => resolveDir(id, all))
         .filter((d): d is Directive => Boolean(d));
       if (chosen.length === 0) return { applied: 0, endsTurn: false };
 
@@ -496,31 +535,6 @@ export function renderDirectives(
         onChange?.();
       }
       return { applied, endsTurn };
-    }
-
-    /*
-     * Confirming without advancing survives for one reason, and it is a real one: taking a
-     * directive can put a new directive on the board within the same turn, and that card is
-     * unreachable if everything resolves at the moment the turn ends.
-     *
-     * The case that exists today is the champion/centrepiece chain. Championing an unaffiliated
-     * figure adds 18 affinity, so backing someone already at 17 or more carries them over the
-     * centrepiece bar of 35 and their card — 7 influence, −14 owed — appears immediately.
-     * Verified: Dreyfus at 20 goes to 38 and `centrepiece:dreyfus` is offered on the next call to
-     * availableDirectives.
-     *
-     * Note it is *not* "champion twice in a turn": champion is not repeatable, so the second one
-     * is gone until the term turns over. Anything relying on that would silently never fire.
-     */
-    function onConfirm(): void {
-      const { applied, endsTurn } = applySelected();
-      if (applied === 0) return;
-      if (endsTurn) {
-        onAdvance();
-        return;
-      }
-      // A confirmed batch changes the card list and the ledger, so this one is a real redraw.
-      draw();
     }
 
     function onAdvanceClick(): void {
@@ -562,11 +576,80 @@ export function renderDirectives(
           ? `${d.cost} influence`
           : `${d.cost} influence — ${remaining} left`;
 
+  /**
+   * What the selection would do, computed on a throwaway copy of the century.
+   *
+   * The cards each state their own effects, but nobody adds four of them up in their head, and
+   * the two things that actually decide a term — what this does to the expectation debt, and
+   * whether it puts a new card on the board — are invisible until it is too late to change your
+   * mind.
+   *
+   * Deliberately a clone that is read and discarded. Applying the effects to the live state
+   * would show the same numbers and would also mean a save taken mid-selection recorded a
+   * century that never happened, with decisions logged for directives nobody took. The board
+   * may speculate; the record may not.
+   */
+  const project = (all: Directive[]) => {
+    if (selected.length === 0) {
+      revealed = [];
+      return null;
+    }
+
+    const before = new Set(all.map((d) => d.id));
+    const c = cloneState(s);
+
+    /*
+     * Replay the selection in order against a copy, exactly as applying it will. What survives
+     * is what is genuinely reachable; what does not is a card whose prerequisite has since been
+     * dropped, and it is pruned rather than left to fail silently at apply time.
+     *
+     * This is the cascade, and it needs no dependency graph: order plus a per-step availability
+     * check gets it for nothing, which is the same rule that already made a partly-unaffordable
+     * batch safe.
+     */
+    const applied: string[] = [];
+    const unreachable: string[] = [];
+    for (const id of selected) {
+      const d = availableDirectives(c).find((x) => x.id === id);
+      if (d && canAfford(c, d)) {
+        takeDirective(c, d);
+        applied.push(id);
+      } else {
+        unreachable.push(id);
+      }
+    }
+
+    const bits: string[] = [];
+    // Influence is already on the gauge, and reporting it twice reads as spending it twice.
+    for (const key of ['capability', 'understanding', 'attention', 'credibility', 'deployment', 'exposure'] as const) {
+      const delta = Math.round(c.resources[key] - s.resources[key]);
+      if (delta !== 0) bits.push(`${delta > 0 ? '+' : ''}${delta} ${key}`);
+    }
+    const owed = Math.round(c.promises - s.promises);
+    if (owed !== 0) bits.push(`${owed > 0 ? '+' : ''}${owed} owed`);
+    for (const f of FAMILY_IDS) {
+      const mom = Math.round(c.families[f].momentum - s.families[f].momentum);
+      const ins = Math.round(c.families[f].insight - s.families[f].insight);
+      if (mom !== 0 || ins !== 0) {
+        const parts = [mom !== 0 ? `${mom > 0 ? '+' : ''}${mom} momentum` : '', ins !== 0 ? `${ins > 0 ? '+' : ''}${ins} insight` : '']
+          .filter(Boolean)
+          .join(', ');
+        bits.push(`${FAMILIES[f].name}: ${parts}`);
+      }
+    }
+
+    const unlocked = availableDirectives(c).filter((d) => !before.has(d.id) && !selected.includes(d.id));
+    // Keep a revealed card resolvable only while the selection that revealed it still stands.
+    revealed = [...unlocked, ...revealed.filter((r) => applied.includes(r.id))];
+    return { bits, unlocked, unreachable };
+  };
+
   /** The pending strip and the two buttons: everything a selection changes below the cards. */
-  const footHtml = (all: Directive[]): string => {
+  const footHtml = (all: Directive[], proj: ReturnType<typeof project>): string => {
     const last = s.turn >= TOTAL_TURNS - 1;
+    // Through `revealed` as well as the board: a card added from the strip is not on the board.
     const chosen = selected
-      .map((id) => all.find((d) => d.id === id))
+      .map((id) => resolveDir(id, all))
       .filter((d): d is Directive => Boolean(d));
     return `${
       chosen.length
@@ -576,6 +659,23 @@ export function renderDirectives(
                .map((d) => `<i>${escapeHtml(d.name)}${d.cost ? ` · ${d.cost}` : ''}</i>`)
                .join('')}</span>
              <span class="tot">${committed(all)} of ${spendableInfluence(s)} influence</span>
+             ${
+               proj && proj.bits.length
+                 ? `<span class="proj"><b>Together:</b> ${proj.bits.map((t) => escapeHtml(t)).join(' · ')}</span>`
+                 : ''
+             }
+             ${
+               proj && proj.unlocked.length
+                 ? `<span class="proj unlocks"><b>This opens up:</b> ${proj.unlocked
+                     .map(
+                       (d) =>
+                         `<button class="reveal" data-add="${escapeHtml(d.id)}">${escapeHtml(d.name)}${d.cost ? ` · ${d.cost}` : ''}</button>`,
+                     )
+                     .join('')} <span class="hint">— take ${
+                     proj.unlocked.length === 1 ? 'it' : 'them'
+                   } in the same term by adding ${proj.unlocked.length === 1 ? 'it' : 'them'} here</span></span>`
+                 : ''
+             }
            </div>`
         : ''
     }
@@ -585,11 +685,6 @@ export function renderDirectives(
           ? `${chosen.length ? `Take ${chosen.length === 1 ? 'it' : `all ${chosen.length}`} and let` : 'Let'} the century finish ▸`
           : `${chosen.length ? `Take ${chosen.length === 1 ? 'it' : `all ${chosen.length}`} and advance` : 'Advance'} to ${s.year + 4} ▸`
       }</button>
-      ${
-        chosen.length
-          ? `<button id="confirm" title="Spend it now without ending the term, then keep choosing with what is left. Worth it when a directive puts a new one on the board: championing someone you have already backed can carry them over the line, and their centrepiece appears the same turn.">Take ${chosen.length === 1 ? 'it' : 'them'} now, keep choosing</button>`
-          : ''
-      }
       <span style="color:var(--dim);font-size:11px">${describeState(s)}</span>
     </div>`;
   };
