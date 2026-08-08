@@ -276,6 +276,31 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 .card.picked .name::after { content: ' ✓'; color: var(--fam, var(--accent)); }
 .card.picked .cost { color: var(--fam, var(--accent)); }
 
+/* Choosing a century on the title screen. Four cards rather than a Continue button, because
+   with four slots "continue" was a guess about which run the player meant. */
+.tslots {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 10px; margin: 26px auto 18px; max-width: 660px; width: 100%;
+}
+.tslot {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: inherit; font: inherit; cursor: pointer; text-align: left;
+  text-transform: none; letter-spacing: normal;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s;
+}
+.tslot.empty { border-style: dashed; background: transparent; }
+.tslot:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); transform: translateY(-2px); }
+.tslot .n {
+  font-size: 10px; letter-spacing: 0.18em; color: var(--dim); text-transform: uppercase;
+}
+.tslot .line { font-size: 14px; }
+.tslot .line b { color: var(--accent); font-size: 17px; font-variant-numeric: tabular-nums; }
+.tslot .sub { font-size: 10.5px; color: var(--dim); letter-spacing: 0.06em; }
+
 /* What the century is actually being used for. Same column-per-school idiom as the tree, so the
    two tabs read as two views of one thing. */
 .usegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }

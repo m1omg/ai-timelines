@@ -6,7 +6,7 @@ import { SCENES, SCENE_BY_ID } from './content/scenes';
 import { CHARACTERS } from './content/characters';
 import { pickScenes } from './engine/scheduler';
 import { advanceTurn } from './engine/sim';
-import { clearSave, exportSlot, hasSave, importSave, listSlots, loadGame, mostRecentSlot, saveGame } from './engine/save';
+import { clearSave, exportSlot, importSave, listSlots, loadGame, saveGame } from './engine/save';
 import { TOTAL_TURNS, createState } from './engine/state';
 import type { GameState, Scene } from './engine/types';
 import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady } from './ui/audio';
@@ -49,6 +49,9 @@ let sceneAbort: AbortController | null = null;
  * different one. A run stays with its own slot.
  */
 let activeSlot = 1;
+
+/** A seed chosen on the title screen, applied to the next century begun in an empty slot. */
+let pendingSeed: number | null = null;
 
 // ---------------------------------------------------------------------------
 // Shell
@@ -242,12 +245,38 @@ function renderMenu(el: HTMLElement, close: () => void): void {
 // Title
 // ---------------------------------------------------------------------------
 
+/**
+ * The title screen asks which century you are opening before it asks anything else.
+ *
+ * Continue resuming "the most recent slot" was fine when there was one, and became a guess the
+ * moment there were four: the player knows which run they mean and the interface did not. Slots
+ * are the primary control here, so starting a century is the same gesture as returning to one,
+ * and a new run is bound to its slot from the first turn rather than adopted by whichever
+ * autosave happened to land first.
+ */
 function titleScreen(): void {
   const era = applyEra(1);
   const plate = plateUrl(era);
   // Warm the later acts' plates while the title is on screen. They are wanted at an act break,
   // where a blank two seconds would land in the middle of the one purely theatrical moment.
   prefetchPlates();
+
+  const slots = listSlots();
+  const cards = slots
+    .map((info, i) => {
+      const n = i + 1;
+      return `<button class="tslot${info ? '' : ' empty'}" data-slot="${n}">
+        <span class="n">${n}</span>
+        ${
+          info
+            ? `<span class="line"><b>${info.year}</b> · turn ${info.turn + 1} of ${TOTAL_TURNS}</span>
+               <span class="sub">seed ${info.seed} · continue</span>`
+            : `<span class="line">Empty</span><span class="sub">begin · 1950</span>`
+        }
+      </button>`;
+    })
+    .join('');
+
   app.innerHTML = `<div class="title-screen">
     ${plate ? `<div class="plate-bed title-bed"><img class="${plateClass(era)}" src="${plate}" alt=""></div>` : ''}
     <h1>AI TIMELINES</h1>
@@ -255,12 +284,13 @@ function titleScreen(): void {
       A hundred years of argument about what a mind is — 1950 to 2050 — and your hand on where
       the money, the people and the attention go.
     </div>
+    <div class="tslots">${cards}</div>
     <div class="row">
-      <button class="primary" id="t-new">Begin · 1950</button>
-      ${hasSave() ? '<button id="t-cont">Continue</button>' : ''}
       <button id="t-seed">Choose a seed</button>
+      ${slots.some((x) => x) ? '<button id="t-wipe">Clear a slot</button>' : ''}
     </div>
     <div class="foot">
+      <span id="t-seedmsg"></span>
       Eight schools. A hundred and five ideas. Every one of them real, and most still argued about.<br>
       ${
         audioEnabled()
@@ -270,19 +300,37 @@ function titleScreen(): void {
     </div>
   </div>`;
 
-  document.getElementById('t-new')!.addEventListener('click', () => start(Date.now() & 0x7fffffff));
-  document.getElementById('t-cont')?.addEventListener('click', () => {
-    const slot = mostRecentSlot() ?? 1;
-    activeSlot = slot;
-    const loaded = loadGame(slot);
-    if (loaded) start(loaded.seed, loaded);
-    else start(Date.now() & 0x7fffffff);
-  });
+  app.querySelectorAll<HTMLButtonElement>('[data-slot]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const n = Number(b.dataset.slot);
+      activeSlot = n;
+      const loaded = loadGame(n);
+      if (loaded) {
+        start(loaded.seed, loaded);
+        return;
+      }
+      // An empty slot begins a century. A chosen seed applies to it; otherwise the clock does.
+      start(pendingSeed ?? (Date.now() & 0x7fffffff));
+      pendingSeed = null;
+    }),
+  );
+
   document.getElementById('t-seed')!.addEventListener('click', () => {
-    const raw = window.prompt('Seed (any number):', '1956');
+    const raw = window.prompt('Seed (any number). The whole century is deterministic from it:', '1956');
     if (raw === null) return;
     const n = Number(raw);
-    start(Number.isFinite(n) ? Math.floor(n) : 1956);
+    pendingSeed = Number.isFinite(n) ? Math.floor(n) : 1956;
+    const msg = document.getElementById('t-seedmsg');
+    if (msg) msg.innerHTML = `Seed <b>${pendingSeed}</b> — pick an empty slot to begin.<br>`;
+  });
+
+  document.getElementById('t-wipe')?.addEventListener('click', () => {
+    const raw = window.prompt('Clear which slot? (1-4). The century in it is gone for good:');
+    if (raw === null) return;
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n < 1 || n > 4) return;
+    clearSave(n);
+    titleScreen();
   });
 }
 
