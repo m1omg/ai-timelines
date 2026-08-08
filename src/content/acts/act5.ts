@@ -1,4 +1,4 @@
-import { all, any, mature, notMature, resource } from '../../engine/conditions';
+import { all, any, leadFamily, mature, notMature, resource } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -16,6 +16,16 @@ export const ACT5: Scene[] = [
     priority: 9,
     backdrop: 'server-floor',
     title: 'Eighteen Months',
+    /*
+     * Pinned and ungated, this asserted that convolution plus two graphics cards ended the
+     * argument — in centuries where neither had ever matured. A symbolic run was told its
+     * departments had reorganised around a result it never produced, and that the kernel people
+     * were gone from committees they in fact still ran.
+     *
+     * The scene is about one specific demonstration, so it is gated on that demonstration having
+     * happened. A century that did not build it does not get told that it did.
+     */
+    when: all(mature('convnet'), mature('gpu-scale')),
     lines: [
       {
         text: 'A result on an image benchmark cuts the error rate almost in half. Within eighteen months there is no serious computer vision research being done any other way.',
@@ -496,6 +506,51 @@ export const ACT5: Scene[] = [
         who: 'archivist',
         text: 'Both of them have been right about something important for thirty years. This is the last argument in the century where the participants are people rather than institutions.',
       },
+      /*
+       * The lesson holds in every century — it is a claim about what cheap computation does to a
+       * field, not about which school won, and a run that went another way did not refute it.
+       * What a run changes is the price it paid to go another way, which is the interesting thing
+       * and the thing the scene was silent about.
+       *
+       * These must not read as exemptions. The earlier draft had the Archivist telling a symbolic
+       * century that the seventy years "are not yours", which turns a hard lesson into a
+       * congratulation. Additive, so both speakers keep the floor.
+       */
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'He is not describing your century, and I would not have you mistake that for a refutation. You have spent seventy years paying people to write down what a larger machine would eventually have found on its own. The bill arrived every decade and you paid it every decade, because you judged what you got in return to be worth the difference.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'That is a defensible position and it is the one I would defend. It is not an exemption: the cheaper road was there the whole time and you declined it, which is a different thing from it not existing.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'And I would watch that word. The cheaper road wins on the axis it is measured on, and it wins there decisively — I am not going to soften that for you. What it does not do is win on every axis at once. It arrives without an explanation attached, and what you bought at the higher price is a century somebody can read.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'Both of those are true together, and this field has never been much good at holding two true things at the same time. That is most of what the winters were.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'Your century did not escape him either. It bought its competence with eleven years of a body in a house rather than a fortnight of a datacentre, which is the same purchase made at a different counter. What you declined was never the leverage. It was the shortcut.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('evolutionary'),
+        text: 'Your century agrees with him and he would hate the reason. You also leveraged computation over cleverness — you simply did it by breeding candidates rather than training one, and the lesson turns out not to specify which.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'They are arguing about the right way to build one system and you built the traffic between many, which changes the shape of the claim and not its force. Your traffic runs on the same cheap computation, and it became cheap for the same reasons, on somebody else\'s schedule.',
+      },
     ],
     choices: [
       {
@@ -664,9 +719,20 @@ export const ACT5: Scene[] = [
     priority: 1,
     once: false,
     backdrop: 'datacenter-vast',
+    /*
+     * The repeatable act 5 filler, so it must play in every century — which is exactly why it
+     * cannot assert one. It described a substation and a loss curve to runs that had neither.
+     * Gated at the line rather than the scene: the observation underneath is about a field that
+     * has found a number it can make go down, and every school gets one of those.
+     */
     lines: [
       {
+        when: mature('gpu-scale'),
         text: 'A building with its own substation. Nobody inside it can tell you what the model has learned, and every one of them can tell you the loss to four decimal places.',
+      },
+      {
+        when: notMature('gpu-scale'),
+        text: 'A machine room that has outgrown two buildings. Nobody inside it can tell you what the system actually understands, and every one of them can tell you its score on the standard set to four decimal places.',
       },
       {
         who: 'archivist',

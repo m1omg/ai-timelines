@@ -2,7 +2,8 @@ import { familyColour } from '../art/palette';
 import { FAMILIES } from '../content/paradigms';
 import { describeEffects, effectFamily } from '../engine/describe';
 import { availableDirectives, canAfford, takeDirective } from '../engine/directives';
-import { ACT_TITLES, TOTAL_TURNS, cloneState } from '../engine/state';
+import { TOTAL_TURNS, cloneState } from '../engine/state';
+import { actTitle } from '../content/act-titles';
 import type { Directive, FamilyId, GameState, PatronId } from '../engine/types';
 import { FAMILY_IDS } from '../engine/types';
 import { sfxSelect } from './audio';
@@ -171,7 +172,7 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
   el.innerHTML = `
     <div class="topline">
       <span class="year">${s.year}</span>
-      <span class="act">Act ${roman(s.act)} · ${escapeHtml(ACT_TITLES[s.act - 1] ?? '')}${s.inWinter ? ' · <b style="color:var(--warn)">WINTER</b>' : ''}</span>
+      <span class="act">Act ${roman(s.act)} · ${escapeHtml(actTitle(s.act, s))}${s.inWinter ? ' · <b style="color:var(--warn)">WINTER</b>' : ''}</span>
       <span class="spacer"></span>
       ${
         h.onBack

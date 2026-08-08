@@ -1,4 +1,4 @@
-import { all, flagSet, mature, notMature } from '../../engine/conditions';
+import { all, any, flagSet, leadFamily, mature, notMature } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -48,7 +48,13 @@ export const ACT6: Scene[] = [
     years: [2030, 2038],
     priority: 8,
     backdrop: 'datacenter-vast',
-    when: { kind: 'compute', op: '>', value: 24 },
+    /*
+     * Compute alone was the wrong gate. The Moore's-law floor lifts every century, symbolic ones
+     * included, so a run that never trained anything crossed 10^24 and was told what its frontier
+     * training run costs. Concentration is a fact about a century that assembles its hardware in
+     * one place, which is what the scaling paradigms are; a theorem prover is not that customer.
+     */
+    when: all({ kind: 'compute', op: '>', value: 24 }, any(mature('gpu-scale'), mature('scaling-regime'))),
     lines: [
       {
         text: 'A frontier training run now costs more than a national research budget and requires its own generating capacity.',
@@ -588,13 +594,46 @@ export const ACT6: Scene[] = [
     priority: 1,
     once: false,
     backdrop: 'ruins',
+    /*
+     * The repeatable act 6 filler, so like a5-ambient-scale it plays in every century and must
+     * not assert one. The observation is that a confident field oversizes something and leaves
+     * the husk behind; what got oversized is a fact about which school was confident.
+     *
+     * The opening pair is complementary — one or the other always shows — and the closing lines
+     * are additive colour for the schools that had least to say this late in the century.
+     */
     lines: [
       {
+        when: mature('gpu-scale'),
         text: 'A district built for a datacentre that was never finished, because the substrate improved faster than the concrete could be poured.',
+      },
+      {
+        when: notMature('gpu-scale'),
+        text: 'A district built for an institute that was never finished, because the problem it was sized for turned out to need a tenth of the people and a different building.',
       },
       {
         who: 'archivist',
         text: 'The projection contains a great many of these. Infrastructure sized for an extrapolation that stopped being true. It is what a confident century leaves behind.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'Yours are mostly paper. Twelve thousand rule bases, each correct inside a boundary somebody drew in a meeting, and the boundaries do not meet. The ruin of a written century is a shelf, and it takes longer to notice.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'Yours are stranger: nothing here was built too large, because nothing here was built by anyone in particular. What your century leaves behind is protocols nobody can switch off and nobody can quite claim.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'Yours are the fewest I have on file. A field that puts its work in bodies cannot oversize the building, only the ambition — and the bodies wore out one at a time, in houses, where nobody photographed them.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('evolutionary'),
+        text: 'Yours are compute farms, and they are not abandoned so much as still running. Populations left evolving against objectives whose authors retired. Something in there is still getting better at something nobody is measuring.',
       },
     ],
     choices: [
@@ -634,6 +673,51 @@ export const ACT6: Scene[] = [
       {
         who: 'archivist',
         text: 'Yes. Spend the last two intervals however you think best. I would suggest, gently, that whatever you have been putting off is now the thing to do.',
+      },
+      /*
+       * What is still missing at 2042 is entirely a fact about what got built, and saying so is
+       * the difference between an ending that lands and one that could have been printed in
+       * 1950. Additive, so the beat above still closes the act in any century.
+       */
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'In your case I think it is the part you could never write down. You have a century of rules that hold inside their boundaries and a world that keeps arriving from outside them. Two intervals is not enough to fix that. It is enough to say it in public.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'In your case I think it is the explanation. You have built something that works and nobody has been able to say why for twenty years, and the honest account of this century has to include that sentence whether or not it is flattering.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'In your case I think it is scale, and I am aware that is the one thing your school has always refused to want. Everything you built learned its own room. Nothing you built can be handed to somebody who was not there.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'In your case I think it is somebody to ask. You have arranged a century in which no single party can be stopped, which also means no single party can be addressed, and in eight years people are going to want an address.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'In your case, unusually, I am not sure anything is missing so much as unfinished. You spent the century joining things, and a join is only visible from both sides. Use the time to show your working.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('evolutionary'),
+        text: 'In your case I think it is an account of why any of it works. You have a century of things that were selected rather than designed, and selection leaves no argument behind — only a survivor, and no way to ask it what it learned.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'In your case I think it is nerve. You have been right about uncertainty for a hundred years and quiet about it for ninety, and a field that will not say plainly what it knows gets remembered as a technique rather than a theory.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'In your case I think it is the question you kept declining. You changed the physics and let everyone else argue about what a mind is, and in eight years somebody is going to ask what you think it is, and "faster" will not answer them.',
       },
     ],
     choices: [

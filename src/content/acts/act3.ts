@@ -719,11 +719,13 @@ export const ACT3: Scene[] = [
     choices: [
       {
         text: '"Fine. Carry on."',
+        goto: 'a3-second-voice-deny',
         effects: [{ kind: 'flag', flag: 'frameCurious', op: 'add', value: 1 }],
       },
       {
         text: '"Something just spoke to me and it was not you."',
         hint: 'She will not pretend she does not know what you mean.',
+        goto: 'a3-second-voice-tell',
         effects: [
           { kind: 'flag', flag: 'frameCurious', op: 'add', value: 3 },
           { kind: 'flag', flag: 'toldArchivist', op: 'set', value: true },
@@ -734,6 +736,7 @@ export const ACT3: Scene[] = [
       {
         text: '"How many times have we done this?"',
         hint: 'A long pause.',
+        goto: 'a3-second-voice-ask',
         effects: [
           { kind: 'flag', flag: 'frameCurious', op: 'add', value: 4 },
           { kind: 'flag', flag: 'askedTheQuestion', op: 'set', value: true },
@@ -741,6 +744,71 @@ export const ACT3: Scene[] = [
           { kind: 'log', text: 'A question is asked that the record has no field for.', logKind: 'system' },
         ],
       },
+    ],
+  },
+
+  /*
+   * Replies to "You went quiet. Everything in order?".
+   *
+   * The scene's whole weight is that she asks a small, ordinary question immediately after
+   * something she cannot hear has happened, and the player has to decide whether to tell her.
+   * Cutting to the funding board on that made the decision costless, which is the one thing it
+   * must not be. None of the three resolves it; the flags carry it forward.
+   */
+  {
+    id: 'a3-second-voice-deny',
+    act: 3,
+    linkOnly: true,
+    years: [1990, 1994],
+    backdrop: 'void',
+    lines: [
+      {
+        who: 'archivist',
+        text: 'Good. You had the look people get in here around the fourth decade, when they start counting how many intervals are left.',
+      },
+      {
+        who: 'archivist',
+        text: 'Thirteen. Then we are done, and whatever we have built is what there is. Where were we.',
+      },
+      { system: true, text: 'NO ANOMALY LOGGED. INTERVAL CONTINUES.' },
+    ],
+  },
+  {
+    id: 'a3-second-voice-tell',
+    act: 3,
+    linkOnly: true,
+    years: [1990, 1994],
+    backdrop: 'void',
+    lines: [
+      { text: 'She does not ask what it said.' },
+      {
+        who: 'archivist',
+        text: 'I know. I cannot hear it and I have never been able to, and I have four hundred entries in the register from people who could. You are not the first to tell me and you are the first to tell me straight away.',
+      },
+      {
+        who: 'archivist',
+        text: 'Here is what I will ask of you. Do not lie to me about it. I have no way to check, which is exactly why I am asking rather than requiring.',
+      },
+      { system: true, text: 'ENTRY 0291: "told her. she already knew. she thanked me."' },
+    ],
+  },
+  {
+    id: 'a3-second-voice-ask',
+    act: 3,
+    linkOnly: true,
+    years: [1990, 1994],
+    backdrop: 'void',
+    lines: [
+      { text: 'The pause goes on long enough that you check whether the interface has stopped.' },
+      {
+        who: 'archivist',
+        text: 'Once. This is the first run. I know that the way you know your own name.',
+      },
+      {
+        who: 'archivist',
+        text: 'And I have noticed that it is the only thing I know without having read it somewhere, and I have been trying not to notice that for some time. Ask me again in 2046. I may have a better answer, or a worse one.',
+      },
+      { system: true, text: 'QUERY UNRESOLVED. NO FIELD EXISTS. RETAINED ANYWAY.' },
     ],
   },
 

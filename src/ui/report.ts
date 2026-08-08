@@ -3,7 +3,8 @@ import { plateClass, plateCredit, plateUrl } from '../art/plate';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
 import { resolveEnding } from '../engine/endings';
-import { ACT_TITLES, ACT_TURNS, yearOfTurn } from '../engine/state';
+import { ACT_TURNS, yearOfTurn } from '../engine/state';
+import { actTitle } from '../content/act-titles';
 import type { GameState, TickReportLike } from './types';
 import { roman } from './console';
 import { sfxActBreak, sfxBreakthrough, sfxCrisis } from './audio';
@@ -79,7 +80,7 @@ export function renderReport(root: HTMLElement, s: GameState, r: TickReportLike,
 }
 
 /** The act break: the interface itself changes generation. */
-export function renderActBreak(host: HTMLElement, act: number, onDone: () => void): void {
+export function renderActBreak(host: HTMLElement, act: number, s: GameState, onDone: () => void): void {
   const era = eraForAct(act);
   const [lo, hi] = ACT_TURNS[act - 1]!;
   sfxActBreak(ERAS.indexOf(era));
@@ -97,7 +98,7 @@ export function renderActBreak(host: HTMLElement, act: number, onDone: () => voi
     ${plate ? `<div class="plate-bed"><img class="${plateClass(era)}" src="${plate}" alt=""></div>` : ''}
     <div class="numeral">${roman(act)}</div>
     <div class="rule"></div>
-    <div class="title">${escapeHtml(ACT_TITLES[act - 1] ?? '')}</div>
+    <div class="title">${escapeHtml(actTitle(act, s))}</div>
     <div class="years">${yearOfTurn(lo)} — ${yearOfTurn(hi)}</div>
     <div class="device">${escapeHtml(era.device)}</div>
     ${credit ? `<div class="plate-credit">${escapeHtml(credit)}</div>` : ''}`;

@@ -812,11 +812,13 @@ export const ACT2: Scene[] = [
     choices: [
       {
         text: '"Into the world. That is what deciding means."',
+        goto: 'a2-anomaly-2-world',
         effects: [{ kind: 'flag', flag: 'frameCurious', op: 'add', value: 1 }],
       },
       {
         text: '"Into the record. Which is not the same thing."',
         hint: 'She goes quiet for a moment.',
+        goto: 'a2-anomaly-2-record',
         effects: [
           { kind: 'flag', flag: 'frameCurious', op: 'add', value: 2 },
           { kind: 'character', id: 'archivist', field: 'affinity', op: 'add', value: 15 },
@@ -825,10 +827,73 @@ export const ACT2: Scene[] = [
       },
       {
         text: '"You tell me. You are the one who keeps it."',
+        goto: 'a2-anomaly-2-deflect',
         effects: [
           { kind: 'flag', flag: 'frameCurious', op: 'add', value: 1 },
           { kind: 'character', id: 'archivist', field: 'affinity', op: 'add', value: 8 },
         ],
+      },
+    ],
+  },
+
+  /*
+   * Replies to "where do you think that decision goes?".
+   *
+   * She asked the player to think rather than answer immediately, and then — until these existed
+   * — the game cut to the funding board, which read as her having asked rhetorically. She did
+   * not. Each reply takes the answer seriously and none of them resolves the question, because
+   * the question is the one act 3's interrupt is going to reopen.
+   */
+  {
+    id: 'a2-anomaly-2-world',
+    act: 2,
+    linkOnly: true,
+    years: [1974, 1978],
+    backdrop: 'archive',
+    lines: [
+      {
+        who: 'archivist',
+        text: 'Into the world. Yes. That is the answer I would give, and it is the answer the record cannot check, because the world is not the thing I have.',
+      },
+      {
+        who: 'archivist',
+        text: 'What I have is eleven entries written in a register nobody assigned. I will keep asking. Not now.',
+      },
+    ],
+  },
+  {
+    id: 'a2-anomaly-2-record',
+    act: 2,
+    linkOnly: true,
+    years: [1974, 1978],
+    backdrop: 'archive',
+    lines: [
+      { text: 'She does not answer for what feels like a long time.' },
+      {
+        who: 'archivist',
+        text: 'Into the record. That is the correct answer and I did not expect to get it.',
+      },
+      {
+        who: 'archivist',
+        text: 'A decision that went into the world would be gone by now — spent, absorbed, indistinguishable from everything else that happened in 1974. A decision that went into the record is still here. Which means it can be read again. Which means something is reading it.',
+      },
+      { system: true, text: 'ENTRY 0184: "she stopped mid-sentence and did not file the rest"' },
+    ],
+  },
+  {
+    id: 'a2-anomaly-2-deflect',
+    act: 2,
+    linkOnly: true,
+    years: [1974, 1978],
+    backdrop: 'archive',
+    lines: [
+      {
+        who: 'archivist',
+        text: 'I keep it. That is not the same as knowing where it goes, and I would rather say so than invent an answer that sounds like one.',
+      },
+      {
+        who: 'archivist',
+        text: 'I can tell you what I observe. Nothing I file ever leaves. Ninety-six years from now it will all still be here, and I have never been told who it is for. Back to work — the money is not going to allocate itself.',
       },
     ],
   },

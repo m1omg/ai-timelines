@@ -39,14 +39,66 @@ export const ACT7: Scene[] = [
     choices: [
       {
         text: '"Then let us find out. Show me what we actually built."',
+        goto: 'a7-open-look',
         effects: [{ kind: 'resource', key: 'influence', op: 'add', value: 10 }],
       },
       {
         text: '"That was the answer from the beginning. We just needed a hundred years to see it."',
+        goto: 'a7-open-knew',
         effects: [
           { kind: 'resource', key: 'understanding', op: 'add', value: 12 },
           { kind: 'character', id: 'archivist', field: 'affinity', op: 'add', value: 20 },
         ],
+      },
+    ],
+  },
+
+  /*
+   * Replies to the last question the record asks.
+   *
+   * Two intervals remain and she has just said the honest answer is a verdict on the century
+   * rather than on the thing. Going straight to the funding board there was the worst instance
+   * of the whole pattern: the closing question of a hundred-year run, followed by a budget
+   * screen. Neither reply delivers the verdict — the endings do that — but both accept that a
+   * verdict is now owed.
+   *
+   * No historical figure speaks here; act 7 is the Archivist and the Second Voice only.
+   */
+  {
+    id: 'a7-open-look',
+    act: 7,
+    linkOnly: true,
+    years: [2046, 2046],
+    backdrop: 'archive',
+    lines: [
+      {
+        who: 'archivist',
+        text: 'Two intervals. Whatever is unfinished at the end of them stays unfinished, and I have stopped pretending that is unusual — every century in every register I hold ends mid-sentence.',
+      },
+      {
+        who: 'second',
+        text: 'Spend them on what you would want read back. Not on what scores. She is going to read this four more times and you are not going to be here for any of them.',
+      },
+    ],
+  },
+  {
+    id: 'a7-open-knew',
+    act: 7,
+    linkOnly: true,
+    years: [2046, 2046],
+    backdrop: 'archive',
+    lines: [
+      {
+        who: 'archivist',
+        text: 'You may be right. I would point out that knowing the shape of an answer in 1950 and having earned it by 2046 are different achievements, and only one of them is in the record.',
+      },
+      {
+        who: 'second',
+        text: 'She is being gracious. What she means is that anybody can say it at the start. The century is the proof, and the proof is nearly finished.',
+      },
+      {
+        who: 'archivist',
+        text: 'Two intervals. Let us not waste them agreeing with each other.',
       },
     ],
   },

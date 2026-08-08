@@ -290,6 +290,7 @@ export const ARRIVALS: Scene[] = [
         text: 'Fund continuity. A worn-out unit should be repaired, never replaced.',
         hint: 'An entire industry of maintenance rather than upgrade.',
         cost: 7,
+        goto: 'a6-arrival-cybernetic-repair',
         effects: [
           { kind: 'resource', key: 'deployment', op: 'add', value: 20 },
           { kind: 'resource', key: 'understanding', op: 'add', value: 14 },
@@ -302,6 +303,7 @@ export const ARRIVALS: Scene[] = [
       },
       {
         text: 'Standardise and mass-produce. Attachment is not a design requirement.',
+        goto: 'a6-arrival-cybernetic-standardise',
         effects: [
           { kind: 'resource', key: 'deployment', op: 'add', value: 30 },
           { kind: 'resource', key: 'capability', op: 'add', value: 14 },
@@ -309,6 +311,61 @@ export const ARRIVALS: Scene[] = [
           { kind: 'resource', key: 'understanding', op: 'add', value: -4 },
           { kind: 'patron', patron: 'corporate', op: 'add', value: 20 },
         ],
+      },
+    ],
+  },
+
+  /*
+   * Replies to the eleven-years survey.
+   *
+   * The Archivist has just said that no other branch produces mourning, and asked whether the
+   * attachment was earned or engineered. Cutting from that to a funding board answered it by
+   * default, and in the least interesting direction. Neither reply settles it — the scene's own
+   * line is that the distinction may not survive contact with anyone who has one — but each
+   * says what the decision commits the century to.
+   *
+   * Sørensen is invented, as everyone after 2026 is, so she can speak here where a historical
+   * figure could not.
+   */
+  {
+    id: 'a6-arrival-cybernetic-repair',
+    act: 'any',
+    linkOnly: true,
+    years: [2018, 2046],
+    backdrop: 'garden',
+    lines: [
+      {
+        who: 'sorensen',
+        text: 'Then I need to tell you what you have just bought, because it is not a product line. It is an obligation with no end date.',
+      },
+      {
+        who: 'sorensen',
+        text: 'A repairable machine has to be repairable in forty years, by someone not yet born, using parts nobody is manufacturing. Every firm I have pitched this to worked out the liability in under a minute and showed me the door.',
+      },
+      {
+        who: 'archivist',
+        text: 'It is also the first time this century that anyone has funded a thing on the grounds that it should not be replaceable. I have no category for that. I am making one.',
+      },
+    ],
+  },
+  {
+    id: 'a6-arrival-cybernetic-standardise',
+    act: 'any',
+    linkOnly: true,
+    years: [2018, 2046],
+    backdrop: 'garden',
+    lines: [
+      {
+        who: 'sorensen',
+        text: 'You will get your volume. I want to be accurate about the cost rather than dramatic: it is not that the machines get worse. They get better. Every unit ships knowing more than mine ever did.',
+      },
+      {
+        who: 'sorensen',
+        text: 'What goes is the eleven years. A standard unit arrives knowing houses in general and this house not at all, and when it wears out the replacement starts from the same place. Nobody mourns a thing that can be reordered.',
+      },
+      {
+        who: 'archivist',
+        text: 'Forty-one per cent said member of the household. I will run the survey again in eight years and file both. That is the whole of what I can do about it.',
       },
     ],
   },

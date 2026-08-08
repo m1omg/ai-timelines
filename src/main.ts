@@ -346,7 +346,7 @@ function nextTurn(): void {
   };
 
   if (state.act !== priorAct) {
-    renderActBreak(document.body, state.act, () => {
+    renderActBreak(document.body, state.act, state, () => {
       refreshTopbar();
       showReport();
     });

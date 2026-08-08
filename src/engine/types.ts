@@ -444,6 +444,16 @@ export interface Scene {
   onEnter?: Effect[];
   /** Marks scenes the scheduler must play the moment they become eligible. */
   pinned?: boolean;
+  /**
+   * A scene reachable only by being named in another scene's `next` or a choice's `goto` — a
+   * reply, not an episode. The scheduler never selects one, exactly as it never selects act 0.
+   *
+   * Without this a reply is schedulable on its own, and the answer to a question turns up in a
+   * turn where nobody asked it. It is `linkOnly` rather than a condition because "is this
+   * reachable from the story" is a structural fact, not a fact about game state — and the
+   * linter checks the corresponding obligation, that something actually links here.
+   */
+  linkOnly?: boolean;
   tags?: string[];
 }
 
