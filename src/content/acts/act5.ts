@@ -1,4 +1,4 @@
-import { all, any, mature, notMature, resource } from '../../engine/conditions';
+import { all, any, leadFamily, mature, notMature, resource } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -505,6 +505,32 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         text: 'Both of them have been right about something important for thirty years. This is the last argument in the century where the participants are people rather than institutions.',
+      },
+      /*
+       * The lesson is a claim about a record, and the player has been writing a different one for
+       * seventy years. Firing the historical framing unchanged into a century that disproved it
+       * was the same error as the scaling scenes, in a subtler place: the text was not false
+       * about the world, it was silent about the run. Additive, so both speakers keep the floor.
+       */
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'Though I would note, for the record, that he is describing a history you did not write. In your century the general methods lost, repeatedly, to people who sat down and wrote the rules out. He is not wrong about his seventy years. They are not yours.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'Note the shared assumption neither of them states: that the thing being scaled or structured is a computation you can run twice. Nothing your century built has that property. The argument in this room does not quite reach you.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('evolutionary'),
+        text: 'Your century agrees with him and he would hate the reason. You also leveraged computation over cleverness — you simply did it by breeding candidates rather than training one, and the lesson turns out not to specify which.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'Both of them are arguing about the right way to build one system. Your century declined the premise and built the traffic between many, and no lesson stated in the singular has anything to say about it.',
       },
     ],
     choices: [
