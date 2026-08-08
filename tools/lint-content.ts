@@ -8,6 +8,7 @@
  * Run with `npm run lint:content`. Exits non-zero on any error.
  */
 
+import { ACT_TITLE_VARIANTS } from '../src/content/act-titles';
 import { ACTORS } from '../src/content/actors';
 import { CHARACTER_BY_ID, CHARACTERS } from '../src/content/characters';
 import { CODEX_ESSAYS } from '../src/content/codex';
@@ -15,7 +16,7 @@ import { AUTHORED_DIRECTIVES } from '../src/content/directives';
 import { ENDINGS } from '../src/content/endings';
 import { PARADIGMS, PARADIGM_BY_ID } from '../src/content/paradigms';
 import { ALL_SCENES, SCENE_BY_ID } from '../src/content/scenes';
-import { ACT_TURNS, END_YEAR, START_YEAR, yearOfTurn } from '../src/engine/state';
+import { ACT_TITLES, ACT_TURNS, END_YEAR, START_YEAR, yearOfTurn } from '../src/engine/state';
 import type { Condition, Effect, Scene } from '../src/engine/types';
 import { FAMILY_IDS, PATRON_IDS, RESOURCE_KEYS } from '../src/engine/types';
 
@@ -583,6 +584,31 @@ function checkDepiction(): void {
 // 7. Coverage — every act and turn has something to play
 // ---------------------------------------------------------------------------
 
+/*
+ * Act titles resolve first-match-wins, so the guarantee that an act has a name at all rests
+ * entirely on the last entry carrying no condition. A conditional final entry would fall through
+ * to the fixed title silently, which is the bug the variants exist to fix, reintroduced quietly.
+ */
+function checkActTitles(): void {
+  if (ACT_TITLE_VARIANTS.length !== ACT_TITLES.length) {
+    err(`act titles: ${ACT_TITLE_VARIANTS.length} variant lists for ${ACT_TITLES.length} acts`);
+  }
+  ACT_TITLE_VARIANTS.forEach((list, i) => {
+    const act = i + 1;
+    if (list.length === 0) return err(`act ${act}: no title variants at all`);
+    if (list[list.length - 1]!.when) {
+      err(`act ${act}: last title variant is conditional — some centuries would have no title`);
+    }
+    list.forEach((v, j) => {
+      if (!v.title.trim()) err(`act ${act}: title variant ${j} is empty`);
+    });
+    // An unconditional entry before the end makes everything after it dead.
+    list.slice(0, -1).forEach((v, j) => {
+      if (!v.when) warn(`act ${act}: title variant ${j} is unconditional and shadows the ones after it`);
+    });
+  });
+}
+
 function checkCoverage(): void {
   for (let act = 1; act <= ACT_TURNS.length; act++) {
     // Replies do not count as cover: one cannot fill an empty turn, because nothing would have
@@ -638,6 +664,7 @@ function main(): void {
   checkParadigmReachability();
   checkEndings();
   checkDepiction();
+  checkActTitles();
   checkCoverage();
 
   console.log('AI Timelines — content lint');
