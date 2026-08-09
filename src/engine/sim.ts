@@ -72,8 +72,31 @@ const PRE_BOOM_RATE = 0.16;
 const SCALE_DEMONSTRATIONS = ['gpu-scale', 'massively-parallel', 'gpu-general-compute'];
 /** Where power and capital start to bite, in log10 FLOPs. */
 const POWER_WALL_FROM = 24;
-/** Drag per order of magnitude beyond that, before substrate relief. */
+/** Drag at one order of magnitude past the wall, before substrate relief. */
 const POWER_WALL_RATE = 0.15;
+/**
+ * How the drag grows with each further order of magnitude. Above 1 it is superlinear, which is
+ * what makes the wall a wall.
+ *
+ * It used to be exactly 1 — drag proportional to the excess — and that is not a wall, it is a
+ * headwind. Growth stayed roughly constant per turn while the drag rose in step behind it, so
+ * the two never met: a substrate century finished at 10^39.8 against 10^27 for everyone else,
+ * and the harness's own band recorded a run at 10^43.9. That is 10^13 times the largest machine
+ * anybody else built, from one school's advantage, and past any bound physics would recognise.
+ * Superlinear drag means there is always a frontier at which the next order of magnitude costs
+ * more than the century can pay, which is the thing being modelled.
+ */
+const POWER_WALL_CURVE = 1.7;
+/**
+ * The most, in orders of magnitude, that substrate work can push the wall back.
+ *
+ * Relief was unbounded and grew with every node and every point of insight, so the school that
+ * moves the wall could eventually move it further than the wall ever advanced. Cheaper
+ * operations are a real and large effect and they are not a repeal: approached asymptotically,
+ * so early substrate work buys nearly all of its face value and the twentieth node buys very
+ * little.
+ */
+const POWER_WALL_RELIEF_MAX = 5;
 
 export interface TickReport {
   year: number;
@@ -551,9 +574,15 @@ export function advanceTurn(s: GameState): TickReport {
     ? appetite * money * (SCALEUP_RATE + lateEraBonus) * (s.inWinter ? 0.15 : 1)
     : appetite * (PRE_BOOM_RATE + lateEraBonus) + industryBonus * 0.8;
 
-  // Power and capital. Substrate insight is the relief, and it is the only relief.
-  const relief = s.families.substrate.insight * 0.02 + s.families.substrate.matured * 0.3;
-  const wall = Math.max(0, (s.computeLog - POWER_WALL_FROM - relief) * POWER_WALL_RATE);
+  /*
+   * Power and capital. Substrate insight is the relief, and it is the only relief — but it is
+   * bounded, and the drag past the wall is superlinear, so every century has a frontier it
+   * cannot afford. Which frontier is the substrate school's whole contribution.
+   */
+  const reliefRaw = s.families.substrate.insight * 0.02 + s.families.substrate.matured * 0.3;
+  const relief = POWER_WALL_RELIEF_MAX * (1 - Math.exp(-reliefRaw / POWER_WALL_RELIEF_MAX));
+  const excess = Math.max(0, s.computeLog - POWER_WALL_FROM - relief);
+  const wall = POWER_WALL_RATE * Math.pow(excess, POWER_WALL_CURVE);
 
   const computeGain = Math.max(0.18, moore + scaleUp - wall - (s.inWinter ? 0.14 : 0));
   s.computeLog += computeGain;

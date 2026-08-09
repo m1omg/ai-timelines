@@ -200,7 +200,15 @@ export function availableDirectives(s: GameState): Directive[] {
     ...championDirectives(s),
   ];
   return all.filter((d) => {
-    if (!d.repeatable && s.directivesTaken.includes(d.id)) return false;
+    /*
+     * Once per term. `directivesTaken` is cleared by the tick, so a standing lever like
+     * "amplify" comes back every four years while nothing can be taken twice in the same one.
+     *
+     * This used to be guarded by a `repeatable` flag that no directive in the game ever set —
+     * dead surface offering an exception nobody had asked for, on the one rule the board's whole
+     * economy rests on.
+     */
+    if (s.directivesTaken.includes(d.id)) return false;
     // "Do nothing this term" cannot honestly be offered after you have already done something.
     if (d.endsTurn && s.directivesTaken.length > 0) return false;
     return evaluate(d.when, s);

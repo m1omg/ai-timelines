@@ -18,6 +18,12 @@ function clampResource(state: GameState, key: (typeof RESOURCE_KEYS)[number]): v
   state.resources[key] = Math.max(0, Math.min(cap, state.resources[key]));
 }
 
+/**
+ * The insight a school needs before it is worth brokering with — the point at which `joinery`
+ * pays in full. A school at this level has a body of results somebody else could build on.
+ */
+export const JOIN_REFERENCE = 90;
+
 /** Talent is a share of one pool: raising one family lowers the others proportionally. */
 export function normaliseTalent(state: GameState): void {
   let total = 0;
@@ -147,6 +153,33 @@ export function applyEffect(state: GameState, e: Effect): void {
       for (const f of FAMILY_IDS) {
         state.families[f].insight = Math.max(0, state.families[f].insight + (e.value * weight[f]) / total);
       }
+      break;
+    }
+
+    case 'joinery': {
+      /*
+       * What a brokered collaboration is worth: the thinner of the two banks it joins.
+       *
+       * The second-strongest school by insight, because the strongest is one bank and the next
+       * is the other — and a join needs both. Below `JOIN_REFERENCE` the payment scales down
+       * linearly, so putting two schools in a room in 1954, when neither has anything to say
+       * yet, buys a workshop and a shared vocabulary rather than a decade of insight. Bridge's
+       * own insight is excluded: brokering with yourself is not a collaboration.
+       */
+      let first = 0;
+      let second = 0;
+      for (const f of FAMILY_IDS) {
+        if (f === 'bridge') continue;
+        const v = state.families[f].insight;
+        if (v > first) {
+          second = first;
+          first = v;
+        } else if (v > second) {
+          second = v;
+        }
+      }
+      const scale = Math.min(1, second / JOIN_REFERENCE);
+      state.families.bridge.insight = Math.max(0, state.families.bridge.insight + e.value * scale);
       break;
     }
 

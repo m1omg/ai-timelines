@@ -7,7 +7,7 @@ import { CHARACTERS } from './content/characters';
 import { availableDirectives, canAfford, takeDirective } from './engine/directives';
 import { pickScenes } from './engine/scheduler';
 import { advanceTurn } from './engine/sim';
-import { clearSave, exportSlot, importSave, listSlots, loadGame, saveGame } from './engine/save';
+import { clearSave, exportSlot, firstEmptySlot, importSave, listSlots, loadGame, saveGame } from './engine/save';
 import { TOTAL_TURNS, cloneState, createState, takeTermStart } from './engine/state';
 import type { GameState, Scene } from './engine/types';
 import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady } from './ui/audio';
@@ -48,8 +48,19 @@ let sceneAbort: AbortController | null = null;
  * Without this the per-turn autosave went to slot 1 unconditionally, which would quietly
  * overwrite whatever century the player had parked there the moment they took a turn in a
  * different one. A run stays with its own slot.
+ *
+ * `null` means the run is not bound to a slot and does not autosave at all. A century arriving
+ * by pasted code has no slot of its own, and inheriting the previous run's was the same bug
+ * again in a worse form: importing while playing slot 3 quietly overwrote slot 3 with somebody
+ * else's century on the next turn. It takes an empty slot if there is one, and otherwise runs
+ * unbound rather than choosing a century to destroy.
  */
-let activeSlot = 1;
+let activeSlot: number | null = 1;
+
+/** Write the run to its slot, if it has one. */
+function autosave(): void {
+  if (activeSlot !== null) saveGame(state, activeSlot);
+}
 
 /** A seed chosen on the title screen, applied to the next century begun in an empty slot. */
 let pendingSeed: number | null = null;
@@ -183,6 +194,24 @@ function resume(): void {
   void beginTurn();
 }
 
+/**
+ * The scenes this turn is dealing, drawn once and remembered.
+ *
+ * `pickScenes` filters on `seenScenes`, so calling it again part-way through a turn deals a
+ * *fresh* hand rather than the rest of the one in play: a player who saved mid-scene and
+ * reloaded got three more scenes for the same four years, and could repeat the trick. Recording
+ * the plan makes a resumed turn finish the hand it was dealt — the ids already seen drop out,
+ * and what is left is exactly what was still to come.
+ */
+function scenesForTurn(): string[] {
+  if (state.scenePlan?.turn === state.turn) {
+    return state.scenePlan.ids.filter((id) => !state.seenScenes.includes(id));
+  }
+  const ids = pickScenes(state, SCENES, SCENES_PER_TURN).map((p) => p.id);
+  state.scenePlan = { turn: state.turn, ids };
+  return ids;
+}
+
 function renderMenu(el: HTMLElement, close: () => void): void {
   el.innerHTML = `<div class="panel"><div class="wrap report">
     <div style="display:flex;align-items:baseline;gap:14px">
@@ -266,7 +295,15 @@ function renderMenu(el: HTMLElement, close: () => void): void {
       msg.textContent = 'That code could not be read.';
       return;
     }
+    // An imported century is not the one that was running, so it must not inherit its slot.
+    activeSlot = firstEmptySlot();
     adoptLoadedState(loaded, close);
+    if (activeSlot === null) {
+      window.alert(
+        'All four slots are full, so this century is not saving anywhere. It will play normally; ' +
+          'save it over a slot from the menu when you have decided which one to give up.',
+      );
+    }
   });
   el.querySelector('#m-audio')!.addEventListener('click', () => {
     setAudioEnabled(!audioEnabled());
@@ -469,12 +506,7 @@ async function openingSequence(): Promise<void> {
 async function beginTurn(): Promise<void> {
   refreshCharacters();
   refreshTopbar();
-
-  const picked = pickScenes(state, SCENES, SCENES_PER_TURN);
-  await playQueue(
-    picked.map((p) => p.id),
-    directivePhase,
-  );
+  await playQueue(scenesForTurn(), directivePhase);
 }
 
 /**
@@ -512,7 +544,7 @@ function undoTaken(id: string): void {
   state = restored;
   rewind = null;
   heldInfluence = 0;
-  saveGame(state, activeSlot);
+  autosave();
   refreshCharacters();
   refreshTopbar();
   directivePhase();
@@ -531,7 +563,7 @@ function directivePhase(): void {
     state,
     () => {
       sfxAdvance();
-      saveGame(state, activeSlot);
+      autosave();
       nextTurn();
     },
     refreshTopbar,
@@ -584,10 +616,10 @@ function nextTurn(): void {
 async function finish(): Promise<void> {
   stageEl.innerHTML = '';
   await renderEnding(stageEl, stageEl, state, () => {
-    clearSave(activeSlot);
+    if (activeSlot !== null) clearSave(activeSlot);
     titleScreen();
   });
-  saveGame(state, activeSlot);
+  autosave();
 }
 
 // ---------------------------------------------------------------------------

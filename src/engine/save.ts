@@ -1,5 +1,6 @@
 import { createState } from './state';
 import type { GameState } from './types';
+import { FAMILY_IDS, PATRON_IDS, RESOURCE_KEYS } from './types';
 
 /**
  * Saved centuries.
@@ -36,12 +37,25 @@ export interface SlotInfo {
   seed: number;
 }
 
+/**
+ * Is this a century this build knows how to read?
+ *
+ * Older is fine and is the whole point: `migrate` exists to carry a save forward, and rejecting
+ * on an exact match made `SAVE_VERSION` a cliff rather than a version number. Bumping it would
+ * have shown every saved century as an empty slot — no warning, no error, four blank rows and a
+ * hundred years each gone. Newer than this build is the one honest refusal: a save written by a
+ * later version may contain fields whose meaning we cannot guess.
+ */
+function loadable(v: unknown): boolean {
+  return typeof v === 'number' && Number.isFinite(v) && v >= 1 && v <= SAVE_VERSION;
+}
+
 function readSlot(n: number): SaveSlot | null {
   try {
     const raw = localStorage.getItem(SLOT_KEY(n));
     if (!raw) return null;
     const slot = JSON.parse(raw) as SaveSlot;
-    if (!slot?.state || slot.state.version !== SAVE_VERSION) return null;
+    if (!slot?.state || !loadable(slot.state.version)) return null;
     return slot;
   } catch {
     return null;
@@ -97,15 +111,11 @@ export function loadGame(slot = 1): GameState | null {
   return found ? migrate(found.state) : null;
 }
 
-/** The slot last written, which is what Continue on the title screen should resume. */
-export function mostRecentSlot(): number | null {
-  const slots = listSlots().filter((x): x is SlotInfo => x !== null);
-  if (slots.length === 0) return null;
-  return slots.reduce((a, b) => (b.savedAt > a.savedAt ? b : a)).slot;
-}
-
-export function hasSave(): boolean {
-  return mostRecentSlot() !== null;
+/** The lowest-numbered slot holding nothing, for a century that arrived without one. */
+export function firstEmptySlot(): number | null {
+  const slots = listSlots();
+  const at = slots.findIndex((x) => x === null);
+  return at < 0 ? null : at + 1;
 }
 
 export function clearSave(slot?: number): void {
@@ -136,6 +146,28 @@ function migrate(s: GameState): GameState {
   for (const id of Object.keys(fresh.actors)) {
     if (!s.actors[id]) s.actors[id] = fresh.actors[id]!;
   }
+  /*
+   * The other three keyed collections, which this function used to skip.
+   *
+   * Nothing had ever been added to them, so the gap had never fired — but the failure modes are
+   * the worst in the file. A save written before a ninth school existed has no `families` entry
+   * for it, and the first thing the tick reads is `.matured` off `undefined`: every century in
+   * the world dies on the next turn. A missing resource or patron is quieter and worse. It does
+   * not throw; it evaluates to `NaN`, and a `NaN` exposure poisons the credibility target, which
+   * poisons every patron target, and the run goes on looking playable while meaning nothing.
+   *
+   * Seeded from a fresh century rather than from zero, so a school added mid-run starts where it
+   * would have started, with its share of the talent pool rather than none of it.
+   */
+  for (const f of FAMILY_IDS) {
+    if (!s.families[f]) s.families[f] = fresh.families[f];
+  }
+  for (const p of PATRON_IDS) {
+    if (typeof s.patrons[p] !== 'number') s.patrons[p] = fresh.patrons[p];
+  }
+  for (const k of RESOURCE_KEYS) {
+    if (typeof s.resources[k] !== 'number') s.resources[k] = fresh.resources[k];
+  }
   if (typeof s.promises !== 'number') s.promises = 0;
   /*
    * The balance chart and the decision tree arrived after people had already started centuries.
@@ -156,6 +188,15 @@ function migrate(s: GameState): GameState {
   if (s.termStart && (s.termStart.turn !== s.turn || !s.termStart.state?.resources)) {
     delete s.termStart;
   }
+  /*
+   * The scene plan belongs to one turn, exactly like the term-start snapshot: a plan left over
+   * from a turn already ticked past would replay that turn's scenes into this one.
+   */
+  if (s.scenePlan && (s.scenePlan.turn !== s.turn || !Array.isArray(s.scenePlan.ids))) {
+    delete s.scenePlan;
+  }
+  // Carried forward: from here on this century is one of ours, whatever wrote it.
+  s.version = SAVE_VERSION;
   return s;
 }
 
@@ -176,7 +217,7 @@ export function importSave(code: string): GameState | null {
   try {
     const json = decodeURIComponent(escape(atob(code.trim())));
     const s = JSON.parse(json) as GameState;
-    if (!s || typeof s.year !== 'number' || s.version !== SAVE_VERSION) return null;
+    if (!s || typeof s.year !== 'number' || !loadable(s.version)) return null;
     return migrate(s);
   } catch {
     return null;

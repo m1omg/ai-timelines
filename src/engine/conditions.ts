@@ -189,11 +189,25 @@ export const leadFamily = (family: FamilyId): Condition => ({ kind: 'leadFamily'
  * A school is *dominant* rather than merely top when it is this far clear of second place.
  *
  * One number, used by every scene that wants to say "somebody has won" or "nobody has", so the
- * game cannot tell a player both things in the same decade.
+ * game cannot tell a player both things in the same decade. Measured mid-century, about one run
+ * in ten is under it.
  */
 export const DOMINANT_MARGIN = 0.07;
-export const dominant = (family: FamilyId): Condition =>
-  all(leadFamily(family), { kind: 'leadMargin', op: '>=', value: DOMINANT_MARGIN });
+
+/**
+ * The same question asked at the close, where it means something different and wants a smaller
+ * number: not "is one school clearly ahead in the room" but "did the century settle on one".
+ *
+ * A lead of four points in 2006 is an argument still running; the same lead in 2050 is how the
+ * hundred years came out, because there is no more time in which to lose it. Measured at the
+ * close, a tenth of runs are under this and a third are under `DOMINANT_MARGIN` — so gating the
+ * school endings on the mid-century number handed a sixth of all centuries to "no school won"
+ * while their players watched a school plainly ahead on the chart above it.
+ */
+export const SETTLED_MARGIN = 0.02;
+
+export const dominant = (family: FamilyId, margin = DOMINANT_MARGIN): Condition =>
+  all(leadFamily(family), { kind: 'leadMargin', op: '>=', value: margin });
 /** True when the field is genuinely contested: nobody is clear of second place. */
 export const contested: Condition = { kind: 'leadMargin', op: '<', value: DOMINANT_MARGIN };
 /** Outstanding excitement the field has not yet delivered against. */

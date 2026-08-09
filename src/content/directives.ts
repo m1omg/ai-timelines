@@ -38,11 +38,22 @@ export const AUTHORED_DIRECTIVES: Directive[] = [
     id: 'broker',
     name: 'Broker a collaboration',
     blurb:
-      'Put two schools in a room and refuse to let either leave. Nothing is proved; a vocabulary is shared.',
+      'Put two schools in a room and refuse to let either leave. Nothing is proved; a vocabulary is shared. Worth what the thinner side brings.',
     cost: 6,
     category: 'field',
+    /*
+     * The insight is `joinery`, not a flat payment, and that is the whole point of the card.
+     *
+     * A fixed +9 every term was twenty-five terms of free standing: a century could hold the
+     * field as the bridge school having matured two of its own fourteen nodes, which is the
+     * exact opposite of the argument this school exists to make. What a broker is worth is what
+     * the two schools bring, and if neither has anything, a joint workshop is what you get.
+     *
+     * The momentum stays flat: fashion is cheap and responds to the gesture rather than to the
+     * substance, which is a distinction this game makes everywhere else.
+     */
     effects: [
-      { kind: 'family', family: 'bridge', field: 'insight', op: 'add', value: 9 },
+      { kind: 'joinery', value: 13 },
       { kind: 'family', family: 'bridge', field: 'momentum', op: 'add', value: 8 },
       { kind: 'resource', key: 'understanding', op: 'add', value: 5 },
       { kind: 'log', text: 'A joint workshop. Two-thirds of the attendees consider it a waste.', logKind: 'choice' },

@@ -5,6 +5,7 @@ import { ENDINGS } from '../../src/content/endings';
 import { PARADIGMS } from '../../src/content/paradigms';
 import { ALL_SCENES, SCENES } from '../../src/content/scenes';
 import { resolveEnding } from '../../src/engine/endings';
+import { evaluate } from '../../src/engine/conditions';
 import { pickScenes } from '../../src/engine/scheduler';
 import { advanceTurn } from '../../src/engine/sim';
 import { TOTAL_TURNS, createState } from '../../src/engine/state';
@@ -88,6 +89,58 @@ describe('endings', () => {
     const fallback = ENDINGS.filter((e) => e.when.kind === 'always');
     expect(fallback).toHaveLength(1);
     expect(fallback[0]!.priority).toBe(0);
+  });
+
+  /*
+   * Seven schools had an ending of their own and the joinery did not, so a bridge-led century
+   * fell through to `the-quiet-century` — an ending about restraint and kept promises, which is
+   * a different century and says nothing about what was built.
+   */
+  it('gives every school a century of its own', () => {
+    for (const f of FAMILY_IDS) {
+      const named = ENDINGS.filter((e) => JSON.stringify(e.when).includes(`"family":"${f}"`));
+      expect(named.length, `no ending is gated on ${f} leading`).toBeGreaterThan(0);
+    }
+  });
+
+  /*
+   * The two takeoffs are the same century split on one question — whether anybody can still get
+   * a reason out of it — so exactly one of them must fire, never both and never neither. They
+   * are gated on `accountable` and its negation for precisely this reason; a run that matched
+   * both, or a takeoff that matched neither, would mean the gate had drifted.
+   */
+  it('never lets a century have both takeoffs, or a takeoff with no ending', () => {
+    const good = ENDINGS.find((e) => e.id === 'legible-takeoff')!;
+    const bad = ENDINGS.find((e) => e.id === 'illegible-takeoff')!;
+    expect(good.priority).toBeGreaterThan(bad.priority);
+
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = createState(seed * 977);
+      for (let i = 0; i < TOTAL_TURNS - 1; i++) advanceTurn(s);
+      const matched = [good, bad].filter((e) => evaluate(e.when, s));
+      expect(matched.length, `seed ${seed} matched ${matched.map((e) => e.id).join(' and ')}`).toBeLessThan(2);
+    }
+  });
+
+  /*
+   * The fallback's own text is "no school won, no dominant lineage identified". Gating the
+   * school endings on a bare argmax meant one of the eight matched in every run, so the century
+   * that had genuinely settled nothing was the one century that could never be told so.
+   */
+  it('reaches the fallback when the century settles nothing', () => {
+    const contestedRun = createState(4);
+    // A field held level by construction: nobody is clear of second place.
+    for (const f of FAMILY_IDS) {
+      contestedRun.families[f].insight = 60;
+      contestedRun.families[f].matured = 4;
+      contestedRun.families[f].momentum = 5;
+      contestedRun.families[f].talent = 1 / FAMILY_IDS.length;
+    }
+    const school = ENDINGS.filter((e) => e.id.endsWith('-century') && e.priority === 60);
+    expect(school.length).toBe(8);
+    for (const e of school) {
+      expect(evaluate(e.when, contestedRun), `${e.id} claims a century nobody won`).toBe(false);
+    }
   });
 });
 

@@ -413,7 +413,7 @@ describe('taking a directive back', () => {
 
   it('makes the card available to buy again once undone', () => {
     const s = createState(62);
-    const d = availableDirectives(s).find((x) => canAfford(s, x) && x.cost > 0 && !x.repeatable)!;
+    const d = availableDirectives(s).find((x) => canAfford(s, x) && x.cost > 0)!;
     const before = cloneState(s);
     takeDirective(s, d);
     expect(availableDirectives(s).some((x) => x.id === d.id)).toBe(false);

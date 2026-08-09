@@ -91,6 +91,8 @@ export function describeEffect(e: Effect): string | null {
     }
     case 'commons':
       return `+${e.value} insight to the field at large, weighted to whichever school has least`;
+    case 'joinery':
+      return `up to +${e.value} bridge insight — as much of it as the thinner of the two schools can carry`;
     case 'promises':
       return e.value <= 0
         ? `talks the field down by ${-e.value} — less owed against delivery`
@@ -122,6 +124,9 @@ export function effectFamily(effects: Effect[] | undefined): FamilyId | undefine
   const seen = new Set<FamilyId>();
   for (const e of effects ?? []) {
     if (e.kind === 'family') seen.add(e.family);
+    // Brokering pays the bridge school by definition, so a card that only brokers is still a
+    // bridge card and belongs under that colour on the board.
+    else if (e.kind === 'joinery') seen.add('bridge');
     else if (e.kind === 'paradigm') {
       const p = PARADIGM_BY_ID[e.id];
       if (p) seen.add(p.family);

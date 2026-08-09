@@ -236,6 +236,11 @@ function checkEffectRefs(
       // silently drain every school at once, which no piece of content should be doing.
       if (e.value < 0) err(`${where}: commons effect must be positive, got ${e.value}`);
       break;
+    case 'joinery':
+      // Same shape: it pays the bridge school in proportion to what it is joining, and a
+      // negative payment would be a collaboration that destroys insight.
+      if (e.value < 0) err(`${where}: joinery effect must be positive, got ${e.value}`);
+      break;
     case 'promises':
       break;
     default:

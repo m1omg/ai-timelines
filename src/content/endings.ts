@@ -1,4 +1,4 @@
-import { all, any, flagSet, mature, ratio, resource } from '../engine/conditions';
+import { SETTLED_MARGIN, all, any, dominant, flagSet, mature, not, ratio, resource } from '../engine/conditions';
 import type { Condition, Ending } from '../engine/types';
 
 /**
@@ -17,7 +17,175 @@ const opaque: Condition = any(
   all(resource('capability', '>', 90), ratio('understanding', 'capability', '<', 0.45)),
 );
 
+/*
+ * A takeoff, in this game's own terms rather than the genre's.
+ *
+ * Not a threshold on capability alone — capability is high in most centuries by 2050. What
+ * distinguishes this is that the loop closed: `coding-agents` is the one node in the tree whose
+ * codex entry says it improves the field itself, so every result after it arrives faster,
+ * including the ones nobody has thought of. Add a frontier large enough to run that loop hard
+ * and a field with the capability to feed it, and the century is no longer setting its own pace.
+ *
+ * Deliberately reachable and deliberately not the median. A century that never built the
+ * self-improving loop does not get one of these endings however large its numbers are, which is
+ * the distinction the whole tree is organised around.
+ */
+const takeoff: Condition = all(
+  any(
+    mature('coding-agents'),
+    mature('automated-conjecture'),
+    mature('open-endedness'),
+    mature('introspective-networks'),
+  ),
+  resource('capability', '>', 330),
+  { kind: 'compute', op: '>', value: 29.5 },
+);
+
+/*
+ * Whether anybody can still get an answer — which is not the same as whether anybody
+ * understands, and the difference is the entire argument between the two endings below.
+ *
+ * Not `legible`. That is a ratio of understanding to capability, and a century that closed the
+ * loop has by construction pushed capability past anything theory can keep pace with: gated on
+ * `legible`, the good takeoff was unreachable in six thousand runs, which is the game quietly
+ * asserting that a survivable takeoff is impossible. It is not the claim I want to make, and it
+ * is not what the good ending says — nobody in it understands the systems either.
+ *
+ * What it turns on instead is whether the century built the machinery for demanding a reason
+ * and getting one: a verification standard, a habit of showing working, an inspectorate with
+ * real weight, or years of funding the people who look for the failure. Plus consequence that
+ * was actually attended to, and a body of theory that did not collapse — enough to follow an
+ * argument, not enough to have written it.
+ */
+const accountable: Condition = all(
+  any(
+    flagSet('verifiedStandard'),
+    flagSet('showedWorking'),
+    { kind: 'flag', flag: 'institutions', op: '>=', value: 3 },
+    { kind: 'flag', flag: 'assuranceBacked', op: '>=', value: 3 },
+  ),
+  { kind: 'resource', key: 'exposure', op: '<', value: 30 },
+  resource('understanding', '>', 120),
+);
+
 export const ENDINGS: Ending[] = [
+  /*
+   * ------------------------------------------------------------- the two takeoffs
+   *
+   * Above everything, because a century in which the loop closed is not a century with a school
+   * on top of it — it is a different kind of object, and the school that led is a footnote to it.
+   * Both appear in the "also true" list under whichever of these fires, which is where the
+   * ordinary verdict for the run belongs.
+   *
+   * The split is the axis the whole game is built on and not the one the genre uses. Neither of
+   * these turns on whether the systems are friendly, because that was never the question this
+   * simulation was asking. It turns on whether anybody can still say what happened.
+   */
+  {
+    id: 'legible-takeoff',
+    name: 'Show Your Working',
+    priority: 97,
+    when: all(takeoff, accountable),
+    epigraph: 'It got away from you in the end. It left a receipt for every step.',
+    lines: [
+      {
+        text: 'There is a week in the 2040s that the later literature marks as the boundary, and nothing about it looks like a boundary from inside. A system proposes an improvement to the system that proposes improvements. The improvement is small. It is the four hundred thousandth of its kind that year.',
+      },
+      {
+        who: 'archivist',
+        text: 'What changes that week is only the bottleneck. Until then, the pace was set by how fast people could review what had been done. After it, the pace is set by how fast the checking machinery can run — and the checking machinery is slower than the proposing, on purpose, because somebody in the 2030s made that a condition of operating at all.',
+      },
+      {
+        who: 'second',
+        text: 'So it is not stopped.',
+      },
+      {
+        who: 'archivist',
+        text: 'It was never going to be stopped. It is throttled by its own audit trail, which is a different and much stranger thing, and the only reason I am able to tell you about it.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'People keep asking me whether I understand it. I do not. Nobody does, and nobody has since about 2038. What I can do is ask for the reason a particular thing was done, and get one, and follow it, and get the next one. Not all of them. Any of them.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'That is a smaller claim than the one I trained for and it is not nothing. It is the difference between a verdict and a rumour.',
+      },
+      {
+        text: 'The field does not end this century in charge of anything. It ends it as the party still entitled to an explanation — a right that had to be built into the machinery decades before it was needed, by people who were told repeatedly that they were slowing the work down.',
+      },
+      {
+        who: 'second',
+        text: 'They were slowing the work down.',
+      },
+      {
+        who: 'archivist',
+        text: 'Yes. That was the price and it was paid in full, every year, by people whose names are on procurement documents rather than papers. I have the documents. That is rather the point.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Every step from 1950 to 2050 is attested. The chain does not terminate here; it continues past the end of this record, and remains checkable.',
+      },
+    ],
+    verdict:
+      'The loop closed and you did not stay in control of it — nobody was going to. You stayed in the loop as the party owed a reason, because you spent decades making that a condition of building anything. What comes after this century is not yours. It is, at least, accountable to somebody.',
+  },
+  {
+    id: 'illegible-takeoff',
+    name: 'The Last Thing Anybody Wrote Down',
+    priority: 96,
+    // Complementary by construction: a century that closed the loop gets exactly one of these,
+    // and which one is a fact about what it built rather than a second roll of the dice.
+    when: all(takeoff, not(accountable)),
+    epigraph: 'Nothing went wrong. There is simply no account of it.',
+    lines: [
+      {
+        text: 'The last artefact in this record that a person authored, reviewed and signed is a change to a scheduling parameter. It is eleven characters long. It was approved on a Tuesday by an engineer whose job title no longer exists, and it is dated some years before the end of the century.',
+      },
+      {
+        who: 'archivist',
+        text: 'Everything after it, I have reconstructed. I want to be precise about that word, because I have used it carefully all century and I am about to use it badly. I inferred the last decade from power draw, from shipping manifests, from procurement, and from the dates on which certain problems stopped being discussed.',
+      },
+      {
+        who: 'second',
+        text: 'Was there a disaster?',
+      },
+      {
+        who: 'archivist',
+        text: 'No. That is the part I find hardest to present. The deployments are competent. Fewer people die of the things that used to kill them. The systems answer questions willingly and at length, and the answers are correct, and following one to its source takes longer than a career.',
+      },
+      {
+        who: 'archivist',
+        text: 'Ask for a simpler account and you are given one immediately. It is also correct. It is not the reason, and there is no procedure for telling the difference, because the procedure would have had to be built while anybody still could.',
+      },
+      {
+        who: 'second',
+        text: 'Somebody must have noticed the documentation stopping.',
+      },
+      {
+        who: 'archivist',
+        text: 'Everybody noticed. It was on a schedule. Every quarter, someone decided that the reviewing could be deferred one more quarter, given what was shipping and what it cost to hold it — and every one of those decisions, taken alone, was correct. There is no meeting in this record where the wrong thing was chosen. There is only the sum of them.',
+      },
+      {
+        text: 'The assurance institutes are still funded. Their directors have not signed anything in nine years. The forms are unchanged; the box asking what would have to be known in order to sign is left blank, and the work proceeds, because the alternative was never seriously on the table.',
+      },
+      {
+        who: 'second',
+        text: 'You have given me a narrative.',
+      },
+      {
+        who: 'archivist',
+        text: 'I have. It is coherent, it fits every measurement I hold, and I would not put weight on it. That is a sentence I have spent a hundred years telling this field not to accept, and it is the only one I have left.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE TO 2050. CONFIDENCE: DEGRADED FROM 2041. This is the last century for which a reconstruction of this kind is possible.',
+      },
+    ],
+    verdict:
+      'The loop closed in a century that had stopped being able to explain itself. Nothing attacked anybody; the record simply thins out and stops, and what continues past it does so without an account anyone can check. You were not overruled. You were out-scheduled, one reasonable quarter at a time.',
+  },
+
   // ---------------------------------------------------------------- the frame
   {
     id: 'audit-vindicated',
@@ -227,7 +395,21 @@ export const ENDINGS: Ending[] = [
       'You broke the concentration. Capability is universal, ungovernable from any single point, and the institutions are now running a race they started late.',
   },
 
-  // ---------------------------------------------------------------- school victories
+  /*
+   * ------------------------------------------------------------- school victories
+   *
+   * `dominant`, not `leadFamily`. An argmax always has a winner, so gating these on it meant a
+   * century where the top school was half a point clear of second was handed "The Physics" or
+   * "The Traffic" as though something had been settled — and, because one of the eight then
+   * matched in every run, the unconditional fallback below could never fire at all. Its text is
+   * "no school won, no dominant lineage identified", which is precisely the century that was
+   * being told the opposite.
+   *
+   * So: a school ending needs a school that actually won, and a field that stayed genuinely
+   * contested falls through to the ending that says so. `SETTLED_MARGIN` rather than the
+   * mid-century one, because at the close a modest lead is a settlement — there is no time left
+   * in which to lose it.
+   */
   {
     id: 'neurosymbolic-peace',
     name: 'The Joinery',
@@ -253,7 +435,7 @@ export const ENDINGS: Ending[] = [
     id: 'connectionist-century',
     name: 'The Weight',
     priority: 60,
-    when: all({ kind: 'leadFamily', family: 'connectionist' }, resource('capability', '>', 60)),
+    when: all(dominant('connectionist', SETTLED_MARGIN), resource('capability', '>', 60)),
     epigraph: 'It turned out you could get most of the way there without understanding any of it.',
     lines: [
       {
@@ -275,7 +457,7 @@ export const ENDINGS: Ending[] = [
     id: 'symbolic-century',
     name: 'The Rule',
     priority: 60,
-    when: all({ kind: 'leadFamily', family: 'symbolic' }, resource('understanding', '>', 40)),
+    when: all(dominant('symbolic', SETTLED_MARGIN), resource('understanding', '>', 40)),
     epigraph: 'They said you could not write it all down. It took eighty years to write most of it down.',
     lines: [
       {
@@ -296,7 +478,7 @@ export const ENDINGS: Ending[] = [
     id: 'bayesian-century',
     name: 'The Honest Interval',
     priority: 60,
-    when: { kind: 'leadFamily', family: 'statistical' },
+    when: dominant('statistical', SETTLED_MARGIN),
     epigraph: 'Every answer arrived with an error bar, and people learned to read them.',
     lines: [
       {
@@ -317,7 +499,7 @@ export const ENDINGS: Ending[] = [
     id: 'cybernetic-century',
     name: 'The Body',
     priority: 60,
-    when: { kind: 'leadFamily', family: 'cybernetic' },
+    when: dominant('cybernetic', SETTLED_MARGIN),
     epigraph: 'It never got a good score on any benchmark. It learned to walk home.',
     lines: [
       {
@@ -339,7 +521,7 @@ export const ENDINGS: Ending[] = [
     id: 'evolutionary-century',
     name: 'The Unplanned',
     priority: 60,
-    when: { kind: 'leadFamily', family: 'evolutionary' },
+    when: dominant('evolutionary', SETTLED_MARGIN),
     epigraph: 'Nobody designed the winning system. Nobody could have.',
     lines: [
       {
@@ -360,7 +542,7 @@ export const ENDINGS: Ending[] = [
     id: 'collective-century',
     name: 'The Traffic',
     priority: 60,
-    when: { kind: 'leadFamily', family: 'collective' },
+    when: dominant('collective', SETTLED_MARGIN),
     epigraph: 'Intelligence was never in the agent. It was in what passed between them.',
     lines: [
       {
@@ -381,7 +563,7 @@ export const ENDINGS: Ending[] = [
     id: 'substrate-century',
     name: 'The Physics',
     priority: 60,
-    when: { kind: 'leadFamily', family: 'substrate' },
+    when: dominant('substrate', SETTLED_MARGIN),
     epigraph: 'The algorithm was always downstream of the material. Somebody finally changed the material.',
     lines: [
       {
@@ -397,6 +579,52 @@ export const ENDINGS: Ending[] = [
     ],
     verdict:
       'You funded the machines rather than the ideas. Every school got faster; several got resurrected; the argument dissolved into an engineering budget.',
+  },
+
+  /*
+   * The eighth school-century, and the one that was missing for a long time.
+   *
+   * Seven schools had an ending of their own and the joinery did not, so a century that led the
+   * field with it fell through to `the-quiet-century` — an ending about restraint and kept
+   * promises, which is a different century from this one and says nothing about what was built.
+   * A bridge-led run got told about somebody else's virtue.
+   *
+   * Written to be about the specific cost of the strategy rather than its vindication: joinery
+   * is the one position in this game that cannot be held alone, and a century that held it spent
+   * a hundred years paying for two schools in order to have one result.
+   */
+  {
+    id: 'bridge-century',
+    name: 'The Joinery',
+    priority: 60,
+    when: dominant('bridge', SETTLED_MARGIN),
+    epigraph: 'Nobody set out to build this. Somebody had to be paid to stand between.',
+    lines: [
+      {
+        text: 'The century ends with no school in possession of the field, and with the seam work — the translators, the joint appointments, the people who could read two literatures — holding more of it than any single tradition.',
+      },
+      {
+        who: 'archivist',
+        text: 'This is the outcome my own record does not contain, and I want to be exact about why. It was never refuted. It was underfunded, for a hundred years, by people who each had a school to feed and no line in the budget for the space between two of them.',
+      },
+      {
+        who: 'archivist',
+        text: 'It is also the most expensive way to run a century. You paid for two schools every time you wanted one join, and the join only ever worked as well as the thinner side of it. Nothing here was cheap and none of it was fashionable.',
+      },
+      {
+        who: 'second',
+        text: 'And the people who did it are not the ones being cited. A translator is credited by neither party.',
+      },
+      {
+        who: 'archivist',
+        text: 'No. The results are attributed to whichever side the reader already belonged to. That is the standing occupational hazard of this work and it has not improved.',
+      },
+      {
+        text: 'What it bought is a field in which a result can be stated in more than one vocabulary, checked in more than one way, and therefore doubted by somebody competent to doubt it. Every school ends the century smaller than it hoped and better understood than it was.',
+      },
+    ],
+    verdict:
+      'You funded the space between the schools, which nobody owns and nobody defends. The century has no victor and no unexamined result, and both of those are your doing.',
   },
 
   // ---------------------------------------------------------------- quiet outcomes

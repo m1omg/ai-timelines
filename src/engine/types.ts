@@ -271,6 +271,17 @@ export interface GameState {
    * this existed loads and plays; its current term simply cannot be taken back.
    */
   termStart?: { turn: number; state: GameState };
+  /**
+   * The scenes this turn drew, recorded so that resuming a save taken part-way through them
+   * continues the turn rather than dealing a fresh hand.
+   *
+   * Without it, reloading mid-scene called `pickScenes` again, which filters on `seenScenes` —
+   * so the scenes already played were skipped and *new* ones came up in their place. Save and
+   * reload in the same turn enough times and a four-year term could be made to yield a dozen
+   * scenes instead of three, which is a way of reading content the scheduler is supposed to
+   * ration. Optional: a century saved without one simply draws its hand as it always did.
+   */
+  scenePlan?: { turn: number; ids: string[] };
 }
 
 /** A reading of where the field stood at the end of one turn. */
@@ -381,6 +392,20 @@ export type Effect =
    * momentum → talent → maturity → momentum loop that otherwise makes a lead self-reinforcing.
    */
   | { kind: 'commons'; value: number }
+  /**
+   * Insight paid to the bridge school for brokering, scaled by the *thinner* of the two banks
+   * it is joining — the second-strongest school in the field.
+   *
+   * A flat payment made brokering free money. "Broker a collaboration" is takeable every term,
+   * and it paid a fixed +9 insight whether or not either school in the room had anything to
+   * bring: twenty-five terms of it was most of a bridge century's entire standing, earned
+   * without maturing a single node. That is the exact opposite of what the school is about.
+   *
+   * The sim already states the rule in `ALLY_INSIGHT` — a join is only as good as its thinnest
+   * side — and this is the same rule where the player can feel it. Putting two empty rooms
+   * together is a workshop, not a bridge.
+   */
+  | { kind: 'joinery'; value: number }
   /**
    * Outstanding excitement not yet backed by delivery — the quantity the winter rule reads.
    * Content can only ever have moved it indirectly, by generating hype; this lets something
@@ -549,8 +574,6 @@ export interface Directive {
   cost: number;
   when?: Condition;
   effects: Effect[];
-  /** Repeatable within a single turn. Default false. */
-  repeatable?: boolean;
   /**
    * Taking this ends the term immediately. Such a directive is only offered while nothing else
    * has been taken, so it stays a real commitment rather than a free bonus on top of a full

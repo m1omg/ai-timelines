@@ -183,6 +183,9 @@ export function cloneState(s: GameState): GameState {
      * save can never contain a chain of them.
      */
     termStart: s.termStart,
+    // Copied, not shared: an undo snapshot restores the hand the turn was dealt, and a shared
+    // array would let a later turn's plan reach back into it.
+    scenePlan: s.scenePlan ? { turn: s.scenePlan.turn, ids: s.scenePlan.ids.slice() } : undefined,
   };
 }
 

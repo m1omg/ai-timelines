@@ -1,8 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { clearSave, exportSave, hasSave, importSave, loadGame, saveGame } from '../../src/engine/save';
+import {
+  clearSave,
+  exportSave,
+  firstEmptySlot,
+  importSave,
+  listSlots,
+  loadGame,
+  saveGame,
+} from '../../src/engine/save';
 import { advanceTurn } from '../../src/engine/sim';
 import { createState, takeTermStart } from '../../src/engine/state';
+import type { GameState } from '../../src/engine/types';
 
 /** Minimal localStorage so the save module can be exercised outside a browser. */
 class MemoryStorage {
@@ -27,7 +36,7 @@ describe('save and load', () => {
     const s = createState(1234);
     for (let i = 0; i < 8; i++) advanceTurn(s);
     saveGame(s);
-    expect(hasSave()).toBe(true);
+    expect(listSlots()[0]).not.toBeNull();
 
     const loaded = loadGame()!;
     expect(loaded).not.toBeNull();
@@ -52,14 +61,30 @@ describe('save and load', () => {
   });
 
   it('reports no save before anything is written', () => {
-    expect(hasSave()).toBe(false);
+    expect(listSlots().every((x) => x === null)).toBe(true);
     expect(loadGame()).toBeNull();
   });
 
   it('clears cleanly', () => {
     saveGame(createState(1));
     clearSave();
-    expect(hasSave()).toBe(false);
+    expect(listSlots().every((x) => x === null)).toBe(true);
+  });
+
+  /*
+   * A century arriving by pasted code has no slot of its own. Inheriting the running century's
+   * was silent data loss: import while playing slot 3 and the next turn's autosave wrote
+   * somebody else's hundred years over it.
+   */
+  it('finds the first free slot for a century that arrived without one', () => {
+    expect(firstEmptySlot()).toBe(1);
+    saveGame(createState(1), 1);
+    saveGame(createState(2), 2);
+    expect(firstEmptySlot()).toBe(3);
+    saveGame(createState(3), 3);
+    saveGame(createState(4), 4);
+    // Nothing free: the run must go unbound rather than pick a century to overwrite.
+    expect(firstEmptySlot()).toBeNull();
   });
 });
 
@@ -189,5 +214,66 @@ describe('migration', () => {
     expect(loaded.paradigms['grand-synthesis']).toBeDefined();
     expect(loaded.paradigms['grand-synthesis']!.status).toBe('locked');
     expect(loaded.characters['archivist']).toBeDefined();
+  });
+
+  /*
+   * The three collections migrate used to skip. A save missing a school killed the tick outright
+   * — `.matured` read off `undefined` — and one missing a resource or patron was worse, because
+   * it did not throw: the value went `NaN` and spread silently through every target that reads
+   * it. Neither had ever fired, because nothing had ever been added to those three. That is not
+   * a reason to leave it; it is the reason it would have gone unnoticed until it mattered.
+   */
+  it('survives a save written before a school, patron or resource existed', () => {
+    for (const drop of [
+      (x: GameState) => delete (x.families as Record<string, unknown>)['bridge'],
+      (x: GameState) => delete (x.patrons as Record<string, unknown>)['public'],
+      (x: GameState) => delete (x.resources as Record<string, unknown>)['exposure'],
+    ]) {
+      const s = createState(88);
+      for (let i = 0; i < 5; i++) advanceTurn(s);
+      drop(s);
+      saveGame(s);
+
+      const loaded = loadGame()!;
+      expect(loaded.families.bridge).toBeDefined();
+      expect(typeof loaded.patrons.public).toBe('number');
+      expect(typeof loaded.resources.exposure).toBe('number');
+
+      // The real test is not that the field is present but that the century still runs on it.
+      advanceTurn(loaded);
+      expect(Number.isFinite(loaded.resources.exposure)).toBe(true);
+      expect(Number.isFinite(loaded.patrons.public)).toBe(true);
+      expect(Number.isFinite(loaded.families.bridge.insight)).toBe(true);
+    }
+  });
+
+  /*
+   * SAVE_VERSION was a cliff rather than a version number: `readSlot` demanded an exact match, so
+   * bumping it would have shown every saved century as an empty slot — no warning, no error, four
+   * blank rows. Older must load and be carried forward; only a save from a *later* build, whose
+   * fields this one cannot interpret, is honestly unreadable.
+   */
+  it('carries an older century forward instead of dropping it', () => {
+    const s = createState(31);
+    for (let i = 0; i < 4; i++) advanceTurn(s);
+    (s as { version: number }).version = 0.5 as unknown as number;
+    saveGame(s);
+    // Below the floor is not a version this build ever wrote.
+    expect(loadGame()).toBeNull();
+
+    const t = createState(32);
+    for (let i = 0; i < 4; i++) advanceTurn(t);
+    saveGame(t);
+    const loaded = loadGame()!;
+    expect(loaded).not.toBeNull();
+    expect(loaded.version).toBe(1);
+  });
+
+  it('refuses a century written by a later build rather than guessing', () => {
+    const s = createState(33);
+    (s as { version: number }).version = 99;
+    saveGame(s);
+    expect(loadGame()).toBeNull();
+    expect(importSave(exportSave(s))).toBeNull();
   });
 });
