@@ -18,6 +18,142 @@ import type { Scene } from '../../engine/types';
  * these schools shipped, and shipping is not the same as arriving.
  */
 export const MILESTONES: Scene[] = [
+  /*
+   * The one arrival that changes how the field builds everything else.
+   *
+   * Deliberately the largest deployment swing in the game, because it is the only competence
+   * here that compounds into its own production: everything after it is built faster, including
+   * the next thing on this list. It is filed under bridge rather than connectionist because the
+   * node is — what makes one of these work is the model proposing and the symbolic tooling
+   * refusing, and neither school can claim the result on its own.
+   */
+  {
+    id: 'm-coding-agents',
+    act: 'any',
+    years: [2024, 2042],
+    priority: 9,
+    backdrop: 'terminal-room',
+    title: 'The Thing That Builds The Next Thing',
+    when: all(mature('coding-agents'), notMature('automated-conjecture')),
+    lines: [
+      {
+        text: 'A system is given a repository, an issue and a test suite, and told to fix it. It reads the code, writes an edit, runs the tests, reads the failure, and tries again. The share of issues it closes unaided goes from almost none to most of them inside three years.',
+      },
+      {
+        who: 'archivist',
+        text: 'Note where the reliability comes from, because the popular account gets it backwards. The model proposes. What decides is a parser that rejects malformed edits, a type checker that rejects incoherent ones, and a test runner that rejects wrong ones — none of which learned anything, and all of which the symbolic school spent seventy years building while being told it had lost.',
+      },
+      {
+        who: 'archivist',
+        text: 'This is also the first competence in the record that improves the field itself. Every result after this one arrives faster, including the ones nobody has thought of yet. I have no prior century to compare it against and neither does anybody else.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'Your century is the one that could see this coming. Both halves were funded, both were unfashionable at different times, and the join is the whole product.',
+      },
+      {
+        who: 'archivist',
+        when: fam('symbolic', 'insight', '<', 60),
+        text: 'Yours is thinner than it could be. The checking half of this is symbolic work you did not much fund, so what you have proposes beautifully and verifies with whatever tooling somebody else wrote.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Put it into everything. The industry rebuilds itself around it.',
+        hint: 'The largest deployment swing available, and the exposure that comes with it.',
+        effects: [
+          { kind: 'resource', key: 'deployment', op: 'add', value: 30 },
+          { kind: 'resource', key: 'capability', op: 'add', value: 16 },
+          { kind: 'resource', key: 'attention', op: 'add', value: 20 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: 14 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 22 },
+          { kind: 'family', family: 'bridge', field: 'momentum', op: 'add', value: 16 },
+          { kind: 'flag', flag: 'agenticBuild', op: 'set', value: true },
+        ],
+      },
+      {
+        text: 'Deploy it, and require the checking half everywhere it runs.',
+        hint: 'Slower into the world, and the only version whose failures are visible.',
+        cost: 6,
+        effects: [
+          { kind: 'resource', key: 'deployment', op: 'add', value: 22 },
+          { kind: 'resource', key: 'capability', op: 'add', value: 10 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 14 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: -6 },
+          { kind: 'family', family: 'symbolic', field: 'insight', op: 'add', value: 16 },
+          { kind: 'family', family: 'bridge', field: 'insight', op: 'add', value: 12 },
+          { kind: 'flag', flag: 'verifiedStandard', op: 'set', value: true },
+        ],
+      },
+      {
+        text: 'Hold it inside the labs until anyone can say why the proposals are good.',
+        hint: 'You will be overruled by everyone with a product. It still leaves a mark.',
+        effects: [
+          { kind: 'resource', key: 'deployment', op: 'add', value: 8 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 18 },
+          { kind: 'resource', key: 'credibility', op: 'add', value: -8 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: -10 },
+          { kind: 'flag', flag: 'assuranceBacked', op: 'add', value: 1 },
+        ],
+      },
+    ],
+  },
+
+  /*
+   * The symbolic school's own answer to the same question — who else can write the program —
+   * and it is sixty years older. Smaller reach on purpose: it shipped, and shipping is not the
+   * same as arriving. But a century that never built a text system can still get most of the way
+   * here, which is the point of having it.
+   */
+  {
+    id: 'm-controlled-language',
+    act: 'any',
+    years: [1966, 2046],
+    priority: 8,
+    backdrop: 'terminal-room',
+    title: 'Anybody Can Write It Down',
+    when: all(mature('controlled-language'), notMature('coding-agents')),
+    lines: [
+      {
+        text: 'Payroll, inventory, insurance underwriting, tax. Programs written in something that reads like an instruction to a clerk, by people who would not describe themselves as programmers, running the ordinary business of the world.',
+      },
+      {
+        who: 'archivist',
+        text: 'Nobody calls this artificial intelligence and it is the largest deployment of the symbolic hypothesis there has ever been. The restriction is the trick: a grammar small enough for a parser to decide is a grammar too small to say everything, and users spend sixty years trying to say the rest of it anyway.',
+      },
+      {
+        who: 'archivist',
+        when: fam('symbolic', 'insight', '>', 120),
+        text: 'In your century the restriction held longer than it did in mine, because you kept funding the parsing rather than treating it as solved in 1961. That is most of the difference between a notation and a language.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Put it in every office. The rules are readable; that is the product.',
+        effects: [
+          { kind: 'resource', key: 'deployment', op: 'add', value: 20 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 10 },
+          { kind: 'resource', key: 'capability', op: 'add', value: 6 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 16 },
+          { kind: 'family', family: 'symbolic', field: 'momentum', op: 'add', value: 12 },
+        ],
+      },
+      {
+        text: 'Push it further: derive the program from the specification and prove it.',
+        hint: 'The narrow road. Slower, and the only one whose output carries an argument.',
+        cost: 5,
+        effects: [
+          { kind: 'paradigm', id: 'specification-compilers', op: 'progress', value: 26 },
+          { kind: 'resource', key: 'deployment', op: 'add', value: 10 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 18 },
+          { kind: 'family', family: 'symbolic', field: 'insight', op: 'add', value: 18 },
+          { kind: 'flag', flag: 'provedFirst', op: 'set', value: true },
+        ],
+      },
+    ],
+  },
+
   {
     id: 'm-reasoning',
     act: 'any',
