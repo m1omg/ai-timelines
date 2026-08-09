@@ -2,7 +2,7 @@ import { familyColour } from '../art/palette';
 import { FAMILIES } from '../content/paradigms';
 import { describeEffects, effectFamily } from '../engine/describe';
 import { availableDirectives, canAfford, takeDirective } from '../engine/directives';
-import { TOTAL_TURNS, cloneState } from '../engine/state';
+import { START_COMPUTE_LOG, TOTAL_TURNS, cloneState } from '../engine/state';
 import { actTitle } from '../content/act-titles';
 import type { Directive, FamilyId, GameState, PatronId } from '../engine/types';
 import { FAMILY_IDS } from '../engine/types';
@@ -166,6 +166,32 @@ function owedHtml(s: GameState): string {
   </span>`;
 }
 
+/**
+ * The compute frontier: the largest demonstration the hardware of the year can support, in
+ * log10 operations.
+ *
+ * It belongs with the gauges rather than on the patron line because it is the same kind of
+ * fact — something the field has — and because content refers to it directly. The Archivist's
+ * 1990 line asks the player to look at the compute figure at the top of the interface, which
+ * for a long time was not there.
+ *
+ * Not a `GAUGES` entry: those read `s.resources`, and this is `s.computeLog`, a different unit
+ * on a different scale. The bar runs from the 1950 frontier to 10^30, which a substrate-heavy
+ * century passes and an ordinary one does not — it is a sense of pace, not a percentage of
+ * anything.
+ */
+function computeHtml(s: GameState): string {
+  const span = 30 - START_COMPUTE_LOG;
+  const pct = Math.max(0, Math.min(100, ((s.computeLog - START_COMPUTE_LOG) / span) * 100));
+  return `<div class="gauge compute" title="${escapeHtml(
+    'The largest computation anyone can actually run, in operations, as a power of ten. It grows on its own as the hardware improves, faster once industry is paying and a paradigm has shown that scale is worth buying. A paradigm cannot be demonstrated at all until the frontier reaches what it needs.',
+  )}">
+      <b>compute</b>
+      <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <span class="val">10<sup>${s.computeLog.toFixed(1)}</sup></span>
+    </div>`;
+}
+
 export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): void {
   const held = Math.max(0, h.heldInfluence ?? 0);
   const gauges = GAUGES.map((g) => {
@@ -203,7 +229,7 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
       <button data-a="log">Record</button>
       <button data-a="menu">Menu</button>
     </div>
-    <div class="gauges">${gauges}</div>
+    <div class="gauges">${gauges}${computeHtml(s)}</div>
     <div class="patrons" title="Who is currently funding the field. A winter takes all four down at once.">
       <b>funded by</b>
       ${PATRONS.map((p) => {

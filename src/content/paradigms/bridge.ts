@@ -248,6 +248,11 @@ export const BRIDGE: Paradigm[] = [
      * but everything around it — a parser that rejects malformed calls, a type checker, a test
      * runner, a diff algorithm. Without a symbolic tradition to draw on there is nothing for the
      * proposals to be checked against, and the thing is a very fast way to write plausible code.
+     *
+     * 30 is deliberately near the median: symbolic insight in the 2020s runs p10=6, p25=15,
+     * median=35 across 400 measured centuries, so a run that kept the school alive passes and
+     * one that let it die does not. That is the distinction the requirement is for, and it is
+     * meant to bite.
      */
     familyPrereqs: { symbolic: 30 },
     /*

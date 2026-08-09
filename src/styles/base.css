@@ -94,6 +94,9 @@ body::after {
   font-style: normal; color: var(--accent); letter-spacing: 0.04em; margin-left: 3px;
 }
 .gauge .val { font-size: 11px; color: var(--ink); font-variant-numeric: tabular-nums; }
+/* The compute frontier is an exponent, not a count. The superscript is set with an explicit
+   line-height so it cannot stretch the gauge row taller than the seven beside it. */
+.gauge .val sup { font-size: 8.5px; line-height: 0; vertical-align: super; letter-spacing: 0.02em; }
 
 /* Who is paying. A different kind of quantity from the gauges above — not something you hold,
    something that holds you — so it reads as one line rather than four more meters. */
