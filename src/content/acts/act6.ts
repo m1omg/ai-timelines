@@ -635,6 +635,26 @@ export const ACT6: Scene[] = [
         when: leadFamily('evolutionary'),
         text: 'Yours are compute farms, and they are not abandoned so much as still running. Populations left evolving against objectives whose authors retired. Something in there is still getting better at something nobody is measuring.',
       },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'Yours are the largest objects of the kind, and the only ones anybody photographs. Halls sized for a training run that was superseded before the substation was energised, with the transformers already sold on. A century that bet on the curve leaves buildings shaped exactly like the part of the curve it got wrong.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'Yours are the hardest to point at, which does not mean there are none. What your century oversized was collection: instrumentation on everything, against an assumption that more observation would keep buying more certainty. It stopped buying it some years ago and none of it has been switched off.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'Yours is the fab, and it is the most expensive ruin on this list by an order of magnitude. A process node nobody moved to, sized for a demand curve that turned out to be somebody else\'s to draw. Your school has always carried the risk for everyone else\'s confidence, and this is what that looks like from the outside.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'Yours are institutions rather than buildings. Joint centres, shared appointments, standing committees between schools that no longer need brokering because the join held. A successful bridge leaves the same husk as a failed one, and from here I cannot always tell which I am looking at.',
+      },
     ],
     choices: [
       {

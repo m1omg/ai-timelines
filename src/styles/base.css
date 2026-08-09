@@ -400,11 +400,20 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 }
 .pending .lab { color: var(--dim); letter-spacing: 0.14em; text-transform: uppercase; font-size: 10px; }
 .pending .items { display: flex; flex-wrap: wrap; gap: 5px; }
-.pending .items i {
-  font-style: normal; padding: 2px 7px; border-radius: 999px;
+/* Each selection is a chip that drops itself. The board card does the same job for anything
+   shown on the board; this is the only handle on a directive taken from "This opens up", which
+   has no card until the thing that reveals it is applied. */
+.pending .items .drop {
+  font: inherit; font-style: normal; padding: 2px 7px; border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  color: var(--accent);
+  color: var(--accent); background: transparent; cursor: pointer;
+  display: inline-flex; align-items: baseline; gap: 5px;
 }
+.pending .items .drop .x { font-style: normal; color: var(--dim); }
+.pending .items .drop:hover, .pending .items .drop:focus-visible {
+  border-color: var(--warn); color: var(--warn);
+}
+.pending .items .drop:hover .x, .pending .items .drop:focus-visible .x { color: var(--warn); }
 .pending .tot { margin-left: auto; color: var(--ink); font-variant-numeric: tabular-nums; }
 /* What the selection adds up to, and what it would put on the board. Its own line: the cards
    each state their effects, but nobody sums four of them in their head. */
@@ -479,6 +488,10 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 }
 .ledger-row .undo:hover, .ledger-row .undo:focus-visible {
   color: var(--warn); border-color: var(--warn);
+}
+/* Why a century loaded from an older save has no take-back buttons. */
+.ledger-note {
+  color: var(--dim); font-size: 11px; line-height: 1.6; max-width: 62ch; margin: 8px 0 0;
 }
 
 .section-head {

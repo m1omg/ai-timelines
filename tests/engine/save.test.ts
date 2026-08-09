@@ -141,6 +141,40 @@ describe('the term-start snapshot', () => {
     expect(loaded.turn).toBe(s.turn);
     expect(loaded.termStart).toBeUndefined();
   });
+
+  /*
+   * `main.ts` reads exactly this to decide where a loaded century picks up: a snapshot for the
+   * current turn means the save was written on the directive board, and the turn's scenes have
+   * already played. Restarting the turn instead replayed it — a second helping of scenes and a
+   * second board for four years already decided — and worse, it left the snapshot describing a
+   * point *before* those extra scenes, so taking a directive back rolled the century past them
+   * and silently discarded the choices just made.
+   *
+   * The rule only works if the field is a reliable witness to the phase, which is what these
+   * pin down: set on the board, stale by one the moment the tick runs, and never present before
+   * the first board of a century.
+   */
+  it('marks a save written on the board, and only there', () => {
+    const s = createState(26);
+    // A century that has not reached its first board carries no snapshot at all.
+    expect(s.termStart).toBeUndefined();
+
+    s.termStart = takeTermStart(s);
+    expect(s.termStart.turn).toBe(s.turn);
+
+    // Four years pass: the snapshot is now a turn behind, which reads as "during the scenes".
+    advanceTurn(s);
+    expect(s.termStart.turn).not.toBe(s.turn);
+  });
+
+  it('keeps the board marker across a save and load', () => {
+    const s = createState(27);
+    for (let i = 0; i < 4; i++) advanceTurn(s);
+    s.termStart = takeTermStart(s);
+    saveGame(s);
+    const loaded = loadGame()!;
+    expect(loaded.termStart?.turn).toBe(loaded.turn);
+  });
 });
 
 describe('migration', () => {

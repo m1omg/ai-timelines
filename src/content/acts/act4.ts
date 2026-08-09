@@ -1,4 +1,4 @@
-import { all, any, fam, leadFamily, mature, not, notMature } from '../../engine/conditions';
+import { all, any, contested, dominant, fam, mature, not, notMature } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -685,32 +685,69 @@ export const ACT4: Scene[] = [
        * be flatly wrong about the century in front of the player. Reported from play: it told
        * someone nobody had won in a run where connectionism plainly had.
        *
+       * The first fix covered three schools and left the other five reading the contested line,
+       * which is the same bug with a smaller footprint. The reason it kept happening is that
+       * `leadFamily` is an argmax: *somebody* always satisfies it, so "nobody has won" had
+       * nothing to hang on and had to be said unconditionally. `contested` is a margin, so the
+       * two are genuinely exclusive now and every school has its own account of being ahead.
+       *
        * The point of the scene survives either way — the hybrid window is open now and will
        * close — but the reason it is open is different, and worth saying differently.
        */
       {
         who: 'archivist',
-        when: not(any(leadFamily('connectionist'), leadFamily('symbolic'), leadFamily('statistical'))),
+        when: contested,
         text: 'At this moment no school is dominant. The kernel people have the theory, the network people have the momentum, the logicians still have the departments, and the probabilists have Pearl. Nobody has won.',
       },
       {
         who: 'archivist',
-        when: leadFamily('connectionist'),
+        when: dominant('connectionist'),
         text: 'At this moment the network people are winning and everybody in the room knows it. That is precisely why the window is open: a school that is ahead can afford to be curious, and a school that is behind will still take the meeting. Neither of those will be true in ten years.',
       },
       {
         who: 'archivist',
-        when: leadFamily('symbolic'),
+        when: dominant('symbolic'),
         text: 'At this moment the logicians are winning, which is not how it went and does not make them generous. They have the departments and the funding and no particular reason to learn anybody else\u2019s vocabulary — which is exactly the position the network people will be in shortly, and will handle no better.',
       },
       {
         who: 'archivist',
-        when: leadFamily('statistical'),
+        when: dominant('statistical'),
         text: 'At this moment the probabilists are winning, on the strength of having been right about generalisation before anyone could demonstrate it. It is the most defensible lead in the game and the least secure, because a school whose advantage is theory loses it the moment somebody else\u2019s method simply works.',
       },
       {
         who: 'archivist',
+        when: dominant('cybernetic'),
+        text: 'At this moment the control people are winning, which did not happen and changes the shape of this room. A school that learns by acting has no shortage of things to say to the others and no vocabulary any of them share, because it spent forty years filing its results under engineering. The window is open because you are the only party in the building who can translate, and it shuts the moment you stop bothering to.',
+      },
+      {
+        who: 'archivist',
+        when: dominant('evolutionary'),
+        text: 'At this moment the selection people are winning, on results nobody can explain and nobody can argue with. That is an unusual sort of lead: it leaves the other schools curious rather than defensive, because you have advanced no theory for them to be wrong about. Curiosity is exactly what the joinery runs on, and it is the first thing a school loses once it starts believing its own account of itself.',
+      },
+      {
+        who: 'archivist',
+        when: dominant('collective'),
+        text: 'At this moment the many-agents people are winning, which is the one lead in this game that does not feel like one from the inside. Nobody can point at the laboratory that did it. That makes a collaboration easy to begin and very hard to finish, because a bridge needs somebody on each bank with the standing to sign for it.',
+      },
+      {
+        who: 'archivist',
+        when: dominant('substrate'),
+        text: 'At this moment the hardware people are winning, and yours is the only school here that never claimed to know what a mind is. That is why the window is wide: everybody wants what you have and nobody is threatened by what you believe. It is also why it shuts hardest, because a school that sells capacity to all sides has no reason to prefer any of them, and joinery is nothing but a preference.',
+      },
+      {
+        who: 'archivist',
+        when: dominant('bridge'),
+        text: 'At this moment the joinery itself is winning, which I do not often get to say, and I would not have you relax about it. A bridge that is ahead stops being a bridge and becomes a fourth school with its own conferences and its own grievances. What is available now is finishing the joins you have while both banks still recognise the work as theirs.',
+      },
+      {
+        who: 'archivist',
+        when: contested,
         text: 'That is the condition under which people will collaborate. Once one approach is clearly winning, the bridges stop getting built, because the winners have no reason and the losers have no funding.',
+      },
+      {
+        who: 'archivist',
+        when: not(contested),
+        text: 'Which is the harder condition to collaborate under, and not an impossible one — it simply has to be arranged rather than waited for. Left alone, the bridges stop getting built once somebody is clearly winning, because the winners have no reason and the losers have no funding.',
       },
       { who: 'archivist', text: 'You have about a decade.' },
     ],

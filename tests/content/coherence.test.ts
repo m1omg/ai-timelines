@@ -9,6 +9,7 @@ import { pickScenes } from '../../src/engine/scheduler';
 import { advanceTurn } from '../../src/engine/sim';
 import { TOTAL_TURNS, createState } from '../../src/engine/state';
 import { FAMILY_IDS } from '../../src/engine/types';
+import type { Condition, FamilyId } from '../../src/engine/types';
 
 /**
  * These duplicate a few of tools/lint-content.ts's checks on purpose: the linter is a build
@@ -185,5 +186,33 @@ describe('scenes that describe the state of the field', () => {
     const supply = ALL_SCENES.find((s) => s.id === 'm-supply-chain')!;
     const json = JSON.stringify(supply.when);
     expect(json).toContain('exposure');
+  });
+
+  /*
+   * The bug above, generalised. Gating a line on `leadFamily` and covering three schools leaves
+   * the other five reading whatever the ungated line says — which is how a century led by the
+   * substrate school got told that nobody was dominant, twice, four years apart. A scene that
+   * addresses the school holding the field has to be able to address whichever one that is.
+   *
+   * Two or more such lines is the signal that a scene has taken on the per-school pattern; one
+   * on its own is a single aside, not a set with a hole in it.
+   */
+  it('addresses every school, in any scene that addresses the leading one', () => {
+    const leadsNamedIn = (c: Condition | undefined, out = new Set<FamilyId>()): Set<FamilyId> => {
+      if (!c) return out;
+      if (c.kind === 'leadFamily') out.add(c.family);
+      else if (c.kind === 'not') leadsNamedIn(c.c, out);
+      else if (c.kind === 'all' || c.kind === 'any') for (const x of c.cs) leadsNamedIn(x, out);
+      return out;
+    };
+
+    for (const s of ALL_SCENES) {
+      const gated = s.lines.filter((l) => leadsNamedIn(l.when).size > 0);
+      if (gated.length < 2) continue;
+      const covered = new Set<FamilyId>();
+      for (const l of gated) for (const f of leadsNamedIn(l.when)) covered.add(f);
+      const missing = FAMILY_IDS.filter((f) => !covered.has(f));
+      expect(missing, `${s.id} says nothing to a century led by: ${missing.join(', ')}`).toEqual([]);
+    }
   });
 });

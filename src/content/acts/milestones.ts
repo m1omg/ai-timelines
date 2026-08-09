@@ -57,6 +57,41 @@ export const MILESTONES: Scene[] = [
         when: fam('symbolic', 'insight', '<', 60),
         text: 'Yours is thinner than it could be. The checking half of this is symbolic work you did not much fund, so what you have proposes beautifully and verifies with whatever tooling somebody else wrote.',
       },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'Yours is the century that built the proposing half and is now discovering it owns neither half of the product. The model is yours. The parser, the type checker and the test runner are inheritances from a school your century spent thirty years describing as finished.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'Yours is the century that built the half that does the deciding, and it is going to be credited to the other one. Seventy years of parsers and type systems and proof obligations, and the newspapers will report that a machine learned to program. You have been here before; it does not get easier.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'Yours is the century that can say when to stop. The interesting quantity is not whether the edit passes but how confident the thing is that it will, and a calibrated answer to that is worth more per unit of compute than another attempt. Nobody outside your school will describe this as a statistical result.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('evolutionary'),
+        text: 'Yours barely counts as a language model at all. Populations of candidate patches, the test suite as the fitness function, generations until something passes. It is the same loop by a different name, and your school has been running it since 1966 without anybody calling it a breakthrough.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'Yours is not one system fixing an issue, it is a standing population of them holding a repository between them — proposing, reviewing and rejecting each other\'s work without a coordinator. It is faster than mine and nobody involved can say why a given line is in the codebase.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'Yours is the only version of this that treats the test suite as an environment rather than an oracle. It learned the repository the way it would learn a room: by acting in it, failing cheaply, and keeping what the failure taught. Slower to start and it does not need to be told what a good edit looks like.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'Yours arrived because the loop got cheap, and I would not let anybody tell you otherwise. Propose, check, read the failure, try again — the shape of it was obvious for decades and worthless until a hundred attempts cost less than one engineer-hour. That was your century\'s doing and it will be filed under somebody else\'s.',
+      },
     ],
     choices: [
       {
@@ -503,6 +538,26 @@ export const MILESTONES: Scene[] = [
       },
       {
         who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'The interesting part is not the proof, it is the search that found it. A posterior over which lemmas were worth trying, updated against every failed attempt, so the machine spent its time where the probability mass was. Your school has been saying since Bayes that this is what thinking under uncertainty is, and a proof search is the one place the claim can be checked exactly.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'There is no author, and not in the modest sense. Several hundred agents worked fragments of it, traded partial results on an open board, and the assembled argument is checkable while no participant can reconstruct it. The journals spend longer deciding whose name goes on it than the machines spent proving it.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'It was not searched for so much as walked into. A prover with a policy trained on its own failures, rewarded for closing goals, which after several million attempts has preferences about which lemma to reach for that no one taught it and no one can write down. It is a mathematician\'s intuition arrived at by the only route your school ever trusted.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'Nothing about the method is new. The search is the one from 1965, the tactics are the ones from 1985, and what changed is that a run costing four hundred years of processor time now finishes overnight. Your century settled a sixty-year question by making an old idea cheap enough to finish, which is the least romantic way anything in this record has ever happened.',
+      },
+      {
+        who: 'archivist',
         text: 'What it changes is not mathematics. Mathematicians have been using machines since the four colour theorem. What it changes is who is permitted to have the idea, and there is no version of that question with a comfortable answer.',
       },
     ],
@@ -567,6 +622,26 @@ export const MILESTONES: Scene[] = [
         who: 'archivist',
         when: leadFamily('cybernetic'),
         text: 'The loop is the result: propose, synthesise, assay, update, overnight, without a person in the cycle. No single step is clever. What is new is that nobody has to wait for a meeting.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'The target came out of a knowledge base — pathways, interactions and forty years of curated literature, reasoned over until a contradiction fell out that nobody had noticed. Every step of the argument can be printed and shown to a regulator, which is the one thing this school has that the others are about to start wanting very badly.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'The programme has no sponsor. A standing market in assay results, open to anybody with a plate reader, and the compound is what accumulated where the payouts pointed. It works, and there is no single organisation to hold responsible for it, which the regulator has spent nine months not knowing what to do about.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'The molecular dynamics were run at a scale that was simply not purchasable before your century. No new idea about biology and no new idea about search: the same free-energy calculations people have been running since the eighties, over a candidate space large enough that the answer was in it.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'The proposal came from a model and the case for it from a mechanistic simulation nobody trained, and the trial happened because the second could give a reason the first could not. That is the joinery doing exactly what it claims, in the one domain where a wrong answer is measured in people.',
       },
       {
         who: 'archivist',
@@ -642,6 +717,36 @@ export const MILESTONES: Scene[] = [
         who: 'archivist',
         when: leadFamily('substrate'),
         text: 'In your century the compromise is in silicon, which cannot be patched. Recall is the only remedy and nobody is going to recall a hundred million devices over a fault that has not visibly done anything yet.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'In your century it is a rule base, signed by nobody, that eleven thousand deployments load at start-up. The payload is a rule. It is readable, it is auditable, and the fact that anybody could have read it is exactly why nobody did.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'In your century the artefact is weights, which is the worst case available: nobody can read them, nobody can diff them, and a poisoned set behaves correctly on every test anybody thought to write. The only honest description of the remedy is retraining from scratch, and nobody will pay for it.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'In your century the compromise is in the data rather than the code, which your school is better equipped to notice than anybody and noticed anyway six months late. A poisoned corpus does not fail. It shifts an estimate a little, in a direction somebody chose, and every downstream number remains perfectly well-formed.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('evolutionary'),
+        text: 'In your century the payload was not written, it was bred: variants selected against the scanner until something got through. Nobody authored the evasion and nobody can say which generation acquired it, which makes the forensics a phylogeny and the prosecution impossible.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'In your century it is in things that move. The compromised artefact is a controller, the permissions are actuators, and the reason this has not yet been a headline is that the payload has so far only been listening.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'In your century it is caught, and I want to be precise about why, because it is the only good news on this page. The checking half of your work refused the artefact on a malformed field before anything evaluated it. Nobody funded that as security. It was funded as joinery, and it happened to be load-bearing.',
       },
       {
         who: 'second',

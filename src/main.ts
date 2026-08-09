@@ -153,6 +153,33 @@ function adoptLoadedState(loaded: GameState, close: () => void): void {
   close();
   applyEra(state.act);
   refreshTopbar();
+  void resume();
+}
+
+/**
+ * Pick up a loaded century where it was actually left, rather than at the top of its turn.
+ *
+ * Both saves land mid-term — the autosave fires once the term's directives are applied and
+ * before the four years pass, and a manual save can be taken anywhere on the board — so
+ * restarting the turn was wrong twice over. It replayed the turn: `pickScenes` skips what has
+ * been seen, so a loaded century got a second helping of scenes and a second directive phase
+ * for four years that had already been decided. And it invalidated the undo point, because the
+ * term-start snapshot describes the board as it opened, which is *before* those extra scenes —
+ * so taking a directive back rolled the century past them and silently discarded the choices
+ * the player had just made.
+ *
+ * `termStart.turn === turn` is exactly the test for "this save was written on the board": the
+ * snapshot is taken when the directive phase opens and is stale by one turn from the moment the
+ * tick runs. Nothing new is stored to know this, so a century saved by any earlier build reads
+ * the same way it always did.
+ */
+function resume(): void {
+  if (state.termStart?.turn === state.turn) {
+    refreshCharacters();
+    refreshTopbar();
+    directivePhase();
+    return;
+  }
   void beginTurn();
 }
 
@@ -354,7 +381,7 @@ function start(seed: number, existing?: GameState): void {
   applyEra(state.act);
   buildShell();
   if (existing) {
-    void beginTurn();
+    resume();
   } else {
     void openingSequence();
   }
@@ -493,7 +520,9 @@ function undoTaken(id: string): void {
 
 function directivePhase(): void {
   // Once per term, and kept if this term already has one: a loaded save re-enters this phase,
-  // and re-capturing here would snapshot the very spending the player wants to undo.
+  // and re-capturing here would snapshot the very spending the player wants to undo. `resume`
+  // depends on that too — it reads the same field to tell a save taken on the board from one
+  // taken during the turn's scenes.
   if (state.termStart?.turn !== state.turn) state.termStart = takeTermStart(state);
 
   stageEl.innerHTML = '';

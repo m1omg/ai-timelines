@@ -404,8 +404,9 @@ export function renderDirectives(
     const taken = takenThisTerm();
     /*
      * A directive already applied can still be taken back, so long as the century carries the
-     * snapshot of how this term opened. Without one — a save from before the snapshot existed —
-     * the rows stay plain text rather than offering a button that would do nothing.
+     * snapshot of how this term opened. Without one — a save written before the snapshot
+     * existed — the rows stay plain text, and the board says why: a missing button with no
+     * explanation is indistinguishable from a broken one, and this was read as exactly that.
      */
     const undoable = Boolean(onUndoTaken) && s.termStart?.turn === s.turn;
     const ledger = taken.length
@@ -425,7 +426,14 @@ export function renderDirectives(
                }
              </div>`,
            )
-           .join('')}</div>`
+           .join('')}</div>
+         ${
+           undoable
+             ? ''
+             : `<p class="ledger-note">These were applied before this century was last saved, by a
+                build that did not record how the term opened — so there is nothing to replay them
+                against and they cannot be taken back. Anything decided from here on can be.</p>`
+         }`
       : '';
 
     /*
@@ -553,6 +561,20 @@ export function renderDirectives(
         btn.addEventListener('click', () => {
           const id = btn.dataset.add!;
           if (!selected.includes(id)) selected = [...selected, id];
+          sfxSelect();
+          syncSelection();
+        }),
+      );
+      /*
+       * Every selection is droppable from the strip, and one kind is droppable *only* from the
+       * strip: a directive taken from "This opens up" is not on the board — it does not exist
+       * until the card that reveals it is applied — so there was no card to tap a second time.
+       * It sat in the selection holding its cost on the gauge with no way to change your mind
+       * about it short of dropping whatever had revealed it.
+       */
+      root.querySelectorAll<HTMLButtonElement>('[data-drop]').forEach((btn) =>
+        btn.addEventListener('click', () => {
+          selected = selected.filter((id) => id !== btn.dataset.drop);
           sfxSelect();
           syncSelection();
         }),
@@ -715,7 +737,12 @@ export function renderDirectives(
         ? `<div class="pending">
              <span class="lab">Selected</span>
              <span class="items">${chosen
-               .map((d) => `<i>${escapeHtml(d.name)}${d.cost ? ` · ${d.cost}` : ''}</i>`)
+               .map(
+                 (d) =>
+                   `<button class="drop" data-drop="${escapeHtml(d.id)}" title="${escapeHtml(
+                     `Drop “${d.name}”. Nothing has been spent yet; the influence goes straight back.`,
+                   )}">${escapeHtml(d.name)}${d.cost ? ` · ${d.cost}` : ''}<i class="x">×</i></button>`,
+               )
                .join('')}</span>
              <span class="tot">${committed(all)} of ${spendableInfluence(s)} influence</span>
              ${

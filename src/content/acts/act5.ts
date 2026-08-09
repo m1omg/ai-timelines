@@ -551,6 +551,41 @@ export const ACT5: Scene[] = [
         when: leadFamily('collective'),
         text: 'They are arguing about the right way to build one system and you built the traffic between many, which changes the shape of the claim and not its force. Your traffic runs on the same cheap computation, and it became cheap for the same reasons, on somebody else\'s schedule.',
       },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'Your century is the one he is describing, and being on the winning side of this argument is the worst position from which to hear it. He is not telling you that you were clever. He is telling you that the cleverness was never the active ingredient, which means none of it is owed to you and none of it is safe.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'And the other man is not your opponent here. He is asking what happens when the geometric part stops, and a school whose whole account of itself is that scale settles arguments has no second answer ready. You are the century with the most to lose from him being right.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'Your century holds the strange middle of this. You were right early, in writing, about generalisation — and then the leverage arrived and proved you right in a way that made the proof unnecessary. Being vindicated by a method that did not need your argument is its own kind of defeat, and this school has had a hundred years of practice at it.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'You are the only party in the room he is not talking about, because you are what he is talking about. The leverage he calls a lesson is a thing your school built, on a schedule nobody in this argument set, and both of them are describing the weather you made.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'Which is not a licence to be smug. Neither of them is asking who supplied the compute, and that is exactly the position your school has occupied all century: indispensable, uncredited, and absent from the argument about what any of it meant.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'Your century is the one that refused to have this argument, and I want to be careful about how much credit that earns. You did not resolve it. You funded both sides until the question of which was right stopped being the interesting one, which is a real achievement and is not the same as an answer.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'Both of them would say you dodged it. Both of them are entitled to. And in eighty years of this record it is the only time the two positions have been held together long enough to find out what they are worth together, so I will let them.',
+      },
     ],
     choices: [
       {

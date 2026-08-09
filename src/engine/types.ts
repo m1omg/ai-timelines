@@ -337,6 +337,17 @@ export type Condition =
   | { kind: 'paradigm'; id: string; status?: ParadigmStatus | ParadigmStatus[]; minProgress?: number }
   | { kind: 'family'; family: FamilyId; field: keyof FamilyState; op: CmpOp; value: number }
   | { kind: 'leadFamily'; family: FamilyId }
+  /**
+   * How far ahead the leading school is, as a share of the whole field: the leader's share of
+   * total standing minus the runner-up's. Zero is a dead heat; a school holding a third of the
+   * field against a second-placed tenth is around 0.23.
+   *
+   * `leadFamily` alone cannot express this. It is an argmax, so *some* school always satisfies
+   * it, which makes "nobody has won" unsayable — a scene wanting to assert a contested field had
+   * to say it unconditionally, and then said it in centuries where one school plainly had won.
+   * Dominance is a margin, not a ranking, and this is the quantity that distinguishes them.
+   */
+  | { kind: 'leadMargin'; op: CmpOp; value: number }
   | { kind: 'character'; id: string; field: 'affinity'; op: CmpOp; value: number }
   | { kind: 'characterMet'; id: string }
   | { kind: 'actor'; id: string; field: 'weight' | 'stance'; op: CmpOp; value: number }

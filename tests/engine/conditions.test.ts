@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { all, any, compare, evaluate, mature, not, ratio, resource } from '../../src/engine/conditions';
+import {
+  all,
+  any,
+  compare,
+  contested,
+  dominant,
+  evaluate,
+  leadMargin,
+  mature,
+  not,
+  ratio,
+  resource,
+} from '../../src/engine/conditions';
+import { advanceTurn } from '../../src/engine/sim';
+import { FAMILY_IDS } from '../../src/engine/types';
 import { applyEffect } from '../../src/engine/effects';
 import { createState } from '../../src/engine/state';
 
@@ -105,5 +119,61 @@ describe('paradigm conditions', () => {
   it('returns false for an unknown paradigm rather than throwing', () => {
     const s = createState(1);
     expect(evaluate({ kind: 'paradigm', id: 'does-not-exist', status: 'mature' }, s)).toBe(false);
+  });
+});
+
+/*
+ * A lead is not the same thing as dominance, and until there was a way to say so, content could
+ * not tell the difference: `leadFamily` is an argmax, so *some* school always satisfies it and
+ * "nobody has won" was unsayable. A scene wanting to assert a contested field had to say it
+ * unconditionally — and then said it in centuries where one school plainly had won.
+ */
+describe('how far ahead the leading school is', () => {
+  it('is zero when the schools are level', () => {
+    const s = createState(101);
+    for (const f of FAMILY_IDS) {
+      s.families[f].insight = 10;
+      s.families[f].matured = 1;
+      s.families[f].momentum = 0;
+    }
+    expect(leadMargin(s)).toBeCloseTo(0, 6);
+    expect(evaluate(contested, s)).toBe(true);
+  });
+
+  it('grows as one school pulls clear', () => {
+    const s = createState(102);
+    for (const f of FAMILY_IDS) {
+      s.families[f].insight = 10;
+      s.families[f].matured = 1;
+    }
+    const level = leadMargin(s);
+    s.families.connectionist.insight = 400;
+    s.families.connectionist.matured = 20;
+    expect(leadMargin(s)).toBeGreaterThan(level);
+    expect(evaluate(dominant('connectionist'), s)).toBe(true);
+  });
+
+  it('is never negative, whatever the standings', () => {
+    const s = createState(103);
+    for (const f of FAMILY_IDS) s.families[f].momentum = -50;
+    expect(leadMargin(s)).toBeGreaterThanOrEqual(0);
+  });
+
+  /*
+   * The property the content depends on. Exactly one of these holds in any century, so a scene
+   * can offer a contested line and eight school lines and be certain of showing precisely one.
+   */
+  it('is exclusive and exhaustive against dominance, in every century', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const s = createState(seed * 131);
+      for (let t = 0; t < 25; t++) {
+        advanceTurn(s);
+        const said = [
+          evaluate(contested, s),
+          ...FAMILY_IDS.map((f) => evaluate(dominant(f), s)),
+        ].filter(Boolean).length;
+        expect(said).toBe(1);
+      }
+    }
   });
 });

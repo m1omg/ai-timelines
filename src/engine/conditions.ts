@@ -1,4 +1,4 @@
-import { familyStanding } from './describe';
+import { familyShares, familyStanding } from './describe';
 import type { CmpOp, Condition, FamilyId, FlagValue, GameState } from './types';
 import { FAMILY_IDS } from './types';
 
@@ -44,6 +44,29 @@ export function leadingFamily(s: GameState): FamilyId {
     }
   }
   return best;
+}
+
+/**
+ * How far clear the leading school is, as a share of the whole field.
+ *
+ * Shares rather than raw standing so the number means the same thing in 1954 and 2046, when the
+ * field is an order of magnitude larger. 0 is a dead heat; anything past about 0.1 is a lead
+ * everyone in the room can feel.
+ */
+export function leadMargin(s: GameState): number {
+  const shares = familyShares(s);
+  let first = -Infinity;
+  let second = -Infinity;
+  for (const f of FAMILY_IDS) {
+    const v = shares[f];
+    if (v > first) {
+      second = first;
+      first = v;
+    } else if (v > second) {
+      second = v;
+    }
+  }
+  return Math.max(0, first - second);
 }
 
 export function evaluate(c: Condition | undefined, s: GameState): boolean {
@@ -108,6 +131,9 @@ export function evaluate(c: Condition | undefined, s: GameState): boolean {
     case 'leadFamily':
       return leadingFamily(s) === c.family;
 
+    case 'leadMargin':
+      return compare(leadMargin(s), c.op, c.value);
+
     case 'character': {
       const ch = s.characters[c.id];
       if (!ch) return false;
@@ -159,6 +185,17 @@ export const flagSet = (flag: string): Condition => ({ kind: 'flagSet', flag });
 export const mature = (id: string): Condition => ({ kind: 'paradigm', id, status: 'mature' });
 export const notMature = (id: string): Condition => not(mature(id));
 export const leadFamily = (family: FamilyId): Condition => ({ kind: 'leadFamily', family });
+/**
+ * A school is *dominant* rather than merely top when it is this far clear of second place.
+ *
+ * One number, used by every scene that wants to say "somebody has won" or "nobody has", so the
+ * game cannot tell a player both things in the same decade.
+ */
+export const DOMINANT_MARGIN = 0.07;
+export const dominant = (family: FamilyId): Condition =>
+  all(leadFamily(family), { kind: 'leadMargin', op: '>=', value: DOMINANT_MARGIN });
+/** True when the field is genuinely contested: nobody is clear of second place. */
+export const contested: Condition = { kind: 'leadMargin', op: '<', value: DOMINANT_MARGIN };
 /** Outstanding excitement the field has not yet delivered against. */
 export const promises = (op: CmpOp, value: number): Condition => ({ kind: 'strain', field: 'promises', op, value });
 /** Consecutive turns the expectation gap has been open. Non-zero means funders have noticed. */

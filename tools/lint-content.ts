@@ -186,6 +186,15 @@ function checkConditionRefs(
     case 'strain':
       if (c.value < 0) err(`${where}: strain condition on "${c.field}" tests below zero, which is always true`);
       break;
+    /*
+     * The lead margin is a difference of two shares, so it lives in 0..1 and is clamped at zero.
+     * A threshold outside that is a gate that is always open or always shut, which is the same
+     * class of mistake as a negative strain and just as invisible at play time.
+     */
+    case 'leadMargin':
+      if (c.value < 0) err(`${where}: leadMargin tests below zero, which no margin ever is`);
+      if (c.value > 1) err(`${where}: leadMargin tests above 1, which no share difference ever reaches`);
+      break;
     default:
       break;
   }
