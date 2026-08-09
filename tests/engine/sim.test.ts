@@ -58,7 +58,16 @@ describe('determinism', () => {
     const b = createState(999);
     runTurns(a, 100);
     runTurns(b, 100);
-    expect(b.resources.capability).not.toBe(a.resources.capability);
+    /*
+     * Compare the century, not one number from it. Capability is a sum over whichever paradigms
+     * matured, so it is coarse: two genuinely different runs can land on the same total, and two
+     * did the moment new nodes shifted the values — seeds 1 and 999 agreed to the decimal while
+     * differing in insight, momentum and the order things arrived in.
+     *
+     * The RNG was not at fault and was checked: the two seeds diverge from their first draw.
+     */
+    expect(b.families).not.toEqual(a.families);
+    expect(b).not.toEqual(a);
   });
 
   it('is unaffected by cloning mid-run', () => {

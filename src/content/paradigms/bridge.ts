@@ -236,6 +236,46 @@ export const BRIDGE: Paradigm[] = [
     tags: ['speculative', 'endgame'],
   },
   {
+    id: 'coding-agents',
+    family: 'bridge',
+    name: 'Coding Agents',
+    short: 'It writes, the tools check, it reads the result',
+    earliest: 2024,
+    prereqs: ['self-supervision'],
+    /*
+     * The connectionist and statistical halves arrive with `self-supervision`. The symbolic
+     * requirement is the point of the node: what makes one of these reliable is not the model
+     * but everything around it — a parser that rejects malformed calls, a type checker, a test
+     * runner, a diff algorithm. Without a symbolic tradition to draw on there is nothing for the
+     * proposals to be checked against, and the thing is a very fast way to write plausible code.
+     */
+    familyPrereqs: { symbolic: 30 },
+    /*
+     * Cheap, because it is engineering rather than science: the model is somebody else's, the
+     * parser and the test runner are decades old, and the work is the loop between them. Costed
+     * at 60 it never matured once in 900 games — self-supervision lands late enough that a node
+     * of that size cannot finish before 2050, however hard it is pushed.
+     */
+    cost: 34,
+    /*
+     * Below the scaling regime, not above it. The first draft asked for 10^24 — more compute
+     * than the very node this one depends on — which made it unreachable in practice: it never
+     * fired once across 900 measured games. What runs here is inference against a model somebody
+     * else already trained, plus a great deal of tool-calling, and that is cheaper than the
+     * training run, not dearer.
+     */
+    computeNeed: 21.5,
+    capability: 26,
+    understanding: 6,
+    hype: 34,
+    brittleness: 0.42,
+    anchor: { year: 2023, who: 'SWE-bench — Jimenez et al., measuring repository-scale edits' },
+    codex:
+      'The first application where the statistical machinery earns its keep by being wrapped in the machinery the symbolic school spent seventy years building. The model proposes an edit; a parser decides whether it is even syntax, a type checker decides whether it is coherent, a test suite decides whether it does what was asked, and the loop runs again on the failure. None of the checking is learned and none of the proposing is formal, which is why neither school can claim it. It is also the first competence the field built that improves the field itself, which is a different kind of arrival from anything before it — and the reason understanding rises so little here is that nobody can say why the proposals are good, only that the checks pass.',
+    tags: ['agentic', 'commercial'],
+  },
+
+  {
     id: 'translatable-competence',
     family: 'bridge',
     name: 'Translatable Competence',
