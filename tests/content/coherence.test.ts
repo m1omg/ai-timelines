@@ -91,6 +91,14 @@ describe('endings', () => {
     expect(fallback[0]!.priority).toBe(0);
   });
 
+  it('gives no two endings the same name', () => {
+    // The player only ever sees the name, so a collision reads as the same result twice. Caught
+    // after "The Joinery" was written twice: once for one neurosymbolic system working, once
+    // for the school holding the field for a hundred years.
+    const names = ENDINGS.map((e) => e.name);
+    expect(new Set(names).size, `duplicate ending name in: ${names.join(', ')}`).toBe(names.length);
+  });
+
   /*
    * Seven schools had an ending of their own and the joinery did not, so a bridge-led century
    * fell through to `the-quiet-century` — an ending about restraint and kept promises, which is
@@ -136,7 +144,9 @@ describe('endings', () => {
       contestedRun.families[f].momentum = 5;
       contestedRun.families[f].talent = 1 / FAMILY_IDS.length;
     }
-    const school = ENDINGS.filter((e) => e.id.endsWith('-century') && e.priority === 60);
+    // Selected by what they claim rather than by name or priority: the-quiet-century also ends
+    // in "-century" and is not one of these, and bridge no longer sits at the same priority.
+    const school = ENDINGS.filter((e) => JSON.stringify(e.when).includes('"kind":"leadFamily"'));
     expect(school.length).toBe(8);
     for (const e of school) {
       expect(evaluate(e.when, contestedRun), `${e.id} claims a century nobody won`).toBe(false);

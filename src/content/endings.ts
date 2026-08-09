@@ -595,8 +595,26 @@ export const ENDINGS: Ending[] = [
    */
   {
     id: 'bridge-century',
-    name: 'The Joinery',
-    priority: 60,
+    /*
+     * Not "The Joinery" — `neurosymbolic-peace` already has that name, and the collision was
+     * the tell. That ending is about one join working: a learned front end, a formal back end,
+     * a third of the proposals refused. This one is about the hundred years of institutional
+     * work that made such a thing fundable at all, and about who ends up holding the field.
+     */
+    name: 'The Seam',
+    /*
+     * 67, where the other seven school endings sit at 60, because bridge is the only school
+     * whose own results have endings of their own to compete with: `the-synthesis` at 95 and
+     * `neurosymbolic-peace` at 66 are both keyed to bridge nodes. At 60 this fired in four
+     * centuries in a thousand while the school led eleven in a hundred — the ending existed and
+     * essentially nobody saw it.
+     *
+     * Above the node, below the frame. A century in which the joinery held the field is a larger
+     * fact than any single join maturing, so it takes the headline and the join appears under
+     * "also true"; but it stays below `the-concentrated` and the audit endings, exactly as the
+     * other seven do, because those are facts about the world rather than about a school.
+     */
+    priority: 67,
     when: dominant('bridge', SETTLED_MARGIN),
     epigraph: 'Nobody set out to build this. Somebody had to be paid to stand between.',
     lines: [

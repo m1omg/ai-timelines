@@ -132,6 +132,19 @@ function checkReferences(): void {
     }
   }
 
+  /*
+   * Two endings sharing a display name is not a typo, it is a design collision: the player sees
+   * only the name, so an ending that headlines one century and one that headlines another read
+   * as the same result. Caught after "The Joinery" was written twice — once for a single
+   * neurosymbolic system working, once for the school holding the field for a hundred years.
+   */
+  const endingNames = new Map<string, string>();
+  for (const e of ENDINGS) {
+    const clash = endingNames.get(e.name);
+    if (clash) err(`ending ${e.id}: shares the name "${e.name}" with ${clash}`);
+    else endingNames.set(e.name, e.id);
+  }
+
   for (const e of ENDINGS) {
     walkConditions(e.when, (c) => checkConditionRefs(`ending:${e.id}`, c, paradigmIds, characterIds, actorIds));
     for (const line of e.lines) {
