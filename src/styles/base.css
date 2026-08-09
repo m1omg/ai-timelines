@@ -469,6 +469,17 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
 .ledger-row b { font-weight: 400; }
 .ledger-row .spent { color: var(--warn); font-variant-numeric: tabular-nums; }
 .ledger-row .eff { grid-column: 1 / -1; color: var(--dim); font-size: 11px; line-height: 1.5; }
+/* Taking a directive back. Sits on the effects line rather than beside the cost, so it never
+   competes with the number it undoes, and reads as quiet until it is wanted. */
+.ledger-row .undo {
+  grid-column: 2; grid-row: 3; justify-self: end; align-self: start;
+  font-size: 10px; padding: 2px 8px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--dim); border: 1px solid color-mix(in srgb, var(--dim) 45%, transparent);
+  background: transparent; cursor: pointer;
+}
+.ledger-row .undo:hover, .ledger-row .undo:focus-visible {
+  color: var(--warn); border-color: var(--warn);
+}
 
 .section-head {
   display: flex; align-items: baseline; gap: 12px;

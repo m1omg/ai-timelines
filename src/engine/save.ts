@@ -144,6 +144,18 @@ function migrate(s: GameState): GameState {
    */
   if (!Array.isArray(s.history)) s.history = [];
   if (!Array.isArray(s.decisions)) s.decisions = [];
+  /*
+   * A term-start snapshot from a different turn is a snapshot of a term that has already been
+   * spent and ticked past. Dropping it is what keeps "take back" honest: the board offers the
+   * button only for a snapshot matching the turn it is looking at, and a stale one would either
+   * undo into the wrong century or sit in the save forever.
+   *
+   * Also drops one that is not a state — the field is new, and a hand-edited or truncated code
+   * should fail to a century without undo rather than to a crash on the board.
+   */
+  if (s.termStart && (s.termStart.turn !== s.turn || !s.termStart.state?.resources)) {
+    delete s.termStart;
+  }
   return s;
 }
 

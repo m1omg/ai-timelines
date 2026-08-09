@@ -4,10 +4,11 @@ import { plateClass, plateUrl, prefetchPlates } from './art/plate';
 
 import { SCENES, SCENE_BY_ID } from './content/scenes';
 import { CHARACTERS } from './content/characters';
+import { availableDirectives, canAfford, takeDirective } from './engine/directives';
 import { pickScenes } from './engine/scheduler';
 import { advanceTurn } from './engine/sim';
 import { clearSave, exportSlot, importSave, listSlots, loadGame, saveGame } from './engine/save';
-import { TOTAL_TURNS, createState } from './engine/state';
+import { TOTAL_TURNS, cloneState, createState, takeTermStart } from './engine/state';
 import type { GameState, Scene } from './engine/types';
 import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady } from './ui/audio';
 import { renderBalance } from './ui/balance';
@@ -449,7 +450,52 @@ async function beginTurn(): Promise<void> {
   );
 }
 
+/**
+ * Take back one directive already applied this term.
+ *
+ * Effects are not invertible — a directive that raised momentum by 3 cannot be un-raised
+ * without knowing what else touched momentum since — so the term is replayed instead: restore
+ * the state as the board opened, then re-apply this term's other directives in the order they
+ * were taken. The one being dropped is simply not replayed.
+ *
+ * This is the same trick the board already uses to preview a selection, and it is why the
+ * snapshot is worth its space in the save: it makes an applied decision editable rather than
+ * final, which is what the board has promised since selection stopped being a purchase.
+ */
+function undoTaken(id: string): void {
+  const snap = state.termStart;
+  if (!snap || snap.turn !== state.turn) return;
+
+  const replay = (state.decisions ?? [])
+    .filter((d) => d.kind === 'directive' && d.turn === state.turn)
+    .map((d) => d.source);
+  const at = replay.indexOf(id);
+  if (at < 0) return;
+  replay.splice(at, 1);
+
+  const restored = cloneState(snap.state);
+  restored.termStart = snap;
+  for (const other of replay) {
+    // Re-checked against the state it now lands in, exactly as it was the first time: dropping
+    // an early card can make a later one unaffordable or unavailable, and that has to hold.
+    const d = availableDirectives(restored).find((x) => x.id === other);
+    if (d && canAfford(restored, d)) takeDirective(restored, d);
+  }
+
+  state = restored;
+  rewind = null;
+  heldInfluence = 0;
+  saveGame(state, activeSlot);
+  refreshCharacters();
+  refreshTopbar();
+  directivePhase();
+}
+
 function directivePhase(): void {
+  // Once per term, and kept if this term already has one: a loaded save re-enters this phase,
+  // and re-capturing here would snapshot the very spending the player wants to undo.
+  if (state.termStart?.turn !== state.turn) state.termStart = takeTermStart(state);
+
   stageEl.innerHTML = '';
   renderDirectives(
     stageEl,
@@ -469,6 +515,7 @@ function directivePhase(): void {
     (amount) => {
       heldInfluence = amount;
     },
+    undoTaken,
   );
 }
 

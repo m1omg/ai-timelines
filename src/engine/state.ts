@@ -174,7 +174,26 @@ export function cloneState(s: GameState): GameState {
     // point, and a shared array would keep collecting the decisions it is supposed to erase.
     history: (s.history ?? []).map((h) => ({ ...h, shares: { ...h.shares } })),
     decisions: (s.decisions ?? []).map((d) => ({ ...d, consequences: d.consequences.slice() })),
+    /*
+     * Shared, not copied, and never nested more than one deep.
+     *
+     * The term-start snapshot is written once and then only read, so every clone can point at
+     * the same object. Copying it instead would deep-clone a whole century on every speculative
+     * preview the board draws, and `takeTermStart` strips it from the snapshot it stores so a
+     * save can never contain a chain of them.
+     */
+    termStart: s.termStart,
   };
+}
+
+/**
+ * The snapshot the directive board undoes back to: this state, with any older snapshot dropped
+ * so that saves hold one century and not a chain of them.
+ */
+export function takeTermStart(s: GameState): { turn: number; state: GameState } {
+  const snap = cloneState(s);
+  delete snap.termStart;
+  return { turn: s.turn, state: snap };
 }
 
 export function familyMatured(s: GameState, f: FamilyId): number {

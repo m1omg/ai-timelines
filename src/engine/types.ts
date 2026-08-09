@@ -253,6 +253,24 @@ export interface GameState {
    * look at it. Optional for the same save-compatibility reason as `history`.
    */
   decisions?: Decision[];
+  /**
+   * The century as it stood when this term's directive board opened, so directives already
+   * taken can still be taken back.
+   *
+   * The Back button's undo point lives in a module variable in `main.ts`, which does not
+   * survive a save. Both saves land mid-term — the autosave fires after the selection is
+   * applied but before the four years pass, and a manual save can be taken at any point on
+   * the board — so a loaded century used to arrive with this term's cards already spent, no
+   * Back button, and no way to change your mind about any of them.
+   *
+   * Captured once per turn, on entering the directive phase, and kept if one for this turn is
+   * already present: reloading a save re-enters that phase, and re-capturing there would
+   * snapshot the state the player is trying to undo.
+   *
+   * Optional for save compatibility, like `history` and `decisions`. A save written before
+   * this existed loads and plays; its current term simply cannot be taken back.
+   */
+  termStart?: { turn: number; state: GameState };
 }
 
 /** A reading of where the field stood at the end of one turn. */

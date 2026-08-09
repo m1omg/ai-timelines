@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { clearSave, exportSave, hasSave, importSave, loadGame, saveGame } from '../../src/engine/save';
 import { advanceTurn } from '../../src/engine/sim';
-import { createState } from '../../src/engine/state';
+import { createState, takeTermStart } from '../../src/engine/state';
 
 /** Minimal localStorage so the save module can be exercised outside a browser. */
 class MemoryStorage {
@@ -82,6 +82,64 @@ describe('export codes', () => {
   it('returns null on rubbish rather than throwing', () => {
     expect(importSave('not a save code')).toBeNull();
     expect(importSave('')).toBeNull();
+  });
+});
+
+/*
+ * The undo point for directives already taken this term.
+ *
+ * Both saves land mid-term — the autosave fires after the selection is applied but before the
+ * four years pass — so without this in the save, a loaded century arrived with the term's cards
+ * spent and no way to change your mind about any of them.
+ */
+describe('the term-start snapshot', () => {
+  it('survives a save and load, so a loaded term can still be taken back', () => {
+    const s = createState(21);
+    for (let i = 0; i < 5; i++) advanceTurn(s);
+    s.termStart = takeTermStart(s);
+    s.resources.influence = 3;
+
+    saveGame(s);
+    const loaded = loadGame()!;
+    expect(loaded.termStart).toBeDefined();
+    expect(loaded.termStart!.turn).toBe(s.turn);
+    // The snapshot holds the term as it opened, not the state that was saved over it.
+    expect(loaded.termStart!.state.resources.influence).not.toBe(3);
+  });
+
+  it('never nests, so a save holds one century and not a chain of them', () => {
+    const s = createState(22);
+    s.termStart = takeTermStart(s);
+    advanceTurn(s);
+    s.termStart = takeTermStart(s);
+    expect(s.termStart.state.termStart).toBeUndefined();
+  });
+
+  it('drops a snapshot belonging to a turn already ticked past', () => {
+    const s = createState(23);
+    s.termStart = takeTermStart(s);
+    advanceTurn(s);
+    saveGame(s);
+    // Loading must not offer to undo into a term the century has already left.
+    expect(loadGame()!.termStart).toBeUndefined();
+  });
+
+  it('drops a snapshot that is not a state rather than crashing the board', () => {
+    const s = createState(24);
+    (s as { termStart?: unknown }).termStart = { turn: s.turn, state: { nonsense: true } };
+    saveGame(s);
+    expect(loadGame()!.termStart).toBeUndefined();
+  });
+
+  it('loads a century written before the snapshot existed', () => {
+    const s = createState(25);
+    for (let i = 0; i < 3; i++) advanceTurn(s);
+    delete s.termStart;
+    saveGame(s);
+    const loaded = loadGame()!;
+    expect(loaded).not.toBeNull();
+    expect(loaded.turn).toBe(s.turn);
+    expect(loaded.termStart).toBeUndefined();
   });
 });
 

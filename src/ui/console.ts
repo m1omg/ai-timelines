@@ -301,6 +301,14 @@ export function renderDirectives(
   onRewindPoint?: (before: GameState, label: string) => void,
   /** Influence committed to selected-but-unconfirmed cards, for the gauge to show as spent. */
   onHold?: (amount: number) => void,
+  /**
+   * Take back a directive already applied this term, by id.
+   *
+   * The board cannot do this itself: undoing means replacing the whole state object, which is
+   * owned by `main.ts`. Omitted when the century has no term-start snapshot to undo to — saves
+   * written before that existed, where the ledger stays read-only.
+   */
+  onUndoTaken?: (id: string) => void,
 ): void {
   const era = currentEra();
   let category: Directive['category'] = 'fund';
@@ -394,6 +402,12 @@ export function renderDirectives(
       : '';
 
     const taken = takenThisTerm();
+    /*
+     * A directive already applied can still be taken back, so long as the century carries the
+     * snapshot of how this term opened. Without one — a save from before the snapshot existed —
+     * the rows stay plain text rather than offering a button that would do nothing.
+     */
+    const undoable = Boolean(onUndoTaken) && s.termStart?.turn === s.turn;
     const ledger = taken.length
       ? `<div class="section-head">Taken this term</div>
          <div class="ledger">${taken
@@ -402,6 +416,13 @@ export function renderDirectives(
                <b>${escapeHtml(d.label)}</b>
                <span class="spent">−${d.influenceSpent} influence</span>
                <span class="eff">${d.consequences.length ? escapeHtml(d.consequences.join(' · ')) : 'no immediate effect you can measure'}</span>
+               ${
+                 undoable
+                   ? `<button class="undo" data-undo="${escapeHtml(d.source)}" title="${escapeHtml(
+                       `Take back “${d.label}”. The influence comes back and the term is replayed without it.`,
+                     )}">take back</button>`
+                   : ''
+               }
              </div>`,
            )
            .join('')}</div>`
@@ -451,6 +472,18 @@ export function renderDirectives(
         draw();
       }),
     );
+    root.querySelectorAll<HTMLButtonElement>('[data-undo]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        // Anything currently selected is dropped rather than carried across: the replay rebuilds
+        // the term from the ledger, and a held selection would be spending against a state that
+        // no longer exists.
+        selected = [];
+        onHold?.(0);
+        sfxSelect();
+        onUndoTaken?.(btn.dataset.undo!);
+      }),
+    );
+
     root.querySelectorAll<HTMLButtonElement>('.card').forEach((btn) => {
       btn.addEventListener('click', () => {
         const d = all.find((x) => x.id === btn.dataset.id);

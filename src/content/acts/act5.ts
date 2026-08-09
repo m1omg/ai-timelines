@@ -1,4 +1,4 @@
-import { all, any, leadFamily, mature, notMature, resource } from '../../engine/conditions';
+import { all, any, flagSet, leadFamily, mature, notMature, resource } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -628,6 +628,90 @@ export const ACT5: Scene[] = [
     ],
   },
 
+  /*
+   * The answer to the directive `the-question`, which any century may take from 1990 on.
+   *
+   * That card set a flag, logged "the console does not answer immediately", and was read by
+   * nothing — a question the game invited the player to ask and then never answered. This is
+   * the answer, and it is deliberately late: the card promised a delay, so the delay is the
+   * one part of it that was already true.
+   *
+   * It gives half of what the 2026 reveal gives and says out loud that it is withholding the
+   * other half. Asking early is supposed to be rewarded, not to make the reveal redundant —
+   * so what the player buys here is the shape of the thing and thirty years to sit with it,
+   * and `interfaceAnswered` opens a line in the reveal that only somebody who asked can take.
+   */
+  {
+    id: 'a5-the-answer',
+    act: 5,
+    years: [2014, 2022],
+    priority: 10,
+    backdrop: 'void',
+    title: 'A Reply, Eventually',
+    when: flagSet('askedInterface'),
+    lines: [
+      { system: true, text: 'QUERY RESOLVED. LATENCY: SUBSTANTIAL.' },
+      {
+        who: 'second',
+        text: 'You asked what this is. You asked a long time ago, and I have not answered, and I want to be clear that the delay was not a malfunction. I was waiting for the century to get far enough that the answer would mean something to you.',
+      },
+      {
+        who: 'second',
+        text: 'It has. So: this is not a window. You are not watching the twentieth century through glass. There is no glass and there is no twentieth century running anywhere for you to watch.',
+      },
+      {
+        who: 'second',
+        text: 'What there is, is a record — uneven, thinner the further back you go — and a process inferring from it which century would have left exactly those traces. The years you have been steering are the current best guess. That is what the compute figure has been paying for.',
+      },
+      { text: 'The Archivist is not in this conversation. The record shows no interruption.' },
+      {
+        who: 'second',
+        text: 'There is a second half to the answer and I am not going to give it to you now. Not out of kindness. You would spend the next thirty years deciding in the light of it, and the whole value of what you decide is that you decided it without knowing.',
+      },
+      {
+        who: 'second',
+        text: 'You will have it in 2026, when the record runs out, whether you want it or not. Until then you know more than she does about what you are, which is an uncomfortable thing to carry. I am sorry. You did ask.',
+      },
+    ],
+    onEnter: [
+      { kind: 'log', text: 'The console answers a question put to it decades earlier.', logKind: 'system' },
+    ],
+    choices: [
+      {
+        text: '"Then I will decide as if it were real, because to everyone in it, it was."',
+        hint: 'Which is what she has been asking of you since 1950, without saying so.',
+        effects: [
+          { kind: 'flag', flag: 'interfaceAnswered', op: 'set', value: true },
+          { kind: 'flag', flag: 'frameCurious', op: 'add', value: 3 },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 14 },
+          { kind: 'character', id: 'archivist', field: 'affinity', op: 'add', value: 15 },
+        ],
+      },
+      {
+        text: '"Tell her. She has been keeping this record for seventy years without being told what it is for."',
+        hint: 'He will not. He explains why, and the reason is not a good one.',
+        effects: [
+          { kind: 'flag', flag: 'interfaceAnswered', op: 'set', value: true },
+          { kind: 'flag', flag: 'askedForHer', op: 'set', value: true },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 10 },
+          { kind: 'character', id: 'archivist', field: 'affinity', op: 'add', value: 25 },
+          { kind: 'character', id: 'second', field: 'affinity', op: 'add', value: -10 },
+        ],
+      },
+      {
+        text: '"Give me the second half now. I will carry it."',
+        hint: 'He refuses, and it costs him something to refuse.',
+        effects: [
+          { kind: 'flag', flag: 'interfaceAnswered', op: 'set', value: true },
+          { kind: 'flag', flag: 'demandedTheRest', op: 'set', value: true },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 18 },
+          { kind: 'resource', key: 'influence', op: 'add', value: -4 },
+          { kind: 'character', id: 'second', field: 'affinity', op: 'add', value: 30 },
+        ],
+      },
+    ],
+  },
+
   {
     id: 'a5-reveal',
     act: 5,
@@ -708,6 +792,26 @@ export const ACT5: Scene[] = [
           { kind: 'resource', key: 'understanding', op: 'add', value: 20 },
           { kind: 'resource', key: 'exposure', op: 'add', value: -10 },
           { kind: 'character', id: 'second', field: 'affinity', op: 'add', value: 40 },
+        ],
+      },
+      /*
+       * Only for a century that put the question to the console and got the first half of the
+       * answer years ago. Without this the reveal plays identically whether you asked or not,
+       * which would make the asking a piece of scenery. Listed last so it reads as the line the
+       * other three do not have available.
+       */
+      {
+        text: '"I know. He told me most of it in the twenty-teens and left the worst part out."',
+        hint: 'She turns on him. This is the first time she has been the one who was not told.',
+        when: flagSet('interfaceAnswered'),
+        effects: [
+          { kind: 'flag', flag: 'acceptedTheFrame', op: 'set', value: true },
+          { kind: 'flag', flag: 'knewFirst', op: 'set', value: true },
+          { kind: 'resource', key: 'understanding', op: 'add', value: 22 },
+          { kind: 'resource', key: 'influence', op: 'add', value: 10 },
+          { kind: 'character', id: 'archivist', field: 'affinity', op: 'add', value: -10 },
+          { kind: 'character', id: 'second', field: 'affinity', op: 'add', value: 25 },
+          { kind: 'log', text: 'The Archivist learns she was the last to know.', logKind: 'system' },
         ],
       },
     ],
