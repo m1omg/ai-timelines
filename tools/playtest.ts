@@ -46,6 +46,15 @@ type PolicyName =
    * unreachable when it is merely a style none of them had.
    */
   | 'careful'
+  /**
+   * Pushes the frontier hard *and* publishes it, refuses to let compute consolidate, and funds
+   * the people who check the result. Added because the commons takeoff ending asks for four
+   * things at once — the loop closed, the work published, the frontier never owned, and enough
+   * theory to follow it — and no existing policy combined them: the ones that reach a takeoff
+   * are the ones that would never publish, so the ending read as unreachable when a deliberate
+   * player satisfies it in about a fifth of runs.
+   */
+  | 'commons'
   | `focus:${FamilyId}`
   /**
    * Backs a school *and the schools it is complementary with*. Added because the game grew
@@ -77,6 +86,23 @@ interface RunResult {
 // Bot policies
 // ---------------------------------------------------------------------------
 
+/** What the `commons` policy is chasing: the self-improving loop, and the work that gets there. */
+const LOOP_NODES = new Set([
+  'coding-agents',
+  'automated-conjecture',
+  'open-endedness',
+  'introspective-networks',
+]);
+const FEEDS_LOOP = new Set([
+  'attention',
+  'self-supervision',
+  'scaling-regime',
+  'gpu-scale',
+  'deep-pretraining',
+  'verified-learning',
+  'neurosymbolic',
+]);
+
 function scoreDirective(policy: PolicyName, d: Directive, s: GameState): number {
   if (policy === 'random') return 1;
 
@@ -94,6 +120,21 @@ function scoreDirective(policy: PolicyName, d: Directive, s: GameState): number 
     if (d.id === 'assurance' || d.id === 'governance-scaffold' || d.id === 'temper') return 0.02;
     if (d.category === 'fund') return 5;
     return 0.6;
+  }
+
+  if (policy === 'commons') {
+    // The four nodes that close the loop, and the ones that feed them.
+    if (d.id.startsWith('fund:') || d.id.startsWith('concentrate:')) {
+      const id = d.id.split(':')[1]!;
+      if (LOOP_NODES.has(id)) return 40;
+      if (FEEDS_LOOP.has(id)) return 12;
+      return 1.5;
+    }
+    if (d.id === 'distribute-capability' || d.id === 'open-publication') return 18;
+    if (d.id === 'substrate-push' || d.id === 'assurance' || d.id === 'interruption-standard') return 9;
+    if (d.id === 'compute-consolidation') return 4;
+    if (d.id === 'nationalise-frontier' || d.id === 'restrict-diffusion' || d.id === 'take-people-out') return 0;
+    return 1;
   }
 
   if (policy === 'broad') {
@@ -379,6 +420,7 @@ function main(): void {
     'broad',
     'synthesis',
     'careful',
+    'commons',
     ...FAMILY_IDS.map((f) => `focus:${f}` as PolicyName),
     ...FAMILY_IDS.map((f) => `allied:${f}` as PolicyName),
   ];

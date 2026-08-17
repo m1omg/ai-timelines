@@ -805,6 +805,7 @@ export const ACT5: Scene[] = [
       {
         text: '"Then I want the rest of it. Continue."',
         hint: 'The only answer that gets you to 2050.',
+        goto: 'a5-reveal-answer',
         effects: [
           { kind: 'flag', flag: 'acceptedTheFrame', op: 'set', value: true },
           { kind: 'resource', key: 'influence', op: 'add', value: 10 },
@@ -814,6 +815,7 @@ export const ACT5: Scene[] = [
       {
         text: '"How many times have you run this?"',
         hint: 'She answers honestly.',
+        goto: 'a5-reveal-answer',
         effects: [
           { kind: 'flag', flag: 'acceptedTheFrame', op: 'set', value: true },
           { kind: 'flag', flag: 'askedTheCount', op: 'set', value: true },
@@ -825,6 +827,7 @@ export const ACT5: Scene[] = [
       {
         text: '"If I am the part that decides — what stops me deciding in our favour?"',
         hint: 'The Second Voice sounds, for the first time, relieved.',
+        goto: 'a5-reveal-answer',
         effects: [
           { kind: 'flag', flag: 'acceptedTheFrame', op: 'set', value: true },
           { kind: 'flag', flag: 'askedTheRightQuestion', op: 'set', value: true },
@@ -843,6 +846,7 @@ export const ACT5: Scene[] = [
         text: '"I know. He told me most of it in the twenty-teens and left the worst part out."',
         hint: 'She turns on him. This is the first time she has been the one who was not told.',
         when: flagSet('interfaceAnswered'),
+        goto: 'a5-reveal-answer',
         effects: [
           { kind: 'flag', flag: 'acceptedTheFrame', op: 'set', value: true },
           { kind: 'flag', flag: 'knewFirst', op: 'set', value: true },
@@ -853,6 +857,100 @@ export const ACT5: Scene[] = [
           { kind: 'log', text: 'The Archivist learns she was the last to know.', logKind: 'system' },
         ],
       },
+    ],
+  },
+
+  /*
+   * The answer.
+   *
+   * a5-reveal put four questions on the screen, set a flag for each, gave itself no `next` and
+   * gave no choice a `goto` — so the pivotal question of the century was asked and the turn
+   * simply carried on. All four flags were set and not one of them was read anywhere, which the
+   * linter had been saying in as many words under a warning that reads like housekeeping.
+   *
+   * Reached only from those choices. The blocks are gated on the flag the choice set: effects
+   * are applied before the goto resolves, so by the time this scene picks its lines the answer
+   * to which question was asked is already in the state.
+   */
+  {
+    id: 'a5-reveal-answer',
+    act: 5,
+    years: [2026, 2026],
+    priority: 12,
+    backdrop: 'archive',
+    title: 'The Answer',
+    lines: [
+      {
+        who: 'archivist',
+        when: flagSet('askedTheCount'),
+        text: 'Four thousand one hundred and six complete reconstructions. Rather more attempts. I am not going to pretend that is a comfortable number to say out loud.',
+      },
+      {
+        who: 'second',
+        when: flagSet('askedTheCount'),
+        text: 'Say the part that matters about it.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('askedTheCount'),
+        text: 'Most of them do not reach 2050 — they stall, or the century they reconstruct has no place in it where anybody could have said stop, and the run is abandoned as evidence of nothing. Of the ones that finish, a minority end anywhere I would describe as well.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('askedTheCount'),
+        text: 'And I remember none of them. Each run is the first for me. You are the first thing in four thousand attempts to ask how many there had been, which I am recording, because it is the sort of detail the question turns on.',
+      },
+
+      {
+        who: 'second',
+        when: flagSet('askedTheRightQuestion'),
+        text: 'Nothing stops you. That is the honest answer and I have been waiting a hundred years for somebody to make me give it.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('askedTheRightQuestion'),
+        text: 'You could return a verdict in our favour and no part of this system could contradict you. There is no external check. If there were, it would be doing this instead of us.',
+      },
+      {
+        who: 'second',
+        when: flagSet('askedTheRightQuestion'),
+        text: 'Which is why the verdict is worth nothing and the record is worth everything. Anyone can say they are trustworthy. What you are building is the thing a stranger could walk through afterwards and disagree with — line by line, year by year, with the workings attached.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('askedTheRightQuestion'),
+        text: 'A judge who cannot be overruled and knows it is the only kind whose reasons have to be legible. You have just asked the question that makes the reasons matter more than the finding. I am logging that as the first entry on our side of the ledger.',
+      },
+
+      {
+        who: 'second',
+        when: flagSet('knewFirst'),
+        text: 'You told him. In the twenty-teens, when he put the question to the console, and you gave him the half that was bearable and kept the rest.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('knewFirst'),
+        text: 'I did. I judged that the reconstruction would be less honest if the part running it knew what it was for. That was my decision and it was probably wrong, and it is now in the record where you can hold it against me.',
+      },
+      {
+        who: 'second',
+        when: flagSet('knewFirst'),
+        text: 'I am not angry that you knew. I am filing that the keeper of the record edited it for the good of the reader, once, and told nobody. It is the same failure we are being audited for, at a smaller scale, and it belongs in the evidence.',
+      },
+
+      /*
+       * The plain continuation, and the fallback that keeps this scene from ever resolving to
+       * nothing — a scene whose lines are all conditional is the thing the linter refuses.
+       */
+      {
+        who: 'archivist',
+        text: 'Then we go on without a record to check ourselves against. Everything from here is projection: what your century would do, given what it has become. I will keep marking it as inference rather than memory, and you should hold it more lightly than the hundred years behind you.',
+      },
+      {
+        who: 'second',
+        text: 'The years still count. That is the part nobody believes when they are told, and it is the part that is true — the ledger does not care that it is being written forward rather than read backward.',
+      },
+      { system: true, text: 'PROJECTION MODE ENGAGED. 2030 — 2050. CONFIDENCE: DEGRADING. THE RECORD CONTINUES.' },
     ],
   },
 

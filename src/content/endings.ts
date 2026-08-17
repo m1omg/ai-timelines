@@ -189,7 +189,11 @@ export const ENDINGS: Ending[] = [
     when: all(
       takeoff,
       accountable,
-      { kind: 'flag', flag: 'openness', op: '>=', value: 3 },
+      // Two open-publication decisions rather than three. At three this fired once in six
+      // thousand runs and then stopped firing at all, which is not an ending anybody can play
+      // towards — it is a rumour. Still the hardest of the good ones: it wants the loop closed,
+      // the accountability built, the work published, and the frontier never consolidated.
+      { kind: 'flag', flag: 'openness', op: '>=', value: 2 },
       { kind: 'flag', flag: 'concentration', op: '<=', value: 0 },
     ),
     epigraph: 'The loop closed in ten thousand places at once, which turned out to be the safeguard.',
