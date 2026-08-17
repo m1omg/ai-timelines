@@ -72,6 +72,31 @@ body::after {
 .topbar .year { font-size: 22px; letter-spacing: 0.14em; color: var(--accent); text-transform: none; }
 .topbar .act { color: var(--dim); }
 .topbar .spacer { flex: 1 1 auto; }
+
+/* Who holds the field, beside the year. One line, in the school's own colour, and no bar — the
+   whole picture is a chart and a chart up here would be a second screen. */
+.lead {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--fam, var(--ink));
+  border-left: 2px solid var(--fam, var(--dim));
+  padding-left: 8px;
+  white-space: nowrap;
+}
+.lead .dot {
+  align-self: center;
+  width: 6px; height: 6px; border-radius: 2px;
+  background: var(--fam, var(--dim));
+}
+.lead .grip { color: var(--dim); letter-spacing: 0.06em; font-size: 9px; }
+/* Contested is the state worth noticing, so it is the one that gets a colour of its own. */
+.lead.contested .grip { color: var(--warn); }
+.lead.dominant .dot { box-shadow: 0 0 8px var(--fam, var(--dim)); }
+/* The dot is a solid block in a four-colour era and glows in none of them. */
+html[data-era='cga'] .lead.dominant .dot { box-shadow: none; }
 .topbar button { font-size: 10px; padding: 6px 9px; }
 
 .gauges { display: flex; gap: clamp(8px, 1.4vw, 20px); flex-wrap: wrap; }
@@ -1002,6 +1027,9 @@ button:focus-visible, .btn:focus-visible, .card:focus-visible { outline-offset: 
   .gauge { min-width: 74px; }
   .gauge b { font-size: 8.5px; letter-spacing: 0.01em; }
   .topbar .act { font-size: 10px; }
+  /* On a phone the school's name is worth more than the word for how firmly it holds. */
+  .lead .grip { display: none; }
+  .lead { padding-left: 6px; gap: 4px; }
   /* The top bar already costs a quarter of a phone screen. The patron mini-bars are the most
      expendable part of it — the number says the same thing in a fraction of the width. */
   .patron .bar { display: none; }

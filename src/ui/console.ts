@@ -1,6 +1,7 @@
 import { familyColour } from '../art/palette';
 import { FAMILIES } from '../content/paradigms';
-import { describeEffects, effectFamily } from '../engine/describe';
+import { describeEffects, effectFamily, familyShares } from '../engine/describe';
+import { DOMINANT_MARGIN, SETTLED_MARGIN, leadMargin, leadingFamily } from '../engine/conditions';
 import { availableDirectives, canAfford, takeDirective } from '../engine/directives';
 import { START_COMPUTE_LOG, TOTAL_TURNS, cloneState } from '../engine/state';
 import { actTitle } from '../content/act-titles';
@@ -192,6 +193,41 @@ function computeHtml(s: GameState): string {
     </div>`;
 }
 
+/**
+ * Who currently holds the field, on the main screen.
+ *
+ * The answer already existed in two places — the Balance overlay and the paradigm tree — and in
+ * both you had to go and ask. It is the single fact that most changes what a scene means, and it
+ * moves every four years, so it belongs where the year is.
+ *
+ * Deliberately one short line: the school, and how firmly. Everything else about the standings
+ * is a chart, and a chart in the top bar is a second screen rather than an indicator.
+ */
+function leadHtml(s: GameState): string {
+  const lead: FamilyId = leadingFamily(s);
+  const shares = familyShares(s);
+  const margin = leadMargin(s);
+  const pct = Math.round(shares[lead] * 100);
+
+  // The same three bands the endings and the scene gates use, so the word in the top bar means
+  // exactly what it means everywhere else in the game.
+  const grip =
+    margin >= DOMINANT_MARGIN ? 'dominant' : margin <= SETTLED_MARGIN ? 'contested' : 'ahead';
+
+  return `<span class="lead ${grip}" style="--fam:${familyColour(FAMILIES[lead].hue, currentEra())}"
+    title="${escapeHtml(
+      `${FAMILIES[lead].name} holds ${pct}% of the field — ${
+        grip === 'dominant'
+          ? 'far enough ahead that the century is being written in its vocabulary'
+          : grip === 'contested'
+            ? 'barely ahead; the school behind it is within a couple of points'
+            : 'ahead, but not by enough to settle the argument'
+      }. Balance has the whole picture.`,
+    )}">
+    <i class="dot"></i>${escapeHtml(FAMILIES[lead].name.split(' & ')[0]!)}<span class="grip">${grip}</span>
+  </span>`;
+}
+
 export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): void {
   const held = Math.max(0, h.heldInfluence ?? 0);
   const gauges = GAUGES.map((g) => {
@@ -213,6 +249,7 @@ export function renderTopbar(el: HTMLElement, s: GameState, h: TopbarHandlers): 
     <div class="topline">
       <span class="year">${s.year}</span>
       <span class="act">Act ${roman(s.act)} · ${escapeHtml(actTitle(s.act, s))}${s.inWinter ? ' · <b style="color:var(--warn)">WINTER</b>' : ''}</span>
+      ${leadHtml(s)}
       <span class="spacer"></span>
       ${
         h.onBack
