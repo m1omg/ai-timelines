@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      # A working branch publishes to /ai-timelines-dev instead of the root, so a century in
+      # progress can be played from a real URL without touching the one people are given.
+      - 'claude/**'
   workflow_dispatch:
 
 # Only `contents: write` is needed: this publishes by committing the build to the
@@ -45,20 +48,52 @@ jobs:
       - name: Build
         run: npx vite build
 
+      # The published branch now holds two sites — the root, and /ai-timelines-dev — so this
+      # updates one subtree of the existing branch rather than force-pushing a fresh orphan
+      # over the top. The old version did the latter, which quietly deleted the dev copy on
+      # the next push to main.
+      #
       # .nojekyll stops Jekyll from processing the output and skips its build step.
       - name: Publish to gh-pages
         run: |
-          touch dist/.nojekyll
-          cd dist
-          git init -q
-          git checkout -qb gh-pages
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          if git clone -q --depth 1 --branch gh-pages "$REMOTE" site; then
+            echo "publishing onto the existing branch"
+          else
+            mkdir site
+            git -C site init -q
+            git -C site checkout -qb gh-pages
+            git -C site remote add origin "$REMOTE"
+          fi
+
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            # Replace the root, keeping the dev copy and the branch's own git directory.
+            find site -mindepth 1 -maxdepth 1 \
+              ! -name .git ! -name ai-timelines-dev -exec rm -rf {} +
+            cp -r dist/. site/
+            WHERE="the root"
+          else
+            rm -rf site/ai-timelines-dev
+            mkdir -p site/ai-timelines-dev
+            cp -r dist/. site/ai-timelines-dev/
+            WHERE="/ai-timelines-dev"
+          fi
+
+          touch site/.nojekyll
+          cd site
           git add -A
+          if git diff --cached --quiet; then
+            echo "nothing changed; not publishing"
+            exit 0
+          fi
           git -c user.name='github-actions[bot]' \
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit -qm "Publish built site from ${GITHUB_SHA::7}"
-          git push -q --force \
-            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" \
-            gh-pages
+              commit -qm "Publish ${WHERE} from ${GITHUB_REF_NAME} ${GITHUB_SHA::7}"
+          git push -q origin gh-pages
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}

@@ -23,6 +23,13 @@ workflow deploy — do not stop at a pushed branch waiting to be asked. The one 
 after a deploy is checking the built assets on `gh-pages` actually contain the change, because a
 green workflow only proves the build ran.
 
+Two sites live on `gh-pages`: the root, published from `main`, and
+[`/ai-timelines-dev`](https://m1omg.github.io/ai-timelines/ai-timelines-dev/), published from any
+`claude/**` branch — a real URL for a century in progress that does not touch the one people are
+given. Publishing updates one subtree and leaves the other alone. It used to force-push a fresh
+orphan branch, which silently deleted the dev copy on the next push to main; if you change that
+step, keep it non-destructive.
+
 Rebuild the single-file copy after a deploy, too, so the offline version never lags the site.
 It is one HTML file with the bundle, the stylesheet and all six plates inlined as data URIs —
 no server, no network, nothing to install. Build it with a throwaway config, never by editing
