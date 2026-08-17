@@ -14,6 +14,13 @@ export interface Rig {
   out: AudioNode;
   /** Feedback delay for the eras that have one. */
   echo: GainNode | null;
+  /** The era's band limit, held so accumulated consequence can close it down over a turn. */
+  band: BiquadFilterNode;
+  /**
+   * 0..1, how far the top of the spectrum has been pulled out. Read per note as well as by the
+   * band filter, so a dull century is dull in the notes and not merely behind a blanket.
+   */
+  dull: number;
 }
 
 export function buildRig(ctx: BaseAudioContext, destination: AudioNode, voice: EraVoice): Rig {
@@ -43,7 +50,21 @@ export function buildRig(ctx: BaseAudioContext, destination: AudioNode, voice: E
     echo = send;
   }
 
-  return { ctx, out: band, echo };
+  return { ctx, out: band, echo, band, dull: 0 };
+}
+
+/**
+ * Close the mix down, or open it back up, over a couple of seconds.
+ *
+ * A turn is four years; the change should arrive like a season rather than a switch, and a
+ * cutoff that jumps is audible as a click on every sustained note still ringing.
+ */
+export function setDullness(rig: Rig, voice: EraVoice, dull: number, when: number): void {
+  rig.dull = Math.max(0, Math.min(1, dull));
+  const target = voice.tone * (1 - rig.dull * 0.62);
+  rig.band.frequency.cancelScheduledValues(when);
+  rig.band.frequency.setValueAtTime(rig.band.frequency.value, when);
+  rig.band.frequency.linearRampToValueAtTime(Math.max(500, target), when + 2.5);
 }
 
 /**
@@ -104,6 +125,10 @@ function playPerc(rig: Rig, voice: EraVoice, note: Note, when: number): void {
     const hp = ctx.createBiquadFilter();
     hp.type = 'highpass';
     hp.frequency.value = voice.id === 'teletype' ? 2200 : 5200;
+    // A hat is the brightest thing in the bar and the first thing a dulled mix loses. It carries
+    // most of the change in the early eras, whose square waves keep their energy low down and so
+    // have very little top end for the band filter to take.
+    g.gain.value = Math.max(0.0001, g.gain.value * (1 - rig.dull * 0.9));
     src.connect(hp);
     hp.connect(g);
     src.start(start);
@@ -147,7 +172,7 @@ export function playNote(rig: Rig, voice: EraVoice, note: Note, when: number): v
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
   lp.Q.value = note.role === 'pad' ? 0.7 : 3.5;
-  const openTo = Math.min(voice.tone, note.freq * voice.open);
+  const openTo = Math.min(voice.tone, note.freq * voice.open) * (1 - rig.dull * 0.5);
   lp.frequency.setValueAtTime(Math.max(120, note.freq * 1.2), start);
   lp.frequency.linearRampToValueAtTime(Math.max(160, openTo), start + attack + release * 0.15);
   lp.frequency.exponentialRampToValueAtTime(Math.max(140, note.freq * 1.1), start + attack + release);
@@ -228,6 +253,7 @@ export async function renderPiece(
   master.connect(squash);
   squash.connect(ctx.destination);
   const rig = buildRig(ctx, master, voice);
+  setDullness(rig, voice, params.exposure, 0);
   startFloor(rig, voice, 0, length);
 
   for (let bar = 0; bar < bars; bar++) {

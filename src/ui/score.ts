@@ -228,6 +228,16 @@ export interface ScoreParams {
   strain: number;
   /** 0..1, how much of the field this school actually holds. Thin at 0, full at 1. */
   hold: number;
+  /**
+   * 0..1, consequence the century has accumulated and not dealt with.
+   *
+   * Deliberately *not* another kind of dissonance — that is what strain already is, and an
+   * anxious sound is the wrong reading of this number. Exposure is what has been allowed to
+   * settle: the top of the spectrum goes out of the mix and the figuration loses its upper
+   * octave, so a compromised century sounds duller and heavier rather than more agitated. It is
+   * the difference between a field that is worried and a field that has stopped noticing.
+   */
+  exposure: number;
 }
 
 export function barSeconds(voice: EraVoice): number {
@@ -626,9 +636,16 @@ function figuration(push: (n: Note) => void, c: Ctx): void {
   if (voice.arp <= 0.02 || p.winter) return;
 
   const shape = [0, 2, 4, 6, 4, 2];
-  const octave = voice.arp > 0.6 ? 12 : 0;
+  // The upper octave is the first thing consequence takes: a century carrying a lot of it keeps
+  // the figure and loses the sparkle on top of it.
+  const octave = voice.arp > 0.6 && p.exposure < 0.5 ? 12 : 0;
   const stride = voice.arp > 0.6 ? 1 : 2;
   for (let i = 0; i < 8; i += stride) {
+    /*
+     * Density is deliberately *not* reduced here. Thinning the figuration would make a
+     * compromised century sound *emptier*, and empty is what a winter already sounds like.
+     * Exposure has its own reading: everything is still playing and the top has gone off it.
+     */
     if (!chance(rc, voice.arp)) continue;
     const d = shape[(i + p.bar) % shape.length]!;
     push({

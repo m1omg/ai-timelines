@@ -19,6 +19,7 @@ const base = (over: Partial<ScoreParams> = {}): ScoreParams => ({
   winter: false,
   strain: 0,
   hold: 0.6,
+  exposure: 0,
   ...over,
 });
 
@@ -90,6 +91,22 @@ describe('the score', () => {
     for (const [i, n] of strained.entries()) {
       // Half a semitone at the very worst: out of tune with itself, not in another key.
       expect(Math.abs(Math.log2(n.freq / calm[i]!.freq) * 12)).toBeLessThan(0.5);
+    }
+  });
+
+  it('takes the top off the mix as consequence accumulates, without rewriting the piece', () => {
+    // Exposure is not another dissonance — strain is that. This should read as a century that
+    // has stopped noticing rather than one that is worried, so the test is about brightness.
+    for (const era of ['cga', 'glass', 'ambient']) {
+      const clear = composeBar(base({ era, school: 'connectionist', bar: 6 }));
+      const dulled = composeBar(base({ era, school: 'connectionist', bar: 6, exposure: 0.9 }));
+
+      const top = (ns: typeof clear) => Math.max(...ns.map((n) => n.freq));
+      expect(top(dulled), `${era}: the ceiling should come down`).toBeLessThanOrEqual(top(clear));
+
+      // The floor of the piece is untouched: the bass and the beat are still there.
+      const bass = (ns: typeof clear) => ns.filter((n) => n.role === 'bass' || n.role === 'perc').length;
+      expect(bass(dulled), era).toBe(bass(clear));
     }
   });
 

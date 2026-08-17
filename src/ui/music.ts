@@ -2,7 +2,7 @@ import { leadingFamily } from '../engine/conditions';
 import type { FamilyId, GameState } from '../engine/types';
 import { musicEnabled, musicContext } from './audio';
 import { barSeconds, composeBar, eraVoice, type EraVoice, type ScoreParams } from './score';
-import { buildRig, playBar, startFloor, type Rig } from './synth';
+import { buildRig, playBar, setDullness, startFloor, type Rig } from './synth';
 
 /**
  * The live score: a bar-at-a-time scheduler that reads the run and never repeats a century.
@@ -51,6 +51,9 @@ function readState(s: GameState): Reading {
     // detune can use. The number the top bar shows as "owed".
     strain: Math.max(0, Math.min(1, (s.promises - s.resources.capability * 0.35) / 22)),
     hold: Math.max(0, Math.min(1, Math.max(0, s.families[school].momentum) / total + 0.1)),
+    // Consequence nobody has got round to addressing. Reads straight off the gauge: the top of
+    // the mix goes with it, so a century that let this run sounds progressively deader.
+    exposure: Math.max(0, Math.min(1, s.resources.exposure / 85)),
   };
 }
 
@@ -72,7 +75,14 @@ export function updateMusic(s: GameState): void {
   }
 
   const eraChanged = !playing || playing.era !== wanted.era;
+  const previous = current;
   current = wanted;
+
+  // Exposure moves every turn without the act changing, so the mix has to follow it here rather
+  // than only when the rig is rebuilt.
+  if (playing && !eraChanged && previous?.exposure !== wanted.exposure) {
+    setDullness(playing.rig, playing.voice, wanted.exposure, ctx.currentTime);
+  }
 
   if (!playing || eraChanged) {
     // A new act is a new instrument, so the rig is rebuilt. Everything already scheduled is
@@ -92,6 +102,7 @@ export function updateMusic(s: GameState): void {
       squash.connect(ctx.destination);
     }
     const rig = buildRig(ctx, master, voice);
+    setDullness(rig, voice, wanted.exposure, ctx.currentTime);
     const floor = startFloor(rig, voice, ctx.currentTime, 60 * 30);
     if (playing) {
       window.clearInterval(playing.timer);
@@ -167,9 +178,11 @@ export function musicDescription(s: GameState): string {
     bridge: 'half strict, half smeared, and you can hear the seam',
   };
   const method = METHOD[st.school] ?? '';
-  return st.winter
-    ? `${method} — with most of the voices gone`
-    : st.strain > 0.4
-      ? `${method}, slightly out of tune with itself`
-      : method;
+  if (st.winter) return `${method} — with most of the voices gone`;
+  if (st.exposure > 0.45) {
+    return st.strain > 0.4
+      ? `${method}, out of tune with itself and going deaf at the top`
+      : `${method}, with the top of the mix gone — that is the exposure`;
+  }
+  return st.strain > 0.4 ? `${method}, slightly out of tune with itself` : method;
 }
