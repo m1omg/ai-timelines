@@ -79,26 +79,57 @@ export function startFloor(rig: Rig, voice: EraVoice, when: number, dur: number)
   return src;
 }
 
+/**
+ * Percussion, synthesised per hit. A kick is a sine whose pitch falls off a cliff; a hat is a
+ * short burst of noise through a high pass. Both are era-scaled by the note's own frequency,
+ * so the same code gives relay chatter in 1954 and a sub kick in 2030.
+ */
+function playPerc(rig: Rig, voice: EraVoice, note: Note, when: number): void {
+  const { ctx } = rig;
+  const start = when + note.at;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, start);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, note.gain), start + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001, start + note.dur);
+  g.connect(rig.out);
+
+  if (note.freq > voice.root * 3) {
+    // A hat: noise, high-passed, very short.
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * note.dur));
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = voice.id === 'teletype' ? 2200 : 5200;
+    src.connect(hp);
+    hp.connect(g);
+    src.start(start);
+    return;
+  }
+
+  const osc = ctx.createOscillator();
+  osc.type = voice.id === 'cga' || voice.id === 'teletype' ? 'square' : 'sine';
+  osc.frequency.setValueAtTime(note.freq * 2.2, start);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(24, note.freq * 0.6), start + note.dur * 0.7);
+  osc.connect(g);
+  osc.start(start);
+  osc.stop(start + note.dur + 0.02);
+}
+
 export function playNote(rig: Rig, voice: EraVoice, note: Note, when: number): void {
   const { ctx } = rig;
-  const osc = ctx.createOscillator();
-  osc.type = note.role === 'bass' ? voice.bass : note.role === 'pad' ? (voice.pad ?? voice.lead) : voice.lead;
+  if (note.role === 'perc') {
+    playPerc(rig, voice, note, when);
+    return;
+  }
 
   const start = when + note.at;
   const dur = note.dur * (note.role === 'pad' ? Math.max(1, voice.sustain) : 1);
-
-  if (note.glideFrom) {
-    osc.frequency.setValueAtTime(note.glideFrom, start);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(20, note.freq), start + dur * 0.9);
-  } else {
-    osc.frequency.setValueAtTime(note.freq, start);
-    if (voice.drift > 0) {
-      // Nothing analogue holds a pitch. The wobble is small and it is the difference between
-      // an instrument and a signal generator.
-      const off = note.freq * Math.pow(2, (voice.drift * (Math.random() - 0.5)) / 1200);
-      osc.frequency.linearRampToValueAtTime(off, start + dur);
-    }
-  }
+  const type =
+    note.role === 'bass' ? voice.bass : note.role === 'pad' ? (voice.pad ?? voice.lead) : voice.lead;
 
   // Percussive early, endless late: one number does the whole century's worth of envelope.
   const attack = Math.min(0.4, 0.004 + voice.sustain * 0.09);
@@ -108,12 +139,65 @@ export function playNote(rig: Rig, voice: EraVoice, note: Note, when: number): v
   g.gain.exponentialRampToValueAtTime(Math.max(0.0002, note.gain), start + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, start + attack + release);
 
-  osc.connect(g);
+  /*
+   * A filter that opens on the attack and closes as the note decays. This is the single thing
+   * that most separates a synthesiser from an oscillator: without it every note has the same
+   * spectrum for its whole length, which is what makes a long piece exhausting to listen to.
+   */
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.value = note.role === 'pad' ? 0.7 : 3.5;
+  const openTo = Math.min(voice.tone, note.freq * voice.open);
+  lp.frequency.setValueAtTime(Math.max(120, note.freq * 1.2), start);
+  lp.frequency.linearRampToValueAtTime(Math.max(160, openTo), start + attack + release * 0.15);
+  lp.frequency.exponentialRampToValueAtTime(Math.max(140, note.freq * 1.1), start + attack + release);
+  lp.connect(g);
+
+  // Unison: several oscillators a few cents apart. One is a test tone; three or four beat
+  // against each other and become a chord of themselves, which is the whole of that sound.
+  const count = note.role === 'bass' ? 1 : Math.max(1, voice.voices);
+  for (let v = 0; v < count; v++) {
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    const spread = count === 1 ? 0 : ((v / (count - 1)) * 2 - 1) * (note.role === 'pad' ? 11 : 6);
+    const detune = Math.pow(2, spread / 1200);
+
+    if (note.glideFrom) {
+      osc.frequency.setValueAtTime(note.glideFrom * detune, start);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(20, note.freq * detune), start + dur * 0.9);
+    } else {
+      osc.frequency.setValueAtTime(note.freq * detune, start);
+      if (voice.drift > 0) {
+        // Nothing analogue holds a pitch. The wobble is small and it is the difference between
+        // an instrument and a signal generator.
+        const off = note.freq * detune * Math.pow(2, (voice.drift * (Math.random() - 0.5)) / 1200);
+        osc.frequency.linearRampToValueAtTime(off, start + dur);
+      }
+    }
+    osc.connect(lp);
+    osc.start(start);
+    osc.stop(start + attack + release + 0.05);
+  }
+
+  // A sub an octave down under the bass, once the speakers of the era could reproduce it — and
+  // only where the bass is high enough that an octave below it is still a note rather than a
+  // rumble competing with the kick.
+  if (note.role === 'bass' && voice.voices > 1 && note.freq > 70) {
+    const sub = ctx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(note.freq / 2, start);
+    const sg = ctx.createGain();
+    sg.gain.setValueAtTime(0.0001, start);
+    sg.gain.exponentialRampToValueAtTime(note.gain * 0.4, start + attack);
+    sg.gain.exponentialRampToValueAtTime(0.0001, start + attack + release);
+    sub.connect(sg);
+    sg.connect(rig.out);
+    sub.start(start);
+    sub.stop(start + attack + release + 0.05);
+  }
+
   g.connect(rig.out);
   if (rig.echo && note.role !== 'bass') g.connect(rig.echo);
-
-  osc.start(start);
-  osc.stop(start + attack + release + 0.05);
 }
 
 export function playBar(rig: Rig, voice: EraVoice, notes: Note[], when: number): void {
@@ -136,7 +220,13 @@ export async function renderPiece(
 
   const master = ctx.createGain();
   master.gain.value = 0.9;
-  master.connect(ctx.destination);
+  const squash = ctx.createDynamicsCompressor();
+  squash.threshold.value = -18;
+  squash.ratio.value = 3;
+  squash.attack.value = 0.01;
+  squash.release.value = 0.25;
+  master.connect(squash);
+  squash.connect(ctx.destination);
   const rig = buildRig(ctx, master, voice);
   startFloor(rig, voice, 0, length);
 

@@ -51,6 +51,17 @@ export interface EraVoice {
   floor: number;
   /** How loud this era is allowed to be overall. */
   mix: number;
+  /**
+   * The rhythm section, which is what stops the late acts reading as silence. `pulse` is how
+   * much of a beat the era keeps, `arp` how much figuration runs over the top, and `voices` how
+   * many detuned oscillators each sustained note is built from — one is a signal generator,
+   * three is a synthesiser.
+   */
+  pulse: number;
+  arp: number;
+  voices: number;
+  /** Cutoff the per-note filter opens to, as a multiple of the note. Movement, not brightness. */
+  open: number;
 }
 
 /**
@@ -71,6 +82,10 @@ export const ERA_VOICES: Record<string, EraVoice> = {
     drift: 4,
     floor: 0.05,
     mix: 0.72,
+    pulse: 0.35,
+    arp: 0.1,
+    voices: 1,
+    open: 3,
   },
   phosphor: {
     id: 'phosphor',
@@ -85,6 +100,10 @@ export const ERA_VOICES: Record<string, EraVoice> = {
     drift: 9,
     floor: 0.035,
     mix: 0.8,
+    pulse: 0.3,
+    arp: 0.25,
+    voices: 2,
+    open: 4,
   },
   cga: {
     id: 'cga',
@@ -99,6 +118,10 @@ export const ERA_VOICES: Record<string, EraVoice> = {
     drift: 0,
     floor: 0.012,
     mix: 0.78,
+    pulse: 0.85,
+    arp: 0.8,
+    voices: 1,
+    open: 6,
   },
   web: {
     id: 'web',
@@ -113,6 +136,10 @@ export const ERA_VOICES: Record<string, EraVoice> = {
     drift: 14,
     floor: 0.02,
     mix: 0.8,
+    pulse: 0.7,
+    arp: 0.5,
+    voices: 2,
+    open: 5,
   },
   glass: {
     id: 'glass',
@@ -127,6 +154,10 @@ export const ERA_VOICES: Record<string, EraVoice> = {
     drift: 5,
     floor: 0.01,
     mix: 0.82,
+    pulse: 0.75,
+    arp: 0.45,
+    voices: 3,
+    open: 7,
   },
   ambient: {
     id: 'ambient',
@@ -140,7 +171,11 @@ export const ERA_VOICES: Record<string, EraVoice> = {
     sustain: 2.6,
     drift: 3,
     floor: 0.006,
-    mix: 0.76,
+    mix: 0.82,
+    pulse: 0.6,
+    arp: 0.5,
+    voices: 3,
+    open: 8,
   },
   lucid: {
     // Barely a piece of music. The act refuses to name a device; the score refuses an instrument.
@@ -154,8 +189,12 @@ export const ERA_VOICES: Record<string, EraVoice> = {
     echo: [0.7, 0.5],
     sustain: 3.4,
     drift: 1,
-    floor: 0.003,
-    mix: 0.6,
+    floor: 0.004,
+    mix: 0.78,
+    pulse: 0.4,
+    arp: 0.35,
+    voices: 3,
+    open: 9,
   },
 };
 
@@ -215,22 +254,60 @@ function hz(voice: EraVoice, semitones: number, centsOff = 0): number {
  * Compose one bar. Deterministic in (seed, bar, era, school), so the same century replays to the
  * same music and an offline render matches what the player heard.
  */
+/**
+ * Where the harmony goes over four bars. One per school, because the shape of a progression is
+ * itself a position: symbolic resolves, substrate barely moves, collective refuses to go
+ * anywhere and repeats until you notice something else has changed.
+ */
+const PROGRESSIONS: Record<FamilyId, number[]> = {
+  symbolic: [0, 4, -3, 0],
+  connectionist: [0, 2, 5, 3],
+  statistical: [0, -2, 3, -4],
+  evolutionary: [0, 3, 1, 4],
+  collective: [0, 0, 4, 4],
+  cybernetic: [0, -1, 2, -3],
+  substrate: [0, 1, 0, -1],
+  bridge: [0, 4, 2, 5],
+};
+
 export function composeBar(p: ScoreParams): Note[] {
   const voice = eraVoice(p.era);
   const mode = MODES[p.school];
   const rc = cursor(hashString(`${p.era}:${p.school}:${p.seed}:${p.bar}`));
   const step = barSeconds(voice) / 8;
 
+  /*
+   * Phrase structure, which is the whole answer to sounding like a loop.
+   *
+   * A bar is four beats; four bars are a phrase; four phrases are a section. The harmony moves
+   * every bar, the register and density move every phrase, and the mode itself rotates every
+   * section, so the earliest a listener can hear the same material twice is sixteen bars — by
+   * which point the run has usually moved on and changed the parameters anyway.
+   */
+  const phrase = Math.floor(p.bar / 4);
+  const inPhrase = p.bar % 4;
+  const section = Math.floor(phrase / 4);
+  const pc = cursor(hashString(`phrase:${p.era}:${p.school}:${p.seed}:${phrase}`));
+  const sc = cursor(hashString(`section:${p.school}:${p.seed}:${section}`));
+
+  const register = 12 * int(pc, -1, 1);
+  const lift = range(pc, 0.78, 1.22);
+  const rotate = int(sc, 0, mode.length - 1);
+  const last = inPhrase === 3;
+
   // A winter takes the ornament first and the bass last, and the field comes back thin.
-  const density = Math.max(0.25, (p.winter ? 0.4 : 1) * (0.55 + p.hold * 0.45));
+  const density = Math.max(0.25, (p.winter ? 0.4 : 1) * (0.55 + p.hold * 0.45) * lift);
   const notes: Note[] = [];
 
   const push = (n: Note) => {
     if (Number.isFinite(n.freq) && n.freq > 20 && n.freq < 12000 && n.dur > 0) notes.push(n);
   };
 
+  // The root walks a progression rather than flipping between two values, which is most of the
+  // difference between a piece of music and a test tone with opinions.
+  const tonic = degree(mode, PROGRESSIONS[p.school][phrase % 4]! + rotate) + register;
+
   // The bass is the one voice every school keeps, so the century always has a floor.
-  const tonic = p.bar % 4 < 2 ? 0 : p.school === 'substrate' ? 2 : -3;
   push({
     at: 0,
     freq: hz(voice, degree(mode, 0) + tonic - 12),
@@ -240,6 +317,8 @@ export function composeBar(p: ScoreParams): Note[] {
   });
 
   COMPOSERS[p.school](push, { p, voice, mode, rc, step, tonic, density });
+  rhythm(push, { p, voice, mode, rc, step, tonic, density }, last);
+  figuration(push, { p, voice, mode, rc, step, tonic, density });
 
   // Strain does not change the notes; it detunes what is already there. An overpromised field
   // plays the same piece slightly out of tune with itself, which is the sound of getting away
@@ -490,3 +569,74 @@ const COMPOSERS: Record<FamilyId, Composer> = {
     }
   },
 };
+
+/**
+ * The beat. Owned by the era rather than the school, because a rhythm section is a property of
+ * the machines available to make one: relay chatter in 1954, a hard square kick in 1986, a sub
+ * and a shaker by 2030. The last bar of a phrase gets a fill, which is the cheapest way to make
+ * four bars sound like a sentence rather than a loop.
+ */
+function rhythm(push: (n: Note) => void, c: Ctx, last: boolean): void {
+  const { p, voice, step, density, rc } = c;
+  if (voice.pulse <= 0.02 || p.winter) return;
+
+  const beats = voice.pulse > 0.6 ? [0, 2, 4, 6] : [0, 4];
+  // Floored at 48 Hz. The late eras tune low enough that half the root is under what a laptop
+  // can reproduce, so the kick vanishes and leaves only the mud it was sitting on.
+  const kick = Math.max(48, voice.root * 0.5);
+  for (const i of beats) {
+    push({
+      at: i * step,
+      freq: kick,
+      dur: step * 0.5,
+      gain: 0.42 * voice.pulse * density,
+      role: 'perc',
+    });
+  }
+  // Off-beats arrive only once the era can afford them, and thin out when the school is not
+  // holding much of the field.
+  if (voice.pulse > 0.5) {
+    for (let i = 1; i < 8; i += 2) {
+      if (!chance(rc, 0.35 + p.hold * 0.4)) continue;
+      push({ at: i * step, freq: voice.root * 8, dur: step * 0.22, gain: 0.14 * voice.pulse * density, role: 'perc' });
+    }
+  }
+  if (last) {
+    const n = int(rc, 2, 4);
+    for (let i = 0; i < n; i++) {
+      push({
+        at: (8 - n + i) * step,
+        freq: voice.root * (0.5 + i * 0.35),
+        dur: step * 0.3,
+        gain: (0.2 + i * 0.05) * voice.pulse * density,
+        role: 'perc',
+      });
+    }
+  }
+}
+
+/**
+ * Figuration: an arpeggio over whatever the harmony currently is. This is the layer that makes
+ * the last two acts audible — they are slow and sparse by design, and a slow sparse piece with
+ * nothing moving in it is indistinguishable from the music being broken, which is exactly what
+ * it was mistaken for.
+ */
+function figuration(push: (n: Note) => void, c: Ctx): void {
+  const { p, voice, mode, rc, step, tonic, density } = c;
+  if (voice.arp <= 0.02 || p.winter) return;
+
+  const shape = [0, 2, 4, 6, 4, 2];
+  const octave = voice.arp > 0.6 ? 12 : 0;
+  const stride = voice.arp > 0.6 ? 1 : 2;
+  for (let i = 0; i < 8; i += stride) {
+    if (!chance(rc, voice.arp)) continue;
+    const d = shape[(i + p.bar) % shape.length]!;
+    push({
+      at: i * step,
+      freq: hz(voice, degree(mode, d) + tonic + octave, range(rc, -4, 4)),
+      dur: step * (voice.arp > 0.6 ? 0.5 : 1.4),
+      gain: 0.16 * (0.6 + voice.arp * 0.6) * density,
+      role: 'counter',
+    });
+  }
+}

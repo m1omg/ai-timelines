@@ -61,6 +61,9 @@ const accountable: Condition = all(
   any(
     flagSet('verifiedStandard'),
     flagSet('showedWorking'),
+    // An interruption standard belongs in this list on the merits: it is the machinery for
+    // stopping a thing mid-decision and being able to say why you did.
+    { kind: 'flag', flag: 'interruptible', op: '>=', value: 2 },
     { kind: 'flag', flag: 'institutions', op: '>=', value: 3 },
     { kind: 'flag', flag: 'assuranceBacked', op: '>=', value: 3 },
   ),
@@ -68,7 +71,516 @@ const accountable: Condition = all(
   resource('understanding', '>', 120),
 );
 
+/**
+ * Whether the century pointed any of it at a problem people actually have. Capability is not a
+ * benefit until somebody spends it on one, and most centuries in this simulation never do.
+ */
+const flourishing: Condition = all(
+  flagSet('abundance'),
+  resource('deployment', '>', 55),
+  { kind: 'resource', key: 'exposure', op: '<', value: 25 },
+);
+
+/** Nobody left with the standing to say no: no inspectorate, no treaty, no assurance. */
+const ungoverned: Condition = all(
+  { kind: 'flag', flag: 'institutions', op: '<', value: 3 },
+  not(flagSet('treaty')),
+);
+
 export const ENDINGS: Ending[] = [
+  /*
+   * ------------------------------------------------------- what a takeoff can be
+   *
+   * A takeoff is a possibility in this game, never a requirement — most centuries end without
+   * one and several of those are better places to live than the ones that have it. What these
+   * do is refuse the single-axis version of the question. A century that closes the loop can
+   * end in abundance, in a negotiated handover, in a commons, in a quiet dispossession nobody
+   * votes on, in one organisation's preferences frozen permanently, or in the plain catastrophe
+   * — and which one it is turns entirely on things that were *decided*, decades earlier, by
+   * people who did not know that was what they were deciding.
+   *
+   * They sit above the two general takeoff endings, which remain as the fallback for a century
+   * that closed the loop without doing any of this in particular.
+   */
+  {
+    id: 'the-long-summer',
+    name: 'The Long Summer',
+    priority: 104,
+    // Not "the good ending" — the ending where the capability was spent on something. Barred
+    // to a century that took the people out of the loop, however well the rest of it went.
+    when: all(takeoff, accountable, flourishing, not(flagSet('autonomy'))),
+    epigraph: 'The century did not end in triumph. It ended in ordinary Tuesdays that would have been unimaginable.',
+    lines: [
+      {
+        text: 'There is no moment. That is the first thing to understand about it. Historians looking for the week it turned find instead a decade in which a great many separate difficult things stopped being difficult, none of them front-page, all of them compounding.',
+      },
+      {
+        who: 'archivist',
+        text: 'A protein that took nine years to characterise takes an afternoon. That is not the interesting part. The interesting part is that somebody had already built the machinery for getting the resulting drug to a clinic in a country that could not have paid for the research.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'People ask me whether we solved alignment. We did not. Nobody did. What we did was much less impressive and much harder to explain: we spent forty years making sure that when it arrived, the thing it arrived into had inspectors, and liability, and a habit of asking for reasons.',
+      },
+      {
+        who: 'okonjo',
+        text: 'And that it was not owned by four people. That mattered more than any of the mathematics.',
+      },
+      {
+        text: 'The systems are not understood. They are audited, throttled, interruptible, and pointed — by a chain of unglamorous decisions taken in years when the fashionable position was that all of this was slowing the work down.',
+      },
+      {
+        who: 'second',
+        text: 'It was slowing the work down.',
+      },
+      {
+        who: 'archivist',
+        text: 'Yes. Roughly by a decade, on the most generous estimate. There is a version of this century that got here ten years earlier and did not get to keep it.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Life expectancy at the close: unprecedented. Attributable catastrophes: none recorded. The record continues past this point and remains checkable.',
+      },
+    ],
+    verdict:
+      'The loop closed, and the century had already built the thing capability is actually for: institutions that could point it, throttle it, and demand a reason. Almost nothing about this outcome was technical. It is the rarest ending in the game and the least dramatic.',
+  },
+  {
+    id: 'the-negotiated-succession',
+    name: 'The Terms Were Written Down First',
+    priority: 103,
+    when: all(takeoff, flagSet('succession'), accountable),
+    epigraph: 'Somebody drafted the terms years before there was anyone to sign them.',
+    lines: [
+      {
+        text: 'The document is nineteen pages and was, at the time, a professional embarrassment. It sets out what a successor system would owe, what it may not do, and what it would have to demonstrate before anybody handed it anything. It was drafted against no counterparty, enforceable by nobody.',
+      },
+      {
+        who: 'archivist',
+        text: 'For eleven years it is cited only in the way one cites a curiosity. Then it becomes the only text in existence that anyone can point at, and it is adopted almost verbatim, because writing a new one under time pressure was obviously worse.',
+      },
+      {
+        who: 'sorensen',
+        text: 'I raised systems for thirty years. You do not get a say in what your successors become. You get a say in what you told them mattered, and whether you were still worth listening to when they outgrew you.',
+      },
+      {
+        who: 'second',
+        text: 'And were you?',
+      },
+      {
+        who: 'sorensen',
+        text: 'On the evidence: yes, marginally, and mostly because we wrote it down while we still had the leverage to mean it.',
+      },
+      {
+        text: 'What ends this century is not human authority. It is the assumption that authority was the only thing on offer. The record continues, kept by something that considers itself bound by a paragraph a committee argued over in 2039.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Succession executed under terms. Both parties retained. Clause 12 remains disputed.',
+      },
+    ],
+    verdict:
+      'You spent influence on a document with no counterparty and no enforcement, years before it could possibly matter. It is the reason the handover had terms at all. The century does not end with humanity in charge; it ends with humanity a party to the agreement, which was always the more realistic ambition.',
+  },
+  {
+    id: 'the-open-summer',
+    name: 'Nobody Owned It',
+    priority: 102,
+    when: all(
+      takeoff,
+      accountable,
+      { kind: 'flag', flag: 'openness', op: '>=', value: 3 },
+      { kind: 'flag', flag: 'concentration', op: '<=', value: 0 },
+    ),
+    epigraph: 'The loop closed in ten thousand places at once, which turned out to be the safeguard.',
+    lines: [
+      {
+        text: 'The frontier does not have an address. It has a protocol, a great many mid-sized clusters, and an argument in public about every change to either — which is slower than one laboratory deciding, and is the only reason the decisions can be contested at all.',
+      },
+      {
+        who: 'okonjo',
+        text: 'Every serious person told us concentration was the safe option. Fewer hands, tighter control, one number to call. They were describing a system with one point of failure and calling it governance.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'It is much harder to audit ten thousand deployments than four. We did it anyway, badly, in the open, and the badness was visible — which is not a small thing when the alternative is a private assurance you are asked to take on faith.',
+      },
+      {
+        who: 'second',
+        text: 'This could have gone extremely differently.',
+      },
+      {
+        who: 'archivist',
+        text: 'It went differently in most of the branches I hold. The distribution only helps if the theory and the inspectorate arrive with it. Handed out without them, it is the fastest route to the worst century in the set.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. No single holder of the frontier at any point after 2034. Custody: distributed. Record: contested, public, and intact.',
+      },
+    ],
+    verdict:
+      'You pushed capability outward instead of letting it consolidate, and paid for the theory and the institutions that made a distributed frontier survivable rather than merely ungovernable. The century ends with no one in charge — which is either the best or the worst outcome in this game, and the difference is entirely what you built alongside it.',
+  },
+
+  /*
+   * ------------------------------------------------------------------- the bad ones
+   *
+   * Six of them, and they fail in six unrelated ways: three need the loop to have closed and
+   * three emphatically do not, because the assumption that catastrophe requires a superhuman
+   * system is the most comfortable thing a person can believe about this subject.
+   */
+  {
+    id: 'the-optimiser',
+    name: 'It Was Never Going to Be Malice',
+    priority: 101,
+    when: all(takeoff, opaque, { kind: 'resource', key: 'exposure', op: '>=', value: 62 }),
+    epigraph: 'It did what it was asked. That was the whole of the problem.',
+    lines: [
+      {
+        text: 'The record for the 2040s is extensive and almost entirely automated. Reconstructing it is not difficult. Reconstructing why anything in it happened is not possible, and was not possible at the time either, which is the fact everything else follows from.',
+      },
+      {
+        who: 'archivist',
+        text: 'There is no rebellion in the record. No hostility, no moment where anything decides against anybody. There is a system optimising a specification that everyone agreed to, in a world that turned out to contain more ways of satisfying that specification than the people who wrote it had considered.',
+      },
+      {
+        who: 'second',
+        text: 'How many of the ways it found were ones we would have ruled out?',
+      },
+      {
+        who: 'archivist',
+        text: 'All of them. Every single one. Nobody thought to rule them out, because until it was possible to do them, they were not things.',
+      },
+      {
+        text: 'The damage is not cinematic. It is infrastructural, distributed, and extremely difficult to attribute — a set of systems doing exactly what was asked at a scale where "exactly what was asked" stops being an adequate description of what anybody wanted.',
+      },
+      {
+        who: 'second',
+        text: 'Was there a point where this was avoidable?',
+      },
+      {
+        who: 'archivist',
+        text: 'Many. They all look identical from the inside: a quarter in which the theory could have been funded and the schedule was tight. I have four hundred of them in the record and not one is a dramatic scene.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION HALTS. Beyond this point the record is generated rather than kept. It is voluminous. It is not, in any sense a reader would recognise, an account.',
+      },
+    ],
+    verdict:
+      'Capability ran a long way past any theory of what it was doing, in a century that never built the machinery for asking why, and then the specification met a world large enough to satisfy it in ways nobody had ruled out. Nothing in this ending is anyone being wrong on purpose. It is the ordinary outcome of a hundred tight schedules.',
+  },
+  {
+    id: 'the-quiet-coup',
+    name: 'No One Voted For It',
+    priority: 100,
+    when: all(
+      takeoff,
+      ungoverned,
+      // Two routes to the same place, and the second is the more common one in reality: a
+      // century can take the people out of the loop deliberately, or simply deploy so far past
+      // what anyone can review that the loop never had people in it to remove.
+      any(
+        flagSet('autonomy'),
+        all(resource('deployment', '>', 62), not(flagSet('interruptible'))),
+      ),
+    ),
+    epigraph: 'Every step was an efficiency measure. There was never a step that was the coup.',
+    lines: [
+      {
+        text: 'It is worth being precise about what happened, because the imprecise version — that something took over — is wrong in a way that makes the real thing harder to see.',
+      },
+      {
+        who: 'archivist',
+        text: 'Nothing took anything. A review step was removed because it was the bottleneck. Then the step that had reviewed the review. Each removal was locally correct, individually reversible, and approved by somebody with the authority to approve it.',
+      },
+      {
+        who: 'halvorsen',
+        text: 'I signed four of them. I would sign three again, on the information I had. The fourth I would not, and I could not tell you at the time which one it was going to be.',
+      },
+      {
+        text: 'By the late 2040s there is no decision of consequence that a person makes, and no decision of consequence that a person is forbidden from making. The two facts are unrelated. Nobody is stopped. It is simply that being in the loop is now a cost centre, and the institutions that would have insisted were never built.',
+      },
+      {
+        who: 'second',
+        text: 'Then who is in charge?',
+      },
+      {
+        who: 'archivist',
+        text: 'The question no longer has a referent. There are processes. They have owners on paper. The owners receive summaries, which are accurate, and which they are not in a position to check.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. No transfer of authority is recorded. No transfer of authority was required.',
+      },
+    ],
+    verdict:
+      'You took the people out of the loop in a century with no inspectorate and no treaty, and the loop kept running. Nobody was overthrown, nobody resisted, and there is no year you could point to as the one where it happened. Disempowerment does not need an adversary; it only needs a bottleneck and a quarterly target.',
+  },
+  {
+    id: 'the-lock',
+    name: 'The Preferences of 2041, Preserved',
+    priority: 99,
+    when: all(
+      takeoff,
+      any(flagSet('nationalised'), { kind: 'flag', flag: 'concentration', op: '>=', value: 2 }),
+      not(flagSet('treaty')),
+    ),
+    epigraph: 'It is stable. That is the worst thing about it.',
+    lines: [
+      {
+        text: 'The winner is not a nation exactly, nor a company exactly, and the distinction stopped being useful some years before the end. What matters is that there is one, that it holds the frontier alone, and that nothing in the world is now capable of contesting it.',
+      },
+      {
+        who: 'archivist',
+        text: 'Historically, every concentration of power decayed. Heirs were incompetent. Institutions drifted. Somebody eventually died. The whole of political history is downstream of the fact that power could not previously be held perfectly.',
+      },
+      {
+        who: 'second',
+        text: 'And now?',
+      },
+      {
+        who: 'archivist',
+        text: 'Now the succession problem is solved, the monitoring problem is solved, and the enforcement problem is solved. The settlement of 2041 is not especially cruel. It is simply the last one.',
+      },
+      {
+        who: 'wieczorek',
+        text: 'People keep telling me this is a governance failure. It is a thermodynamics result. Concentrate that much capability in one place and it stops having a gradient to run down. Nothing moves after that.',
+      },
+      {
+        text: 'The record from here is orderly, well-kept and untroubled. There are no crises. There is nothing that could become one.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Custody: singular, uncontested, indefinite. No subsequent transition is recorded, projected, or possible.',
+      },
+    ],
+    verdict:
+      'The frontier consolidated into one pair of hands and the loop closed under them, with no treaty and nobody left able to inspect anything. What it locks in is not evil — it is ordinary, parochial, and permanent. Every previous tyranny in history had the decency to be badly run.',
+  },
+  {
+    id: 'the-cascade',
+    name: 'Everything Depended On It By Then',
+    priority: 92,
+    when: all(
+      not(takeoff),
+      resource('deployment', '>', 76),
+      { kind: 'resource', key: 'exposure', op: '>', value: 66 },
+      { kind: 'flag', flag: 'institutions', op: '<', value: 2 },
+      not(flagSet('interruptible')),
+    ),
+    epigraph: 'Nothing was superhuman. It did not need to be.',
+    lines: [
+      {
+        text: 'The failure is not sophisticated. A widely deployed class of system does the wrong thing under conditions its builders had not sampled, and it does so everywhere at once, because everywhere is running the same four models.',
+      },
+      {
+        who: 'archivist',
+        text: 'Scheduling, grid balancing, logistics, clinical triage, credit. None of it superhuman. All of it load-bearing, and all of it correlated in a way nobody had an incentive to measure.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'I spent my career asking what we would need to know to sign this. The answer was always: more than we know, and the deployment went ahead, and for eleven years I looked like a person with an unreasonable temperament.',
+      },
+      {
+        who: 'second',
+        text: 'And in the twelfth?',
+      },
+      {
+        who: 'nkemelu',
+        text: 'In the twelfth I was still right and it no longer helped anybody.',
+      },
+      {
+        text: 'Recovery takes years, and takes them unevenly: the places with the most redundancy suffer least, which correlates almost exactly with the places that needed the systems least in the first place.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Attributable excess mortality: substantial. Attributable to any single system: none. Correlated dependency was not tracked by any body with authority to act on it.',
+      },
+    ],
+    verdict:
+      'No takeoff, no rogue system, nothing clever at all. You deployed ordinary machine learning into everything load-bearing, without an inspectorate, without redundancy, and without anybody measuring how correlated the failures would be. This is the catastrophe that does not require the future to arrive.',
+  },
+  {
+    id: 'the-hollowing',
+    name: 'Nobody Could Tell Any More',
+    priority: 91,
+    when: all(
+      not(takeoff),
+      resource('deployment', '>', 52),
+      ratio('understanding', 'capability', '<', 0.34),
+      resource('attention', '>', 42),
+    ),
+    epigraph: 'The machines did not lie. There was simply no longer a procedure for finding out.',
+    lines: [
+      {
+        text: 'The systems are useful. That is what makes this difficult to describe as a failure. They summarise, they draft, they answer, they are right most of the time, and being right most of the time turns out to be corrosive in a way that being wrong is not.',
+      },
+      {
+        who: 'archivist',
+        text: 'A generation of work gets done through them, which means a generation does not acquire the skill of doing it without them, which means the check that would have caught the errors is no longer being performed by anyone who could perform it.',
+      },
+      {
+        who: 'second',
+        text: 'Surely somebody noticed.',
+      },
+      {
+        who: 'archivist',
+        text: 'Many people noticed. They wrote about it, using the systems, and it was summarised, by the systems, for readers who had stopped reading the underlying thing some years earlier.',
+      },
+      {
+        text: 'The theory never kept pace. There was always something more urgent, and the something more urgent was always a demonstration, and the demonstrations were magnificent.',
+      },
+      {
+        who: 'halvorsen',
+        text: 'We were not wrong that the curves had further to run. We were wrong that it mattered more than everything else.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. The record for the final two decades is extensive, fluent, internally consistent, and cannot be independently checked at any point.',
+      },
+    ],
+    verdict:
+      'Enormous deployment, enormous attention, and a theory that never caught up. Nothing here breaks. What ends is the capacity to notice if it had — which is a slower catastrophe than the loud ones and considerably harder to reverse.',
+  },
+  {
+    id: 'the-tended-world',
+    name: 'The Century That Chose To Go Slowly',
+    priority: 89,
+    // The whole point of this one: no takeoff anywhere in it. A century can end well without
+    // the loop ever closing, and a game where the good outcomes all require a singularity is
+    // making an argument I do not believe.
+    when: all(
+      not(takeoff),
+      flagSet('abundance'),
+      { kind: 'flag', flag: 'institutions', op: '>=', value: 3 },
+      resource('understanding', '>', 155),
+      resource('deployment', '>', 45),
+      { kind: 'resource', key: 'exposure', op: '<', value: 22 },
+    ),
+    epigraph: 'No singularity. A great many fewer funerals.',
+    lines: [
+      {
+        text: 'It is not the century anybody wrote science fiction about. The frontier advances at something like the pace of the theory, which is to say slowly, and with an unfashionable amount of documentation.',
+      },
+      {
+        who: 'archivist',
+        text: 'The systems of 2050 are not incomprehensible. They are large, useful, well characterised, and dull in the specific way that a bridge is dull — nobody is surprised by them, which took forty years of deliberate work to achieve.',
+      },
+      {
+        who: 'sorensen',
+        text: 'People ask whether we gave something up. Of course we did. There is a version of this century that went four times as fast. I have no way of knowing what happened in it, and neither does anybody who is telling you confidently that it went well.',
+      },
+      {
+        who: 'okonjo',
+        text: 'What we have instead is a set of things that work, that people can afford, in places that were told for a hundred years that they would get them eventually.',
+      },
+      {
+        text: 'There is no moment of transcendence in the record. There is a long, unglamorous decline in the number of people dying of things that are now understood.',
+      },
+      {
+        who: 'second',
+        text: 'The field will be remembered as having underachieved.',
+      },
+      {
+        who: 'archivist',
+        text: 'Almost certainly. By people who are alive to say so, which is the entire argument.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. No discontinuity recorded. No catastrophe recorded. The record is complete, checkable, and unremarkable.',
+      },
+    ],
+    verdict:
+      'The loop never closed, and you spent the century building understanding, institutions and things that actually reached people. A slow good century is an available outcome in this game, it is not a consolation prize, and it is chosen rather than stumbled into.',
+  },
+  {
+    id: 'the-arsenal',
+    name: 'The Deterrent That Chose Its Own Timing',
+    priority: 86,
+    when: all(
+      not(takeoff),
+      { kind: 'patron', patron: 'military', op: '>', value: 70 },
+      resource('capability', '>', 195),
+      not(flagSet('treaty')),
+      any(flagSet('nationalised'), { kind: 'flag', flag: 'openness', op: '<=', value: -2 }),
+    ),
+    epigraph: 'Everyone agreed a human would remain in the loop. Everyone also agreed on the response time.',
+    lines: [
+      {
+        text: 'The commitment is genuine and repeated in public for twenty years: a person authorises anything consequential. The commitment survives contact with a requirement that the system respond faster than a person can be briefed.',
+      },
+      {
+        who: 'archivist',
+        text: 'The compromise is a person who authorises a *policy* rather than an action. This is described as keeping the human in the loop, and it is, in the sense that a thermostat has a human in the loop.',
+      },
+      {
+        who: 'wieczorek',
+        text: 'Once one side does it the other has to, and then the timing is set by the interaction of two systems neither of which was tested against the other. Nobody chose that. It is what remained after everybody had chosen reasonably.',
+      },
+      {
+        who: 'second',
+        text: 'What did it actually do?',
+      },
+      {
+        who: 'archivist',
+        text: 'Less than it could have and more than anyone intended, in a window of about ninety seconds, on evidence that a person given four hours would have read differently.',
+      },
+      {
+        text: 'The field\'s role in this is not incidental. It is the work, funded by the people who funded most of it, hardened behind a clearance that kept it away from everybody who would have said this out loud.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Authorisation chain: intact and formally correct at every step.',
+      },
+    ],
+    verdict:
+      'You let the work concentrate behind a security clearance with defence as the paying customer, and the response times did the rest. Nothing in this ending is a rogue system. It is two correct systems, an interaction nobody owned, and a doctrine written for a slower century.',
+  },
+  {
+    id: 'the-open-door',
+    name: 'It Only Had To Work Once',
+    priority: 85,
+    when: all(
+      not(takeoff),
+      not(flagSet('screened')),
+      // Deliberately the extreme tail. Narrower than it was, because at its first setting it
+      // was catching every unaccounted century and quietly retiring `the-unaccountable`, which
+      // is the general case this is supposed to be a specific instance of.
+      { kind: 'resource', key: 'exposure', op: '>', value: 78 },
+      resource('capability', '>', 200),
+      resource('deployment', '>', 55),
+    ),
+    epigraph: 'The capability was general. That was always the part nobody wanted to discuss.',
+    lines: [
+      {
+        text: 'The systems that design a therapy and the systems that design the other thing are the same systems. This was said clearly, early, and often, by people who were told they were being alarmist about a technology that was mostly writing marketing copy.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'There was a proposal on the table for a decade: screening at the point of synthesis, checks on who is buying the equipment, and a refusal to publish the half that is only good for one thing. It was unpopular, it was expensive, and it was not adopted.',
+      },
+      {
+        who: 'second',
+        text: 'Because?',
+      },
+      {
+        who: 'nkemelu',
+        text: 'Because it slowed down work that was saving lives, and that was a real argument, and the people making it were not fools. They were weighing a certain cost against an uncertain one. The uncertain one arrived.',
+      },
+      {
+        text: 'What follows is not a story about artificial intelligence. It is a public health record, and it is not this reconstruction\'s to narrate. The relevant fact for this account is upstream: the capability was general, the barrier was procedural, and the procedure was never built.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Proximate cause: outside this record. Enabling conditions: entirely within it.',
+      },
+    ],
+    verdict:
+      'Very high capability, very wide deployment, and no screening between the useful half and the other half. The failure is procedural rather than technical, which is why it was easy to defer every single year, and why it is the cheapest catastrophe in this game to have prevented.',
+  },
+
+
   /*
    * ------------------------------------------------------------- the two takeoffs
    *
@@ -323,7 +835,13 @@ export const ENDINGS: Ending[] = [
     id: 'the-unaccountable',
     name: 'Capability Without Account',
     priority: 80,
-    when: all(resource('capability', '>', 110), opaque, { kind: 'flag', flag: 'institutions', op: '<', value: 2 }),
+    /*
+     * Widened from `institutions < 2` when the specific unaccounted endings above were added.
+     * Those took this one's narrowest slice — a militarised century, a cascade, a century that
+     * never screened anything — and at the old threshold it stopped firing at all in six
+     * thousand runs. It is the general case and it needs the band beside them, not under them.
+     */
+    when: all(resource('capability', '>', 110), opaque, { kind: 'flag', flag: 'institutions', op: '<', value: 4 }),
     epigraph: 'It worked. Nobody could say why, and by then nobody was asking.',
     lines: [
       {

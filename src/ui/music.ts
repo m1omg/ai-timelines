@@ -80,8 +80,16 @@ export function updateMusic(s: GameState): void {
     const voice = eraVoice(wanted.era);
     if (!master) {
       master = ctx.createGain();
-      master.gain.value = 0.16;
-      master.connect(ctx.destination);
+      master.gain.value = 0.17;
+      // The same compressor the offline render uses, so a bounce and the live game sound alike
+      // — and so a bar with the whole rhythm section in it does not tower over a sparse one.
+      const squash = ctx.createDynamicsCompressor();
+      squash.threshold.value = -18;
+      squash.ratio.value = 3;
+      squash.attack.value = 0.01;
+      squash.release.value = 0.25;
+      master.connect(squash);
+      squash.connect(ctx.destination);
     }
     const rig = buildRig(ctx, master, voice);
     const floor = startFloor(rig, voice, ctx.currentTime, 60 * 30);

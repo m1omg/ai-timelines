@@ -209,6 +209,134 @@ export const AUTHORED_DIRECTIVES: Directive[] = [
       { kind: 'flag', flag: 'concentration', op: 'add', value: -1 },
     ],
   },
+  /*
+   * ------------------------------------------------------------------ the last quarter
+   *
+   * Late-century decisions, each of which is a fork rather than a purchase. They are cheap in
+   * influence and expensive in every other sense, and most of them are only visible for a few
+   * turns — which is the point being made about this part of the century. Every one of them
+   * sets a flag some ending reads, so what the hundred years amounts to is a consequence of
+   * things that were decided rather than a threshold that happened to be crossed.
+   */
+  {
+    id: 'interruption-standard',
+    name: 'Make interruptibility a condition of operating',
+    blurb:
+      'Not an off switch — a requirement that anything deployed can be halted mid-decision without corrupting what it was doing, and that somebody is paid to test it.',
+    cost: 6,
+    category: 'world',
+    when: all(after(2028), resource('deployment', '>', 28)),
+    effects: [
+      { kind: 'resource', key: 'exposure', op: 'add', value: -14 },
+      { kind: 'resource', key: 'understanding', op: 'add', value: 7 },
+      { kind: 'resource', key: 'deployment', op: 'add', value: -5 },
+      { kind: 'patron', patron: 'public', op: 'add', value: 7 },
+      { kind: 'flag', flag: 'interruptible', op: 'add', value: 1 },
+      { kind: 'log', text: 'A halt test becomes a condition of certification. Two vendors withdraw.', logKind: 'choice' },
+    ],
+  },
+  {
+    id: 'take-people-out',
+    name: 'Take the people out of the loop',
+    blurb:
+      'Review is the bottleneck and everyone knows it. Remove it, and the throughput of the whole field changes character overnight.',
+    cost: 5,
+    category: 'world',
+    when: all(after(2030), { kind: 'compute', op: '>', value: 25 }),
+    effects: [
+      { kind: 'resource', key: 'deployment', op: 'add', value: 16 },
+      { kind: 'resource', key: 'capability', op: 'add', value: 12 },
+      { kind: 'resource', key: 'exposure', op: 'add', value: 18 },
+      { kind: 'resource', key: 'understanding', op: 'add', value: -6 },
+      { kind: 'patron', patron: 'corporate', op: 'add', value: 10 },
+      { kind: 'flag', flag: 'autonomy', op: 'add', value: 1 },
+      { kind: 'log', text: 'The approval step is removed as an efficiency measure. Throughput triples.', logKind: 'crisis' },
+    ],
+  },
+  {
+    id: 'point-it-at-the-diseases',
+    name: 'Point the whole thing at the diseases',
+    blurb:
+      'Protein design, trial matching, the unglamorous logistics of getting a working drug to a place that cannot pay for it. Nothing here advances the frontier. It is what the frontier was for.',
+    cost: 7,
+    category: 'world',
+    when: all(after(2026), resource('capability', '>', 110)),
+    effects: [
+      { kind: 'resource', key: 'deployment', op: 'add', value: 12 },
+      { kind: 'resource', key: 'understanding', op: 'add', value: 6 },
+      { kind: 'resource', key: 'credibility', op: 'add', value: 8 },
+      { kind: 'patron', patron: 'public', op: 'add', value: 14 },
+      { kind: 'flag', flag: 'abundance', op: 'add', value: 1 },
+      { kind: 'log', text: 'A disease that killed for four thousand years stops being a thing that kills.', logKind: 'breakthrough' },
+    ],
+  },
+  {
+    id: 'screen-the-synthesis',
+    name: 'Put the dangerous half behind a door',
+    blurb:
+      'Screening at the point of synthesis, know-your-customer on the equipment, and a refusal to publish the parts that are only useful for one thing. Slower, narrower, and much harder to misuse.',
+    cost: 6,
+    category: 'world',
+    when: all(after(2028), resource('deployment', '>', 34)),
+    effects: [
+      { kind: 'resource', key: 'exposure', op: 'add', value: -19 },
+      { kind: 'resource', key: 'deployment', op: 'add', value: -6 },
+      { kind: 'resource', key: 'understanding', op: 'add', value: 3 },
+      { kind: 'patron', patron: 'corporate', op: 'add', value: -6 },
+      { kind: 'flag', flag: 'screened', op: 'add', value: 1 },
+    ],
+  },
+  {
+    id: 'nationalise-frontier',
+    name: 'Nationalise the frontier',
+    blurb:
+      'One flag over the largest cluster, and a security clearance between the work and everybody else. Whoever holds it will not be giving it back.',
+    cost: 7,
+    category: 'world',
+    when: all(after(2030), { kind: 'compute', op: '>', value: 26 }),
+    effects: [
+      { kind: 'patron', patron: 'military', op: 'add', value: 20 },
+      { kind: 'patron', patron: 'academic', op: 'add', value: -10 },
+      { kind: 'resource', key: 'deployment', op: 'add', value: -8 },
+      { kind: 'resource', key: 'exposure', op: 'add', value: 9 },
+      { kind: 'flag', flag: 'concentration', op: 'add', value: 1 },
+      { kind: 'flag', flag: 'nationalised', op: 'add', value: 1 },
+    ],
+  },
+  {
+    id: 'compute-treaty',
+    name: 'Write the treaty while anyone will still sign it',
+    blurb:
+      'Declared clusters, reciprocal inspection, a ceiling everybody hates. Historically these get signed in the eighteen months after a scare and never before.',
+    cost: 8,
+    category: 'world',
+    when: all(after(2032), { kind: 'flag', flag: 'institutions', op: '>=', value: 1 }),
+    effects: [
+      { kind: 'compute', op: 'add', value: -0.22 },
+      { kind: 'resource', key: 'exposure', op: 'add', value: -13 },
+      { kind: 'patron', patron: 'public', op: 'add', value: 11 },
+      { kind: 'patron', patron: 'military', op: 'add', value: -7 },
+      { kind: 'flag', flag: 'institutions', op: 'add', value: 1 },
+      { kind: 'flag', flag: 'treaty', op: 'add', value: 1 },
+    ],
+  },
+  {
+    id: 'terms-of-succession',
+    name: 'Draft the terms of succession',
+    blurb:
+      'On the assumption that what comes next is not us: what it owes, what it may not do, and what it would have to demonstrate before anybody hands over anything. Widely considered premature, in both directions.',
+    cost: 8,
+    category: 'field',
+    when: all(after(2036), resource('capability', '>', 210)),
+    effects: [
+      { kind: 'resource', key: 'understanding', op: 'add', value: 16 },
+      { kind: 'resource', key: 'exposure', op: 'add', value: -8 },
+      { kind: 'resource', key: 'attention', op: 'add', value: 9 },
+      { kind: 'flag', flag: 'succession', op: 'add', value: 1 },
+      { kind: 'log', text: 'A document nobody has standing to enforce is drafted anyway, and circulated.', logKind: 'choice' },
+    ],
+  },
+
   {
     id: 'listen',
     name: 'Say nothing this term — ends the term',
