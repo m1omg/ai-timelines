@@ -1,4 +1,4 @@
-import { all, any, flagSet, mature, notMature } from '../../engine/conditions';
+import { all, any, flagSet, leadFamily, mature, notMature } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -198,6 +198,10 @@ export const ACT3: Scene[] = [
       {
         who: 'archivist',
         text: 'The method is in a doctoral thesis from 1974, and a Finnish master\'s thesis from 1970, and in control theory before that. Priority in this field is a very poor guide to influence. What matters is who says it to an audience that is ready.',
+        alts: [
+          'It is in a 1974 thesis, and a 1970 master\'s thesis in Finland, and in control theory before either. What happens in 1986 is not discovery. It is arrival.',
+          'Nothing here is new except the audience. The chain rule did not change; the number of people willing to sit through it did.',
+        ],
       },
       { who: 'archivist', text: 'This audience is ready. There are thirty thousand people at the neural network conference within four years.' },
     ],
@@ -871,10 +875,65 @@ export const ACT3: Scene[] = [
     lines: [
       {
         text: 'Two thousand people in a hotel ballroom, four parallel tracks, and a poster session in which nobody can hear anybody.',
+        alts: [
+          'A ballroom with the carpet taped down over the cable runs, four tracks, and a queue for the one working demonstration terminal.',
+          'Nine hundred people, a hotel that has hosted a dental convention the week before, and a programme committee that rejected two thirds of this.',
+          'The banquet is included and nobody eats it, because the interesting argument is happening in the corridor outside room C.',
+        ],
       },
       {
         who: 'archivist',
         text: 'The field is large enough now that no individual can read all of it. That happened somewhere around 1988 and nobody announced it.',
+        alts: [
+          'Somewhere in this decade the field stopped being a thing a person could hold in their head. There was no announcement and no committee; the proceedings simply got too thick to carry.',
+          'Everyone here believes they are keeping up. Collectively they are reading perhaps a fifth of it, and the fifth each of them reads is not the same fifth.',
+          'This is the first generation that will specialise without deciding to. They will each know one corridor of the building extremely well and take the rest on trust.',
+        ],
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('symbolic'),
+        text: 'Three of the four tracks are yours, and they do not read each other either. A large school fragments along the same lines a large field does, only faster, because the disagreements are finer.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('connectionist'),
+        text: 'Your track is in the small room at the end, and it is full, which the organisers did not anticipate and have not yet drawn a conclusion from. They will.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('statistical'),
+        text: 'Half your people are not here. They are at a statistics meeting in another city, presenting the same results to an audience that asks harder questions about the error bars and no questions at all about intelligence.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('evolutionary'),
+        text: 'Yours has its own conference, in a different hotel, with its own proceedings and a certain amount of pride about not being here. Two fields, one problem, no shared bibliography.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('collective'),
+        text: 'The poster session is where your school actually lives: forty small results by forty people, none of which is a keynote and several of which are load-bearing. The programme committee has never known what to do with that.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('cybernetic'),
+        text: 'Your demonstrations are in the car park, because they have wheels and the ballroom has a carpet. More people are watching them than are in room C, and none of the organisers has registered what that means.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('substrate'),
+        text: 'Your session is downstairs with the device people, who regard this entire event as an applications track for their work and are, on the evidence of the last thirty years, not wrong.',
+      },
+      {
+        who: 'archivist',
+        when: leadFamily('bridge'),
+        text: 'Yours is the workshop on the final afternoon, opposite the closing panel, attended by the eleven people whose flights are late enough. It is the best-attended eleven-person meeting in the field.',
+      },
+      {
+        who: 'second',
+        when: { kind: 'inWinter', is: true },
+        text: 'Attendance is down a third and the badges still say the same thing. Everybody here knows who is not here.',
       },
     ],
     choices: [

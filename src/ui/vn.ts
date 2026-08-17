@@ -2,6 +2,7 @@ import { backdropSvg } from '../art/backdrops';
 import { portraitSvg, signalSvg } from '../art/portraits';
 import { CHARACTER_BY_ID } from '../content/characters';
 import { evaluate } from '../engine/conditions';
+import { wordingOf } from '../engine/wording';
 import { describeEffects, effectFamily } from '../engine/describe';
 import { recordDecision } from '../engine/directives';
 import { applyEffects } from '../engine/effects';
@@ -71,9 +72,10 @@ export function playScene(
      * after `onEnter` so the scene's own effects count, and before anything reads the list, so
      * the text cannot change under the reader mid-scene.
      */
-    const lines = scene.lines.filter((l) => evaluate(l.when, s));
+    const lines = scene.lines.filter((l) => evaluate(l.when, s)).map((l) => (l.alts?.length ? { ...l, text: wordingOf(l, scene.id, s.seed, s.turn) } : l));
 
     // Anyone who actually speaks has, by definition, been met. A line filtered out did not.
+    // (Wording is resolved above, so the rest of this function never sees the alternatives.)
     for (const line of lines) {
       if (!line.who) continue;
       const st = s.characters[line.who];

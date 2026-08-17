@@ -270,6 +270,10 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         text: 'It is a genuine empirical regularity and it is being used for something it does not support. The curves predict loss. Nothing in them says what capability appears at which loss, or whether the relationship is continuous.',
+        alts: [
+          'The regularity is real. The inference being drawn from it is not: the curves predict loss, and loss is not capability, and nothing in the mathematics connects the two.',
+          'It is a good empirical result doing work no empirical result of that shape can do. Loss falls predictably. What appears at a given loss is not in the equation.',
+        ],
       },
       {
         who: 'archivist',
@@ -876,6 +880,21 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         text: 'The measurement culture is superb and it measures one thing. That is not a criticism of the people; it is what happens when a field gets a metric that reliably goes down.',
+        alts: [
+          'A field that finds a number it can move will move that number. Everything not in the number becomes, without anyone deciding it, somebody else\'s department.',
+          'The rigour here is real and it is aimed at one axis. I have watched four schools discover the same thing: the metric you can improve is the metric that eats the research programme.',
+          'They can tell you to four decimals how much better this is than last year. Better at what remains a question the benchmark was not built to be asked.',
+        ],
+      },
+      {
+        who: 'second',
+        when: resource('understanding', '<', 60),
+        text: 'And the number nobody is plotting is whether anyone can say why it works. There is no benchmark for that, so there is no curve, so there is no meeting about it.',
+      },
+      {
+        who: 'archivist',
+        when: resource('understanding', '>', 140),
+        text: 'Unusually, this century also measures the other thing. Not as precisely, and not as often — but the interpretability results get a track of their own here, and people attend it.',
       },
     ],
     choices: [

@@ -454,6 +454,21 @@ export interface Line {
    * complementary fallback, which the linter checks.
    */
   when?: Condition;
+  /**
+   * Alternative wordings of the same line, one of which is chosen per playing.
+   *
+   * The narrator carries over half the text in the game and several of its scenes fire three or
+   * four times a century, so without this the same paragraph is read aloud on every run — which
+   * is what makes a hundred years feel like a script rather than a record. The choice is made
+   * from the run's seed, the scene, the line and the turn, so it is stable within a run and
+   * different across runs, and a replayed scene reads differently the second time.
+   *
+   * For a historical figure every alternative must be the *same documented position*, phrased
+   * for a different situation — the depiction rules do not relax because there are now three
+   * ways of saying it. Use `when` for anything that is a different claim rather than a
+   * different sentence.
+   */
+  alts?: string[];
   /** Overrides the scene backdrop from this line on. */
   backdrop?: BackdropId;
   /** Procedural sound cue id, see src/ui/audio.ts. */

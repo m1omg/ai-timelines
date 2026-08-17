@@ -36,6 +36,11 @@ export const ACT1: Scene[] = [
       {
         who: 'archivist',
         text: 'Nobody acts on the second half of that for forty years. They spend forty years arguing about the first half instead.',
+        alts: [
+          'Forty years pass before anybody takes the second half seriously. The first half becomes an industry of argument almost immediately.',
+          'The suggestion at the end is the operational one, and it sits unread while the field argues about the definition at the front. That ratio does not improve.',
+          'One half of this paper is a question people can dispute at a seminar. The other is a research programme. Guess which one gets the next four decades.',
+        ],
       },
     ],
     choices: [
@@ -225,6 +230,11 @@ export const ACT1: Scene[] = [
       {
         who: 'archivist',
         text: 'That exchange, in one form or another, is the next hundred years.',
+        alts: [
+          'You will hear that exchange again roughly every eleven years, with different vocabulary and the same two positions.',
+          'Write that down. Not because it settles anything — because nothing in the next hundred years settles it either, and people will keep believing the current round is new.',
+          'That is the argument. Everything after it is the same argument with better equipment.',
+        ],
       },
     ],
     choices: [
@@ -342,6 +352,10 @@ export const ACT1: Scene[] = [
       {
         who: 'archivist',
         text: 'This is the moment. What happens in the next ninety seconds sets the field\'s credit terms for twenty years.',
+        alts: [
+          'Ninety seconds from now the field will have a public reputation, and it will be stuck with it until roughly 1980.',
+          'Everything that gets promised in this room is borrowed against a decade that has not happened yet. Listen to the terms.',
+        ],
       },
     ],
     choices: [
@@ -741,6 +755,10 @@ export const ACT1: Scene[] = [
       {
         who: 'archivist',
         text: 'This happens roughly four thousand times a year and each one is invisible. In aggregate it is the single largest force in this simulation, and you get to touch it about twice a decade.',
+        alts: [
+          'Four thousand of these a year, none of them recorded anywhere. Together they decide the shape of the field, and you get to touch perhaps two a decade.',
+          'One supervisor, one first-year, one afternoon. Multiply by four thousand and you have the largest force in this simulation, and it appears in no minutes and no budget line.',
+        ],
       },
     ],
     choices: [
@@ -897,6 +915,10 @@ export const ACT1: Scene[] = [
       {
         who: 'archivist',
         text: 'Most of the century looks like this. The dramatic scenes are what survives into the histories; this is what actually allocates the money.',
+        alts: [
+          'This is the actual texture of a hundred years: a room, an agenda, and a decision that will be described later as inevitable.',
+          'The histories keep the demonstrations. This is where the money is actually assigned, by people who will not be named in any of them.',
+        ],
       },
     ],
     choices: [
@@ -951,10 +973,18 @@ export const ACT1: Scene[] = [
       {
         who: 'archivist',
         text: 'I want to be exact about what has just been defined, because it does not look like much. He has written down a number that measures a language, and a procedure for measuring it: predict the next symbol given everything before it, and score yourself on how surprised you were.',
+        alts: [
+          'Attend to this one, because it looks like a party trick and it is the foundation of half of what comes later.',
+          'This will be filed under communications engineering and ignored by everybody in this field for thirty years. It is the most consequential thing in the room.',
+        ],
       },
       {
         who: 'archivist',
         text: 'Every system this century calls a language model is trained by minimising that quantity, and reports it under another name. The objective was set in 1951, by hand, with a pencil, by a man who thought he was working on telephones. What was left was seventy years of finding a better instrument than his wife.',
+        alts: [
+          'The quantity he has just written down is the training objective of every language model this century builds. They will call it something else and cite other people.',
+          'Half of the machinery of the 2020s is an industrial-scale attack on this number. Nobody doing it will describe their work as information theory.',
+        ],
       },
     ],
     choices: [

@@ -152,6 +152,32 @@ export const ACT2: Scene[] = [
       {
         who: 'archivist',
         text: 'The field responds by beating him at chess and treating that as a refutation. It is not a refutation of anything he said, and the fact that everyone treated it as one is more interesting than the chess.',
+        alts: [
+          'He is answered with a chess result, which addresses none of his argument, and the field considers the matter closed for about twenty years.',
+          'Nobody engages the claim. They beat him at a board game and file it as a rebuttal, and the filing is the interesting part.',
+        ],
+      },
+      {
+        who: 'dreyfus',
+        /*
+         * Gated on what the field is building rather than on which school leads. His documented
+         * objection is to competence-as-rule-following, so it has something to say about a field
+         * that learns its representations and a field that writes more rules — and nothing in
+         * particular to say about a century led by swarm robotics or photonics. Using
+         * `leadFamily` here would have obliged him to address all eight, which is the rule the
+         * coherence test enforces, and the honest way to satisfy it is not to pretend he had a
+         * position on every one of them.
+         */
+        when: mature('backprop'),
+        // Same position, different target: his objection was to competence as rule-following,
+        // and a field already moving to learned representations is abandoning that premise
+        // without ever answering the argument for it.
+        text: 'I notice your field is quietly giving up the assumption rather than defending it. Learning the representation instead of writing it down concedes my point, and I would like somebody to say so out loud, once.',
+      },
+      {
+        who: 'dreyfus',
+        when: all(mature('expert-systems'), notMature('backprop')),
+        text: 'You have built more of it, faster, and every additional rule is another commitment to the thing I am telling you is the error. Scale is not an answer to a category mistake.',
       },
       {
         who: 'archivist',
@@ -394,6 +420,10 @@ export const ACT2: Scene[] = [
       {
         who: 'archivist',
         text: 'This is what it looks like from inside. Not an argument being lost — a hiring freeze, and a lease not renewed, and a supervisor telling a first-year student to switch topic before it is too late.',
+        alts: [
+          'From the inside it is not an argument at all. It is a hiring freeze, a lease not renewed, and a supervisor advising a student to change topic while there is still time.',
+          'Nobody in this room is conceding anything intellectually. They are cancelling a post and declining to renew a grant, which does the same work more slowly and cannot be replied to.',
+        ],
       },
       {
         who: 'archivist',
@@ -440,14 +470,26 @@ export const ACT2: Scene[] = [
       {
         who: 'archivist',
         text: 'Something has not happened, and I want to note it, because an absence is easy to miss.',
+        alts: [
+          'I want to record a thing that did not occur, which is the hardest kind of entry to make and the easiest to skip.',
+          'Nothing happened this term. I am logging it anyway, because in most branches something did.',
+        ],
       },
       {
         who: 'archivist',
         text: 'In most of the branches I hold, the money leaves around now. The promises made in 1958 come due, there is nothing to show, and a generation is lost.',
+        alts: [
+          'Around this year, in most branches, the funding goes. The promises of 1958 come due and there is a demonstration and a shortfall and a committee.',
+          'This is where it usually breaks. The bill for the confident decade arrives, and the field discovers what its word was worth.',
+        ],
       },
       {
         who: 'archivist',
         text: 'It has not happened here. Either you were careful about what the field said in public, or you delivered something real early enough to cover the debt. Either way the field enters the eighties with its credit intact, which almost nobody manages.',
+        alts: [
+          'Not here, though. Either the field\'s public arithmetic stayed close to its private arithmetic, or something real shipped in time to cover it.',
+          'It did not happen in this century. I would not describe that as luck, and I would not describe it as safety either — the mechanism is still loaded.',
+        ],
       },
       { who: 'archivist', text: 'Do not get comfortable. There is another bill in about 1987.' },
     ],
@@ -914,7 +956,14 @@ export const ACT2: Scene[] = [
       {
         text: 'A renewal decision on a programme that has produced two papers, one graduate and no demonstration in four years.',
       },
-      { who: 'archivist', text: 'You will make about sixty of these. Perhaps three will matter. You will not know which three.' },
+      {
+        who: 'archivist',
+        text: 'You will make about sixty of these. Perhaps three will matter. You will not know which three.',
+        alts: [
+          'Sixty of these across the century. Three will turn out to have mattered enormously and you will not be able to tell which until long after it is useful.',
+          'This decision will feel like paperwork. About one in twenty of them is not, and the ratio is the entire difficulty of the job.',
+        ],
+      },
     ],
     choices: [
       {

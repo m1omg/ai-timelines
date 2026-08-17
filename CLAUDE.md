@@ -92,6 +92,14 @@ the harness fails if any paradigm can never mature under any policy.
 act's own range or the linter rejects it as unfireable. Give it a `priority`; anything at 1–2
 competes with a lot and may never be picked, which the playtest will tell you.
 
+**A new line the player will see twice** — the narrator carries over half the text and several
+scenes fire three or four times in one century, so a flat line is read aloud identically on every
+run. Give it `alts` (alternative wordings of the *same* line, picked from seed + scene + turn) or
+`when` (a different claim, gated on the run). For a historical figure every alternative must be
+the same documented position phrased for a different situation — and gate them on what the field
+*built*, not on `leadFamily`, unless you are willing to write all eight: `tests/content/coherence`
+requires a scene that addresses the leading school to address whichever one it is.
+
 **A new ending** — endings resolve highest-priority-first, so a broad ending at high priority
 silently shadows every specific one below it. The linter catches unconditional endings above
 priority 0; only the playtest catches an ending that is merely *too easy*. Check its share in the

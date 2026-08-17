@@ -614,16 +614,29 @@ export const ACT6: Scene[] = [
       {
         who: 'archivist',
         text: 'The projection contains a great many of these. Infrastructure sized for an extrapolation that stopped being true. It is what a confident century leaves behind.',
+        alts: [
+          'I hold four thousand of these and no two are interesting on their own. Together they are the only honest map of what the field believed and when it stopped being right.',
+          'Every one of them was a reasonable forecast at the moment the concrete was ordered. That is what I would like you to take from the district rather than the obvious lesson about hubris.',
+          'A ruin is a forecast you can walk around inside. There are more of them in this century than in the two before it put together, which is a fact about confidence rather than about building.',
+        ],
       },
       {
         who: 'archivist',
         when: leadFamily('symbolic'),
         text: 'Yours are mostly paper. Twelve thousand rule bases, each correct inside a boundary somebody drew in a meeting, and the boundaries do not meet. The ruin of a written century is a shelf, and it takes longer to notice.',
+        alts: [
+          'Yours do not photograph. A written century collapses inward: the rules are all still there, all still correct, and the maintenance contract for the one that matters expired in a year nobody logged.',
+          'Yours is a filing problem. Every boundary was drawn deliberately by somebody competent, and the space between the boundaries was nobody\'s deliverable, which is where the whole of it went.',
+        ],
       },
       {
         who: 'archivist',
         when: leadFamily('collective'),
         text: 'Yours are stranger: nothing here was built too large, because nothing here was built by anyone in particular. What your century leaves behind is protocols nobody can switch off and nobody can quite claim.',
+        alts: [
+          'Yours has no address to visit. The oversizing happened in participation — millions of small contributions to a coordination nobody owns, still running, still coordinating something.',
+          'Yours leaves standards rather than structures. Half of them are load-bearing, none of them has a maintainer, and asking who to call about one is a question with no grammatical form.',
+        ],
       },
       {
         who: 'archivist',
@@ -634,11 +647,19 @@ export const ACT6: Scene[] = [
         who: 'archivist',
         when: leadFamily('evolutionary'),
         text: 'Yours are compute farms, and they are not abandoned so much as still running. Populations left evolving against objectives whose authors retired. Something in there is still getting better at something nobody is measuring.',
+        alts: [
+          'Yours are not ruins at all, strictly. They are unattended experiments. The power is paid by a standing order and the fitness function has outlived the department that wrote it.',
+          'Yours keep going, which is the unsettling part. A ruin that is still optimising is a category the word was not built for.',
+        ],
       },
       {
         who: 'archivist',
         when: leadFamily('connectionist'),
         text: 'Yours are the largest objects of the kind, and the only ones anybody photographs. Halls sized for a training run that was superseded before the substation was energised, with the transformers already sold on. A century that bet on the curve leaves buildings shaped exactly like the part of the curve it got wrong.',
+        alts: [
+          'Yours are visible from orbit, which is how most people know about any of this. A hall sized for one run, superseded by a method that needed a fifth of it, and the substation still humming for a load that never arrived.',
+          'Yours are the ones with the tours. People walk through the empty hall and are told a number, and the number is real, and the building is still the wrong shape for everything that came after it.',
+        ],
       },
       {
         who: 'archivist',
@@ -649,6 +670,10 @@ export const ACT6: Scene[] = [
         who: 'archivist',
         when: leadFamily('substrate'),
         text: 'Yours is the fab, and it is the most expensive ruin on this list by an order of magnitude. A process node nobody moved to, sized for a demand curve that turned out to be somebody else\'s to draw. Your school has always carried the risk for everyone else\'s confidence, and this is what that looks like from the outside.',
+        alts: [
+          'Yours cost more than every other ruin here combined, and it is a single building. Somebody had to commit four years ahead of a demand curve drawn by people with no exposure to being wrong about it.',
+          'Yours is the one the others are downstream of. A node that was correct and early, which in this industry is the same as being wrong, and the cleanroom is still under positive pressure because it is cheaper than shutting it down.',
+        ],
       },
       {
         who: 'archivist',

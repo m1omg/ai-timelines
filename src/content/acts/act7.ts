@@ -382,10 +382,29 @@ export const ACT7: Scene[] = [
     lines: [
       {
         text: 'The record, complete, in whatever passes for shelving now. A hundred years of argument, most of it wrong, all of it necessary.',
+        alts: [
+          'The record, in whatever holds a record now. A century of positions taken confidently, abandoned quietly, and taken up again by people who did not know they were repeating anybody.',
+          'Everything that was written down, and a reconstruction of a good deal that was not. It is heavier than it should be and lighter than it ought to be.',
+        ],
       },
       {
         who: 'archivist',
         text: 'People will read this and look for the moment it was decided. There is no moment. There are a great many afternoons.',
+        alts: [
+          'Every reader wants the turning point. I have looked for it in a hundred branches and what I find instead is committee minutes, four of them, in different decades, none of which knew what it was doing.',
+          'The story wants a year with a name on it. What the record holds is a long series of reasonable quarters, and the fact that reasonable quarters compound is the only lesson in here.',
+          'Somebody will draw an arrow on a chart and point at where it steepens. The steepening is real. The arrow is a thing we add afterwards, to make a hundred years survivable as a story.',
+        ],
+      },
+      {
+        who: 'second',
+        when: resource('exposure', '>', 45),
+        text: 'And a section nobody will want quoted, about what it cost while it was happening, which is in here too because leaving it out would make the rest of it an advertisement.',
+      },
+      {
+        who: 'archivist',
+        when: all(resource('understanding', '>', 150), resource('exposure', '<', 25)),
+        text: 'This particular record has something most branches do not: a chain of people who wrote down what they did not know, in the years when saying so was expensive. It is the only reason any of the rest can be trusted.',
       },
     ],
     choices: [

@@ -24,10 +24,18 @@ export const ACT4: Scene[] = [
       {
         who: 'archivist',
         text: 'This is the symbolic school\'s largest public triumph and it convinces nobody of anything. The immediate reaction, near-universal, is that chess must not have required intelligence after all.',
+        alts: [
+          'The largest public win the written tradition ever gets, and it converts precisely nobody. Watch what the field does with a victory it did not want.',
+          'A triumph that arrives eight years after the school stopped being fashionable, and is received as a curiosity about hardware.',
+        ],
       },
       {
         who: 'archivist',
         text: 'Watch that move carefully, because the field performs it repeatedly for the next fifty years. A capability is impossible, then it is achieved, then it is redefined as not having counted. Nobody ever writes down where the line was before it moved.',
+        alts: [
+          'Note the manoeuvre, because it recurs for fifty years: a capability is the mark of intelligence until a machine has it, at which point it was always mechanical.',
+          'The goalposts do not move dishonestly. They move because being beaten at a thing genuinely does teach you the thing needed less than you thought.',
+        ],
       },
       {
         who: 'archivist',
@@ -784,10 +792,30 @@ export const ACT4: Scene[] = [
     lines: [
       {
         text: 'A room of racks, humming, doing recommendation and fraud detection and advertisement placement for a company that would never describe itself as an AI firm.',
+        alts: [
+          'Fourteen racks in a leased hall, running credit scoring and logistics routing for a business that describes the whole thing in its annual report as "analytics".',
+          'A machine room above a distribution centre, matching adverts and flagging transactions, staffed at night by two people neither of whom has read a paper in this field.',
+          'Cold aisle, warm aisle, and a system that decides what forty million people are shown next, maintained by a team of nine with a pager rota.',
+        ],
       },
       {
         who: 'archivist',
         text: 'This is where the money and the data actually are, all through this decade, while the conferences argue about kernels. Nobody writing papers is in this room.',
+        alts: [
+          'The field\'s centre of mass is in rooms like this one and its self-image is at the conference. That gap runs the whole decade and nobody in either place finds it strange.',
+          'Everything that matters for what comes next — the data, the operational scale, the willingness to deploy something imperfect — is already here, and it is filed under operations rather than research.',
+          'No paper will be written about this room. It is nevertheless the best-funded machine learning in the country, and it is solving problems the conference would consider settled.',
+        ],
+      },
+      {
+        who: 'second',
+        when: mature('ensembles'),
+        text: 'Your school built this and got no credit for it, which its members are, on the whole, content with. The credit went to the demonstrations.',
+      },
+      {
+        who: 'archivist',
+        when: not(mature('gpu-scale')),
+        text: 'Note what is not here: anything that needed a machine the company could not buy off a catalogue. That constraint is doing more to shape this decade than any argument at the conference.',
       },
     ],
     choices: [
@@ -820,6 +848,10 @@ export const ACT4: Scene[] = [
       {
         who: 'archivist',
         text: 'Nothing famous happened in this decade. That is the thing people get wrong about it.',
+        alts: [
+          'No famous result in ten years, which is exactly why this decade gets misremembered as empty.',
+          'The decade has no headline. It has three quiet accumulations, and everything after it is downstream of them.',
+        ],
       },
       {
         who: 'archivist',
@@ -828,6 +860,10 @@ export const ACT4: Scene[] = [
       {
         who: 'archivist',
         text: 'What happens next happens very fast, and almost nothing about it is a new idea.',
+        alts: [
+          'What follows arrives at a speed that surprises everyone, and is assembled almost entirely from parts that were already lying about.',
+          'The acceleration is real and the novelty is not. Three things that existed separately are put in one room.',
+        ],
       },
     ],
     choices: [

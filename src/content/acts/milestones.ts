@@ -209,6 +209,9 @@ export const MILESTONES: Scene[] = [
       {
         who: 'archivist',
         text: 'Note what has happened to the scaling law. It was a statement about training: loss falls as a power law in parameters and data. There is now a second curve, in how long you let it deliberate, and it is the one the money moves to.',
+        alts: [
+          'Watch what just happened to the scaling law. It described training — loss against parameters and data. There is now a second axis, and it is spent at the moment of answering.',
+        ],
       },
       {
         who: 'archivist',
@@ -217,6 +220,9 @@ export const MILESTONES: Scene[] = [
       {
         who: 'archivist',
         text: 'A search over sequences, scored by an evaluator, keeping what verifies. Newell and Simon would recognise the shape of it immediately, and would be entitled to be annoyed about how it is being described.',
+        alts: [
+          'Search over sequences, an evaluator, keep what checks out. Newell and Simon would recognise the shape on sight, and would be entitled to feel something about the citation list.',
+        ],
       },
     ],
     choices: [
@@ -265,6 +271,9 @@ export const MILESTONES: Scene[] = [
       {
         who: 'archivist',
         text: 'Roughly nine thousand lines of kernel and something over two hundred thousand lines of proof. Two decades earlier this was the standing example of what formal methods could never scale to.',
+        alts: [
+          'Nine thousand lines of kernel. Two hundred thousand lines of proof. Twenty years earlier this exact artefact was the standard example of what formal methods would never reach.',
+        ],
       },
       {
         who: 'archivist',
@@ -318,6 +327,9 @@ export const MILESTONES: Scene[] = [
       {
         who: 'archivist',
         text: 'It outperformed the hand-designed antenna, took a fraction of the engineering time, and went into orbit on a spacecraft. Not a simulation, not a benchmark. It flew.',
+        alts: [
+          'Better than the hand-designed part, at a fraction of the engineering time, and it flew. Not a benchmark and not a simulation — an object in orbit that nobody can explain the shape of.',
+        ],
       },
       {
         who: 'archivist',
@@ -380,6 +392,9 @@ export const MILESTONES: Scene[] = [
       {
         who: 'archivist',
         text: 'A real advantage, real hardware, real deployments in sensing and prosthetics, and no moment whatsoever. The public does not have a relationship with a power budget.',
+        alts: [
+          'Real advantage, real silicon, real deployments — and no moment at all, because the public has never had a relationship with a power budget.',
+        ],
       },
     ],
     choices: [
@@ -438,18 +453,32 @@ export const MILESTONES: Scene[] = [
       {
         who: 'archivist',
         text: 'I have been careful, all century, to say what was not new. The architecture existed in 1989. The objective was defined in 1951. The credit assignment is the chain rule. Every one of those is true and I have used all of them to take something away from a result.',
+        alts: [
+          'I have spent a hundred years pointing out that nothing was new. Let me keep the habit one more time: the architecture is from 1989, the objective from 1951, the credit assignment older than either.',
+          'You have heard me deflate every result in this archive. The parts of this one are all old, and I will say so before I say the other thing.',
+        ],
       },
       {
         who: 'archivist',
         text: 'So let me be equally careful about what is. Nothing in the previous seventy years could read an unfamiliar document and answer questions about it. Nothing could write working code from a description. Nothing could translate between two languages it was never paired on, hold a conversation across an hour, or be handed a problem in a field it was not built for and be useful anyway.',
+        alts: [
+          'And now the other thing, with the same care. Nothing in the preceding seventy years could take an unfamiliar document and answer questions about it. Not badly. At all.',
+        ],
       },
       {
         who: 'archivist',
         text: 'Generality was the thing the field said it wanted from 1956 and could not get. It did not arrive by anybody understanding intelligence. It arrived from a prediction objective, a great deal of text and a great deal of silicon, which is a genuinely humiliating way for a fifty-year question to be answered — and it is still an answer.',
+        alts: [
+          'The thing announced as the goal in 1956 has arrived, and it arrived without anybody understanding intelligence, which is not how anybody expected to get it.',
+          'Generality was the standing promise and the standing failure. It turns up as a side effect of an engineering programme aimed at a loss number.',
+        ],
       },
       {
         who: 'archivist',
         text: 'Hundreds of millions of people use this daily, for work they were previously doing worse or not at all. I record the caveats because they are load-bearing and because nobody else in the room will. I do not want the caveats mistaken for the verdict.',
+        alts: [
+          'Hundreds of millions of people use it every day for work they were doing worse, or not at all. That is the fact. The caveats are real and they sit underneath it, not instead of it.',
+        ],
       },
       {
         who: 'second',
@@ -458,6 +487,9 @@ export const MILESTONES: Scene[] = [
       {
         who: 'archivist',
         text: 'I am. The habit of deflation is a bias like any other, and it is the one this archive is most prone to, because it is the one that sounds most like rigour.',
+        alts: [
+          'I am. Deflation is a bias like any other, and it is this archive\'s own — it has the advantage of sounding like rigour while costing nothing.',
+        ],
       },
     ],
     choices: [

@@ -53,6 +53,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'Nobody queues for this. There is no demonstration, no waiting list, no month in which the world talks about nothing else. It is the least photogenic arrival available in the whole space of outcomes.',
+        alts: [
+          'No queue, no demonstration, no month where this is the only thing anybody talks about. The least photogenic arrival available anywhere in the space of outcomes.',
+        ],
       },
       {
         who: 'archivist',
@@ -106,6 +109,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'The declining is the product. Roughly a third of queries return insufficient evidence, and the number is not a failure rate, it is a measurement of how much of what people wanted to know was never knowable from what anyone had recorded.',
+        alts: [
+          'The refusals are the feature. A third of queries come back as insufficient evidence, and that number is not an error rate — it is a measurement of how much of what people wanted was never in the record.',
+        ],
       },
       {
         who: 'archivist',
@@ -159,6 +165,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'These are in production. They are in hospitals and aircraft and water treatment. Every one of them outperforms the human design it replaced, and not one of them comes with a reason.',
+        alts: [
+          'They are already in hospitals, aircraft and water treatment. Each outperforms the design it replaced. Not one of them arrives with a reason, and the certification file says so in a footnote.',
+        ],
       },
       {
         who: 'archivist',
@@ -219,6 +228,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'This is the only branch where the public meets the technology through an incident rather than a demonstration. It is also the branch with the most capability actually in service. Both of those follow from the same property.',
+        alts: [
+          'Everywhere else the public meets this through a demonstration. Here they meet it through an outage, which is a fact about where the capability actually ended up.',
+        ],
       },
     ],
     choices: [
@@ -283,6 +295,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'No other branch produces mourning. I have looked. This is the century where the arrival is measured in attachment, and the great unresolved question of the 2040s is whether that attachment was earned or engineered, and whether that distinction survives contact with anyone who has one.',
+        alts: [
+          'I have checked every branch I hold. This is the only one where people grieve, which makes the question of whether the attachment was earned or engineered the central unresolved question of the decade.',
+        ],
       },
     ],
     choices: [
@@ -345,6 +360,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'It is also the first time this century that anyone has funded a thing on the grounds that it should not be replaceable. I have no category for that. I am making one.',
+        alts: [
+          'It is the first funding decision in a hundred years made on the grounds that a thing ought not to be replaceable. I do not have a category for that and I am opening one.',
+        ],
       },
     ],
   },
@@ -366,6 +384,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'Forty-one per cent said member of the household. I will run the survey again in eight years and file both. That is the whole of what I can do about it.',
+        alts: [
+          'Forty-one per cent answered member of the household. I will ask again in eight years and keep both answers, which is the entire extent of what an archive can do about it.',
+        ],
       },
     ],
   },
@@ -393,6 +414,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'The undersea cable is cut in 2039 and it takes the newspapers a day and a half to notice, because almost nothing stops. That is what this branch is: the least visible arrival, and the hardest one for anybody to own.',
+        alts: [
+          'A cable is cut in 2039 and almost nothing stops, which is why it takes a day and a half to reach the newspapers. The least visible arrival, and the hardest for anyone to claim.',
+        ],
       },
     ],
     choices: [
@@ -448,6 +472,9 @@ export const ARRIVALS: Scene[] = [
       {
         who: 'archivist',
         text: 'This is a smaller arrival than the text box, by every measure anyone uses. It is also the only one in which a person on the wrong end of a machine can make it answer for itself, under oath, and win.',
+        alts: [
+          'By every measure in use this is the smaller arrival. It is also the only one where a person on the wrong end of a machine can compel it to answer for itself, under oath, and win.',
+        ],
       },
     ],
     choices: [

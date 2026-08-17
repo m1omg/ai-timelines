@@ -304,6 +304,35 @@ function checkVacuousGates(): void {
 // 2. Dead gates — a condition testing a flag nothing ever sets
 // ---------------------------------------------------------------------------
 
+/**
+ * Alternative wordings. A duplicate alternative is a silent no-op — the line still reads the
+ * same however the die lands — and a recurring scene with an unvaried narrator is the specific
+ * thing that made a hundred years feel like a script: several of them fire three or four times
+ * in a single run.
+ */
+function checkAlternates(): void {
+  const narrators = new Set(CHARACTERS.filter((c) => c.narrator).map((c) => c.id));
+
+  for (const s of ALL_SCENES) {
+    for (const line of s.lines) {
+      if (line.alts) {
+        if (line.alts.some((a) => !a.trim())) err(`${s.id}: an empty alternative wording`);
+        const all = [line.text, ...line.alts];
+        if (new Set(all).size !== all.length) {
+          err(`${s.id}: duplicate alternative wording — "${line.text.slice(0, 40)}…"`);
+        }
+      }
+    }
+
+    // Recurring scenes are the ones a player sees more than once a century.
+    if (s.act !== 'any') continue;
+    const flat = s.lines.filter((l) => l.who && narrators.has(l.who) && !l.alts && !l.when);
+    if (flat.length > 0) {
+      warn(`${s.id}: recurring scene has ${flat.length} unvaried narrator line(s)`);
+    }
+  }
+}
+
 function checkDeadGates(): void {
   const written = new Set<string>();
   const collectWrites = (es: Effect[]) => {
@@ -716,6 +745,7 @@ function checkCoverage(): void {
 function main(): void {
   checkReferences();
   checkVacuousGates();
+  checkAlternates();
   checkEmptyScenes();
   checkDeadGates();
   checkAnachronisms();
