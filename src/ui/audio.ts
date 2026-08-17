@@ -5,22 +5,47 @@
  */
 
 const PREF_KEY = 'ai-timelines/audio';
+const MUSIC_KEY = 'ai-timelines/music';
 
 let ctx: AudioContext | null = null;
 
 /** On by default; a player who turns it off stays turned off across visits. */
-function loadPreference(): boolean {
+function loadPreference(key: string): boolean {
   try {
-    return localStorage.getItem(PREF_KEY) !== 'off';
+    return localStorage.getItem(key) !== 'off';
   } catch {
     return true;
   }
 }
 
-let enabled = loadPreference();
+let enabled = loadPreference(PREF_KEY);
+/* Music is a separate switch from the interface noises. Someone reading for an hour may well
+   want the room tone of their century and not a click on every keystroke, or the reverse. */
+let music = loadPreference(MUSIC_KEY);
 
 export function audioEnabled(): boolean {
   return enabled;
+}
+
+export function musicEnabled(): boolean {
+  return enabled && music;
+}
+
+/** The one AudioContext, shared with the score so both go quiet together. */
+export function musicContext(): AudioContext | null {
+  if (!enabled) return null;
+  openContext();
+  return ctx;
+}
+
+export function setMusicEnabled(on: boolean): void {
+  music = on;
+  try {
+    localStorage.setItem(MUSIC_KEY, on ? 'on' : 'off');
+  } catch {
+    // No storage available — the setting simply will not survive a reload.
+  }
+  if (on) openContext();
 }
 
 function openContext(): void {

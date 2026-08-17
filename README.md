@@ -69,11 +69,21 @@ locked — which is the argument the game is making.
 | **Paradigms** | the full tree — click any entry for what the idea actually is, and why it is blocked |
 | **Codex** | an encyclopedia that unlocks as you reach things: every idea, every person you have met, with sources |
 | **Record** | what happened, in order |
-| **Menu** | save, export a save code, sound on/off |
+| **Menu** | save, export a save code, sound and music on/off |
 
 A run is fully determined by its seed plus your choices, so an exported save code replays
-exactly. Sound is synthesised in the browser, on by default, and the toggle in the menu is
+exactly. Sound is synthesised in the browser, on by default, and the toggles in the menu are
 remembered.
+
+**The music is generated from the run, on two axes.** The act decides what it is played on — one
+square wave through a tinny speaker in 1954, an FM-ish chip in 1986, warm sine stacks by 2030 —
+and whichever school currently leads the field decides how it is *written*. Symbolic writes
+strict counterpoint from a rule. Statistical runs a Markov chain and sounds fluent and slightly
+aimless. Evolutionary mutates a single motif for a hundred years. Collective phases one cell
+against itself; cybernetic is a feedback loop converging on a moving target; substrate is two
+oscillators beating. So a symbolic 1980s and a connectionist 1980s share a timbre and agree on
+nothing else. A funding collapse takes the voices away and they come back slowly, and a field
+that has promised more than it delivered plays slightly out of tune with itself.
 
 The interface ages with the century. Seven acts, seven eras, and the whole skin changes at each
 act break — teleprinter, storage tube, colour adapter, browser, panel, and two more. That is
@@ -90,7 +100,8 @@ src/content/    everything authored: paradigms (8 files, one per school), scenes
                 characters, actors, directives, codex essays, endings
 src/art/        procedural SVG — scanline portraits, 16 backdrops, seven era palettes —
                 plus the one exception, the era plates in src/art/plates/
-src/ui/         theme, synthesised audio, the novel renderer, directive board, tree, codex
+src/ui/         theme, synthesised audio and the generative score, the novel renderer,
+                directive board, tree, codex
 tools/          the content linter, the playtest harness, the era-plate generator
 tests/          Vitest suites for the engine and content
 ```

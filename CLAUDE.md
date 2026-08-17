@@ -71,6 +71,7 @@ never appears on the site; the per-slot **Copy code** button is how a run moves 
 | Paradigms | `src/content/paradigms/*.ts` | One file per school; `index.ts` concatenates. |
 | Scenes | `src/content/acts/act1..7.ts` | `scenes.ts` concatenates; act 0 is the opening, played explicitly by `main.ts`. |
 | Art | `src/art/` | Procedural SVG. The era plates in `src/art/plates/` are the *only* binary assets; nothing else may be. |
+| Score | `src/ui/score.ts` | Pure composition — one voice per era, one composer per school. `synth.ts` plays it, `music.ts` schedules it. |
 | Era skins | `src/styles/base.css` | Everything above the `era skins` banner is palette-driven; below it, one block per era. |
 
 ## Adding content
@@ -104,6 +105,14 @@ Two rules the manifest is holding: the source must be public domain or CC0, and 
 machine or a room — a photograph of a real person would walk straight through the depiction
 rules that the rest of the cast is held to. An era also needs a `plateRamp` in
 `src/art/palette.ts`, darkest colour first, or the plate silently does not render.
+
+**A new school or era voice for the music** — `src/ui/score.ts` holds an `EraVoice` per era id
+and a composer per `FamilyId`, and both records are exhaustive, so adding either without the
+other is a compile error. Keep composition pure: it returns notes and must never touch an audio
+API, which is what lets `tests/ui/score.test.ts` check all fifty-six combinations and what lets
+`renderPiece` bounce a bar offline to listen to. Anything that makes noise belongs in
+`synth.ts`, and it takes a `BaseAudioContext` so the live game and the offline render run the
+same code.
 
 ## Balance
 

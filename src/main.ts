@@ -10,8 +10,9 @@ import { advanceTurn } from './engine/sim';
 import { clearSave, exportSlot, firstEmptySlot, importSave, listSlots, loadGame, saveGame } from './engine/save';
 import { TOTAL_TURNS, cloneState, createState, takeTermStart } from './engine/state';
 import type { GameState, Scene } from './engine/types';
-import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady } from './ui/audio';
+import { sfxAdvance, sfxSelect, setAudioEnabled, audioEnabled, ensureAudioReady, musicEnabled, setMusicEnabled } from './ui/audio';
 import { renderBalance } from './ui/balance';
+import { musicDescription, stopMusic, updateMusic } from './ui/music';
 import { renderDirectives, renderTopbar } from './ui/console';
 import { renderCodex, renderLog } from './ui/codex';
 import { renderActBreak, renderEnding, renderReport } from './ui/report';
@@ -225,7 +226,12 @@ function renderMenu(el: HTMLElement, close: () => void): void {
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin:22px 0">
       <button id="m-import">Paste save code</button>
       <button id="m-audio">${audioEnabled() ? 'Sound: on' : 'Sound: off'}</button>
+      <button id="m-music">${musicEnabled() ? 'Music: on' : 'Music: off'}</button>
       <button id="m-quit">Abandon this century</button>
+    </div>
+    <div style="color:var(--dim);font-size:12px;margin-bottom:14px">
+      The music is generated, not recorded: the act decides what it is played on, and whichever
+      school leads decides how it is written — right now, ${escapeHtml(musicDescription(state))}.
     </div>
     <div id="m-msg" style="color:var(--dim);font-size:12px;min-height:2em"></div>
     <div class="section-head">How this works</div>
@@ -307,12 +313,21 @@ function renderMenu(el: HTMLElement, close: () => void): void {
   });
   el.querySelector('#m-audio')!.addEventListener('click', () => {
     setAudioEnabled(!audioEnabled());
+    if (audioEnabled()) updateMusic(state);
+    else stopMusic();
+    renderMenu(el, close);
+  });
+  el.querySelector('#m-music')!.addEventListener('click', () => {
+    setMusicEnabled(!musicEnabled());
+    if (musicEnabled()) updateMusic(state);
+    else stopMusic();
     renderMenu(el, close);
   });
   el.querySelector('#m-quit')!.addEventListener('click', () => {
     // Abandoning the run in progress, not the saved centuries. Clearing every slot here used to
     // be harmless when there was only one; with four it would throw away three untouched games.
     close();
+    stopMusic();
     titleScreen();
   });
 }
@@ -417,6 +432,7 @@ function start(seed: number, existing?: GameState): void {
   state = existing ?? createState(seed);
   applyEra(state.act);
   buildShell();
+  updateMusic(state);
   if (existing) {
     resume();
   } else {
@@ -506,6 +522,8 @@ async function openingSequence(): Promise<void> {
 async function beginTurn(): Promise<void> {
   refreshCharacters();
   refreshTopbar();
+  // The score reads the act and whoever now holds the field, so it changes when they do.
+  updateMusic(state);
   await playQueue(scenesForTurn(), directivePhase);
 }
 
@@ -604,6 +622,7 @@ function nextTurn(): void {
   };
 
   if (state.act !== priorAct) {
+    updateMusic(state);
     renderActBreak(document.body, state.act, state, () => {
       refreshTopbar();
       showReport();
