@@ -422,6 +422,18 @@ export function describeCondition(c: Condition, s: GameState): string[] {
       const carried = c.cs.find((x) => evaluate(x, s));
       return carried ? describeCondition(carried, s) : [];
     }
+    case 'not': {
+      // Push the negation inward so that "not a takeoff" reads as the one thing that was not
+      // the case, rather than as the whole of what a takeoff would have been.
+      const inner = c.c;
+      if (inner.kind === 'all') {
+        const broke = inner.cs.find((x) => !evaluate(x, s));
+        return broke ? describeCondition({ kind: 'not', c: broke }, s) : [];
+      }
+      if (inner.kind === 'not') return describeCondition(inner.c, s);
+      const text = phraseCondition(inner, true);
+      return text ? [text] : [];
+    }
     default: {
       const text = phraseCondition(c);
       return text ? [text] : [];

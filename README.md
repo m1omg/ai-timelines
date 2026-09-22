@@ -72,7 +72,10 @@ locked — which is the argument the game is making.
 | **Menu** | save, export a save code, sound and music on/off |
 
 A run is fully determined by its seed plus your choices, so an exported save code replays
-exactly. Sound is synthesised in the browser, on by default, and the toggles in the menu are
+exactly. The ending screen says which conditions the verdict actually turned on, names the
+ending that was one condition away and what it needed, shows every decision you took beside
+what came of it, and has a **Copy this century** button for a short plain-text account of the
+run — and a **Copy save code** one for the replayable version. Sound is synthesised in the browser, on by default, and the toggles in the menu are
 remembered.
 
 **The music is generated from the run, on two axes.** The act decides what it is played on — one

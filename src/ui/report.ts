@@ -3,7 +3,9 @@ import { plateClass, plateCredit, plateUrl } from '../art/plate';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
 import { nearestMiss, qualifyingEndings, resolveEnding } from '../engine/endings';
-import { describeCondition, measured, phraseCondition } from '../engine/describe';
+import { describeCondition, familyShares, measured, phraseCondition } from '../engine/describe';
+import { exportSave } from '../engine/save';
+import { END_YEAR, START_YEAR } from '../engine/state';
 import { decisionsHtml } from './decisions';
 import { ACT_TURNS, yearOfTurn } from '../engine/state';
 import { actTitle } from '../content/act-titles';
@@ -259,11 +261,78 @@ export async function renderEnding(
     <p class="chart-note">Every choice and directive, by term, with what each one did and what landed in the term after it. The same ledger Balance kept during the century.</p>
     ${decisionsHtml(s, (f) => familyColour(FAMILIES[f].hue, era))}
 
-    <div style="margin:34px 0 60px;display:flex;gap:10px;flex-wrap:wrap">
+    <div style="margin:34px 0 60px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <button class="primary" id="end-again">Run it again ▸</button>
-      <span style="color:var(--dim);font-size:12px;align-self:center">A different seed gives a different century. So does a different portfolio.</span>
+      <button id="end-copy" title="A short plain-text account of this century — the verdict, the numbers, the winters, who held the field, and the seed">Copy this century</button>
+      <button id="end-code" title="The full save code. Paste it into a slot on any copy of the game to replay this century exactly">Copy save code</button>
+      <span id="end-msg" style="color:var(--dim);font-size:12px">A different seed gives a different century. So does a different portfolio.</span>
     </div>
   </div></div>`;
 
   root.querySelector('#end-again')!.addEventListener('click', onRestart);
+
+  const msg = root.querySelector<HTMLElement>('#end-msg')!;
+  const offer = async (text: string, what: string) => {
+    if (await copyText(text)) {
+      msg.textContent = `${what} copied to the clipboard.`;
+      return;
+    }
+    // Clipboard refused — the single-file copy runs from file://, where it usually is. A box the
+    // player can select from is the fallback, not an apology.
+    msg.innerHTML = `<textarea readonly style="width:min(100%,70ch);height:110px;background:transparent;color:inherit;border:1px solid var(--dim);font:inherit;font-size:12px">${escapeHtml(text)}</textarea>`;
+    msg.querySelector('textarea')?.select();
+  };
+  root.querySelector('#end-copy')!.addEventListener('click', () => void offer(centuryCard(s, ending, reasons, miss), 'The century'));
+  root.querySelector('#end-code')!.addEventListener('click', () => void offer(exportSave(s), 'The save code'));
+}
+
+/**
+ * The century as a paragraph somebody could paste anywhere: what it was called, what it came
+ * to, and the seed that started it. Deliberately not the save code — that is seventy kilobytes
+ * of state and has its own button — but everything a second player would need to know whether
+ * they want it.
+ */
+export function centuryCard(
+  s: GameState,
+  ending: { name: string; verdict: string },
+  reasons: string[],
+  miss: { ending: { name: string }; failed: Parameters<typeof phraseCondition>[0] } | null,
+): string {
+  const shares = familyShares(s);
+  const top = FAMILY_IDS.slice()
+    .sort((a, b) => shares[b] - shares[a])
+    .slice(0, 3)
+    .map((f) => `${FAMILIES[f].name} ${Math.round(shares[f] * 100)}%`)
+    .join(', ');
+  const winters = s.winters.length
+    ? s.winters
+        .map((w) => `${w.startYear} (${FAMILIES[w.blamed].name} blamed${w.endYear ? `, recovered ${w.endYear}` : ', never recovered'})`)
+        .join('; ')
+    : 'none in a hundred years';
+  const lines = [
+    `AI TIMELINES · ${START_YEAR}–${END_YEAR} · seed ${s.seed}`,
+    '',
+    ending.name.toUpperCase(),
+    ending.verdict,
+    '',
+    `capability ${Math.round(s.resources.capability)} · understanding ${Math.round(s.resources.understanding)} · deployment ${Math.round(s.resources.deployment)} · exposure ${Math.round(s.resources.exposure)} · compute 10^${s.computeLog.toFixed(1)}`,
+    `winters: ${winters}`,
+    `the field at the close: ${top}`,
+  ];
+  if (reasons.length) lines.push(`why this one: ${reasons.join('; ')}`);
+  if (miss) {
+    const needed = phraseCondition(miss.failed);
+    if (needed) lines.push(`one condition away: ${miss.ending.name} — needed ${needed}`);
+  }
+  lines.push('', `replay it: start a new century from seed ${s.seed}, or paste the save code into a slot.`);
+  return lines.join('\n');
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }

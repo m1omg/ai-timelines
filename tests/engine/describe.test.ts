@@ -78,3 +78,13 @@ describe('conditions in prose', () => {
     expect(measuredText).toBe(`${Math.round(s.resources.capability)}`);
   });
 });
+
+describe('a negated condition', () => {
+  it('reports only the leaf that was not the case', () => {
+    const s = createState(1956);
+    s.resources.capability = 400;
+    const takeoffLike = all(mature('coding-agents'), resource('capability', '>', 330));
+    const reasons = describeCondition(not(takeoffLike), s);
+    expect(reasons).toEqual(['Coding Agents never established']);
+  });
+});

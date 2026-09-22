@@ -1,4 +1,5 @@
 import { FAMILIES } from '../content/paradigms';
+import { END_YEAR } from '../engine/state';
 import type { Decision, FamilyId, GameState } from '../engine/types';
 import { escapeHtml } from './vn';
 
@@ -47,7 +48,7 @@ export function decisionsHtml(s: GameState, colour: (f: FamilyId) => string): st
         : '';
 
       return `<div class="branch">
-        <div class="node-year">${year}<span>–${year + 3}${spent > 0 ? ` · ${spent} influence` : ''}</span></div>
+        <div class="node-year">${year}<span>${year < END_YEAR ? `–${Math.min(year + 3, END_YEAR)}` : ''}${spent > 0 ? ` · ${spent} influence` : ''}</span></div>
         <div class="twigs">${twigs}${fruit}</div>
       </div>`;
     })
