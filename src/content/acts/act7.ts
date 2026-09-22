@@ -576,4 +576,67 @@ export const ACT7: Scene[] = [
       },
     ],
   },
+
+  /*
+   * The last body that could refuse anything, being wound up. Fires only in a century that has
+   * let consequence run and built almost nothing to answer it, and the choice is whether the
+   * last objection is kept on the books or not.
+   */
+  {
+    id: 'a7-the-last-objector',
+    act: 7,
+    years: [2046, 2050],
+    priority: 8,
+    backdrop: 'corridor',
+    title: 'The Last Objector',
+    when: all(resource('exposure', '>=', 45), { kind: 'flag', flag: 'institutions', op: '<', value: 2 }),
+    lines: [
+      {
+        text: 'An office with eleven staff and a statutory power to refuse. It has not used the power in nine years. Its funding is a line item in a budget that is being simplified.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'I know what it looks like. It looks like a body that does nothing, because it has done nothing, because everything it might have refused was reorganised out of its jurisdiction before it got there.',
+      },
+      {
+        who: 'okonjo',
+        text: 'It is the last one. I have checked. Every other place where somebody could say no has been folded into a compliance function that reports to the thing it was meant to check.',
+      },
+      {
+        who: 'second',
+        text: 'So the question is not whether it works. It is whether, in the record, there is still an address where an objection could be delivered.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Let it go. It has not refused anything in a decade.',
+        effects: [
+          { kind: 'resource', key: 'exposure', op: 'add', value: 8 },
+          { kind: 'resource', key: 'influence', op: 'add', value: 6 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 8 },
+          { kind: 'flag', flag: 'lastObjectorGone', op: 'set', value: true },
+          { kind: 'log', text: 'The last body with the power to refuse is wound up. Nobody objects.', logKind: 'crisis' },
+        ],
+      },
+      {
+        text: 'Fund it from what is left.',
+        cost: 6,
+        hint: 'One address, kept. It will not fix the century. It is the difference between an ending and a verdict.',
+        effects: [
+          { kind: 'resource', key: 'exposure', op: 'add', value: -6 },
+          { kind: 'flag', flag: 'institutions', op: 'add', value: 1 },
+          { kind: 'patron', patron: 'public', op: 'add', value: 5 },
+        ],
+      },
+      {
+        text: 'Fold it into the frontier\'s own compliance office. Cheaper, and closer to the work.',
+        effects: [
+          { kind: 'resource', key: 'exposure', op: 'add', value: 4 },
+          { kind: 'resource', key: 'deployment', op: 'add', value: 4 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 4 },
+          { kind: 'flag', flag: 'lastObjectorGone', op: 'set', value: true },
+        ],
+      },
+    ],
+  },
 ];

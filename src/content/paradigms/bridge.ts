@@ -162,7 +162,7 @@ export const BRIDGE: Paradigm[] = [
     earliest: 2019,
     prereqs: ['differentiable-programming'],
     familyPrereqs: { symbolic: 45, connectionist: 55 },
-    cost: 92,
+    cost: 72,
     computeNeed: 21,
     capability: 26,
     understanding: 26,
@@ -199,7 +199,7 @@ export const BRIDGE: Paradigm[] = [
     short: 'A mathematics of how parts combine',
     earliest: 2030,
     prereqs: ['verified-learning', 'hyperdimensional-computing'],
-    cost: 92,
+    cost: 72,
     computeNeed: 25,
     capability: 30,
     understanding: 44,
@@ -224,7 +224,9 @@ export const BRIDGE: Paradigm[] = [
       cybernetic: 38,
       substrate: 38,
     },
-    cost: 120,
+    // Was 120 behind a 92-cost prerequisite, both from 2030: eight runs in six thousand reached
+    // it, and a deliberate bridge player one in forty. The five-school gate is the real test.
+    cost: 84,
     computeNeed: 26.5,
     capability: 60,
     understanding: 60,

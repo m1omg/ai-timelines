@@ -102,8 +102,12 @@ requires a scene that addresses the leading school to address whichever one it i
 
 **A new ending** — endings resolve highest-priority-first, so a broad ending at high priority
 silently shadows every specific one below it. The linter catches unconditional endings above
-priority 0; only the playtest catches an ending that is merely *too easy*. Check its share in the
-distribution afterwards.
+priority 0; the playtest fails on an ending that takes more than 12% of centuries and warns on
+one that fires in fewer than one in a thousand. When an ending is rare, `npx tsx tools/funnel.ts
+<ending-id> [policy=<name>]` says which leaf of its condition nobody reaches — fix that leaf,
+not whichever is easiest to loosen. Every flag an ending reads needs words in `FLAG_WORDS`
+(`src/engine/describe.ts`), because the ending screen reads the condition back to the player;
+a test fails on a raw flag name.
 
 **A real person** — read the depiction rules in the header of `src/content/characters.ts`. They
 are enforced: `sources` is mandatory, spans are bounded by documented activity, and no historical

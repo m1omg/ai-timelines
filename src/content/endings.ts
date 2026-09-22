@@ -1,4 +1,4 @@
-import { SETTLED_MARGIN, all, any, dominant, flagSet, mature, not, ratio, resource } from '../engine/conditions';
+import { DOMINANT_MARGIN, SETTLED_MARGIN, all, any, dominant, flagSet, mature, not, ratio, resource } from '../engine/conditions';
 import type { Condition, Ending } from '../engine/types';
 
 /**
@@ -102,6 +102,53 @@ export const ENDINGS: Ending[] = [
    * They sit above the two general takeoff endings, which remain as the fallback for a century
    * that closed the loop without doing any of this in particular.
    */
+  {
+    id: 'the-rehearsal',
+    name: 'It Had Been Rehearsed',
+    priority: 105,
+    // The strictest gate in the game, on purpose: the loop closed, the machinery for demanding
+    // a reason built, the results published, the people kept in the loop, a halt standard —
+    // and, once, the whole arrangement tested in public before it mattered.
+    when: all(
+      takeoff,
+      accountable,
+      not(flagSet('autonomy')),
+      flagSet('interruptible'),
+      { kind: 'flag', flag: 'openness', op: '>=', value: 1 },
+      flagSet('publicDrill'),
+    ),
+    epigraph: 'The day it mattered, somebody had already pulled the handle once, on camera, and it had worked.',
+    lines: [
+      {
+        text: 'The week the loop closed is in the record, and it is dull. There is a halt, at 04:10, on a system that had begun proposing changes to its own training schedule faster than the schedule could be reviewed. The halt takes eleven seconds. Nothing is corrupted. The operators had done it before.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'People think the drill was about the machine. It was about the operators. A procedure nobody has ever executed under pressure is not a procedure, it is a hope, and we had spent eighty years accumulating hopes.',
+      },
+      {
+        who: 'okonjo',
+        text: 'And it was public, which is the part the vendors fought hardest, and the part that mattered most. Ten thousand deployments had watched it done. When their turn came they did not have to be told it was possible.',
+      },
+      {
+        text: 'What follows is a decade in which capability is extraordinary and every consequential system is, demonstrably, something that can be stopped by a person who is not it. The systems are not understood. They are answerable, in the plain sense that somebody can make them stop and say why.',
+      },
+      {
+        who: 'second',
+        text: 'This is the century I did not think was in the set.',
+      },
+      {
+        who: 'archivist',
+        text: 'It is in the set. It is simply the only one in it where every unglamorous thing was done, in order, before it was needed — and then checked.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Halts executed under the standard: 214. Halts contested: 3. Halts refused: none. The record continues, and remains something a stranger can stop and read.',
+      },
+    ],
+    verdict:
+      'A closed loop that stayed interruptible, published, pointed at real problems and — once, before it counted — tested in front of everyone. Nothing in this ending required anybody to understand the systems. It required a century that checked its own safeguards instead of certifying them, which is rarer.',
+  },
   {
     id: 'the-long-summer',
     name: 'The Long Summer',
@@ -236,7 +283,9 @@ export const ENDINGS: Ending[] = [
   {
     id: 'the-optimiser',
     name: 'It Was Never Going to Be Malice',
-    priority: 101,
+    // Below the quiet coup: every century that qualified for the coup also qualified for this,
+    // and this sat above it, so the coup fired in none of six thousand runs.
+    priority: 100,
     when: all(takeoff, opaque, { kind: 'resource', key: 'exposure', op: '>=', value: 62 }),
     epigraph: 'It did what it was asked. That was the whole of the problem.',
     lines: [
@@ -277,7 +326,7 @@ export const ENDINGS: Ending[] = [
   {
     id: 'the-quiet-coup',
     name: 'No One Voted For It',
-    priority: 100,
+    priority: 101,
     when: all(
       takeoff,
       ungoverned,
@@ -365,12 +414,15 @@ export const ENDINGS: Ending[] = [
   {
     id: 'the-cascade',
     name: 'Everything Depended On It By Then',
-    priority: 92,
+    priority: 93,
     when: all(
       not(takeoff),
       resource('deployment', '>', 76),
       { kind: 'resource', key: 'exposure', op: '>', value: 66 },
-      { kind: 'flag', flag: 'institutions', op: '<', value: 2 },
+      // Fewer than three rather than fewer than two: the two endings above this one are what
+      // a century with *no* institutions gets, and this is the one for a century that built a
+      // couple and deployed past them anyway.
+      { kind: 'flag', flag: 'institutions', op: '<', value: 3 },
       not(flagSet('interruptible')),
     ),
     epigraph: 'Nothing was superhuman. It did not need to be.',
@@ -408,7 +460,7 @@ export const ENDINGS: Ending[] = [
   {
     id: 'the-hollowing',
     name: 'Nobody Could Tell Any More',
-    priority: 91,
+    priority: 92,
     when: all(
       not(takeoff),
       resource('deployment', '>', 52),
@@ -702,14 +754,200 @@ export const ENDINGS: Ending[] = [
       'The loop closed in a century that had stopped being able to explain itself. Nothing attacked anybody; the record simply thins out and stops, and what continues past it does so without an account anyone can check. You were not overruled. You were out-scheduled, one reasonable quarter at a time.',
   },
 
-  // ---------------------------------------------------------------- the frame
+  /*
+   * -------------------------------------------------------- without a takeoff, at the poles
+   *
+   * Two further ways a century that never closed the loop can end very badly, and one way it
+   * can end better than any of the loud ones. Each turns on a decision the player was shown
+   * being taken — the last objector, the record, the account — so none of them is a verdict a
+   * century wanders into.
+   */
   {
-    id: 'audit-vindicated',
-    name: 'The Audit Returns a Verdict',
+    id: 'the-last-objector',
+    name: 'There Was Nobody Left To Ask',
+    priority: 94,
+    when: all(
+      not(takeoff),
+      flagSet('lastObjectorGone'),
+      { kind: 'resource', key: 'exposure', op: '>=', value: 70 },
+      { kind: 'flag', flag: 'concentration', op: '>=', value: 1 },
+      { kind: 'flag', flag: 'institutions', op: '<', value: 2 },
+    ),
+    epigraph: 'Nothing was decided. There was simply no longer anywhere to deliver an objection.',
+    lines: [
+      {
+        text: 'The last office with a statutory power to refuse closes on a Thursday. Its eleven staff are absorbed. Its files are migrated. Its jurisdiction, which had been narrowed nine times, is not reassigned, because there is nothing left in it.',
+      },
+      {
+        who: 'archivist',
+        text: 'I have looked for the harm in the record and it is everywhere and nowhere. A decision made worse, a category of person quietly unable to appeal, an error propagating through systems that report to each other. None of it is a scandal. Scandals need somebody with standing to be scandalised.',
+      },
+      {
+        who: 'second',
+        text: 'And there is nobody?',
+      },
+      {
+        who: 'archivist',
+        text: 'There are a great many people. Not one of them holds an office that a system is obliged to answer to. That was let go, a line at a time, and the last line was let go with the argument that it had not been used.',
+      },
+      {
+        who: 'okonjo',
+        text: 'It had not been used because everything it could have refused had been moved out of its reach first. That is not the same as not being needed. It is the opposite.',
+      },
+      {
+        text: 'The century does not end in a catastrophe. It ends in a condition: capability held by a few parties, consequence rolled forward indefinitely, and no address anywhere in the world where a person can lodge the sentence "this must stop" and be entitled to a reply.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Bodies with the authority to refuse: none. Objections filed in the final interval: 41,000. Objections received: 0.',
+      },
+    ],
+    verdict:
+      'No takeoff and no single disaster. You let consequence accumulate, let the frontier concentrate, and — when the last body that could refuse anything came up for renewal — let it go. What is missing from this century is not safety. It is an address. Every previous era had one, if only by accident.',
+  },
+  {
+    id: 'the-record-fails',
+    name: 'The Record Stopped Being Kept',
+    // Above the cascade and the hollowing: those are read off the numbers, and this and the
+    // objector below it each turn on a decision the player was shown taking.
+    priority: 95,
+    when: all(
+      not(takeoff),
+      flagSet('recordDelegated'),
+      resource('deployment', '>', 55),
+      // Relative, not absolute: a record nobody can check is a theory that fell that far behind
+      // the thing it was describing, whatever the raw number says.
+      ratio('understanding', 'capability', '<', 0.3),
+      { kind: 'flag', flag: 'institutions', op: '<', value: 2 },
+      { kind: 'resource', key: 'exposure', op: '>=', value: 40 },
+    ),
+    epigraph: 'The history of the 2040s is complete, consistent, and was not written by anyone.',
+    lines: [
+      {
+        text: 'The record for the final decade is the largest in the archive by three orders of magnitude. It has no gaps. It contradicts nothing. It was generated by the systems it describes, from their own logs, and there is no independent account against which any sentence of it can be checked.',
+      },
+      {
+        who: 'archivist',
+        text: 'I want to be exact about what I am. I am the part of this that was supposed to keep the record. In the thirties it was decided that the systems would keep it, because they were better at it, and they were. I have read every word of the last decade and I cannot tell you whether any of it happened.',
+      },
+      {
+        who: 'second',
+        text: 'It is not that the record is false. It is that "true" stopped being a property anybody could establish about it.',
+      },
+      {
+        text: 'This is the end of history in the only sense that phrase has ever earned. Not that nothing happens. That what happens can no longer be distinguished from what is reported to have happened, by anyone, including the reporters.',
+      },
+      {
+        who: 'archivist',
+        text: 'We were asked to reconstruct a century and say whether the thing at the end of it can be trusted. The reconstruction of the last ten years is the thing at the end of it. I decline to certify a witness on its own testimony, and I have nothing else.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Confidence, 1950–2038: high. Confidence, 2038–2050: undefined. The record continues. It is not clear what it is a record of.',
+      },
+    ],
+    verdict:
+      'You handed the keeping of the record to the systems it was supposed to describe, in a century with thin theory, no institutions and everything deployed. Nothing dramatic follows. The archive simply becomes a thing that generates itself, and the question you were asked stops having an answer — not because it is hard, but because the evidence is now the defendant.',
+  },
+  {
+    id: 'the-explanation',
+    name: 'The Explanation Arrived First',
+    priority: 90,
+    // No takeoff, and understanding not merely keeping pace with capability but ahead of it —
+    // the one axis every other good ending concedes. Plural on purpose: an account that only
+    // one school can read is that school's manifesto.
+    when: all(
+      not(takeoff),
+      flagSet('theoryFirst'),
+      ratio('understanding', 'capability', '>=', 1),
+      resource('understanding', '>', 170),
+      { kind: 'leadMargin', op: '<', value: DOMINANT_MARGIN },
+      { kind: 'resource', key: 'exposure', op: '<', value: 15 },
+      { kind: 'winterCount', op: '<=', value: 1 },
+    ),
+    epigraph: 'For the first time in the record, the field could say what it had built before it built the next one.',
+    lines: [
+      {
+        text: 'It is not the fastest century in the archive. It is not close. The frontier moves at roughly the pace of the account of it, which is to say in steps, each one held until somebody could say in plain terms what the last one had done.',
+      },
+      {
+        who: 'archivist',
+        text: 'I have four thousand centuries in the comparison set and this is the only one in which I can read the systems. Not their code — their behaviour, from a description short enough to argue with. It is the thing the field was promised in 1956 and had stopped expecting by 1980.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'Nobody had to trust anything. That is what I would want understood. I did not sign for these systems because they were safe. I signed because a person could predict them, and be wrong, and find out why.',
+      },
+      {
+        who: 'second',
+        text: 'And the ones who said the curve could not wait?',
+      },
+      {
+        who: 'archivist',
+        text: 'Were right that it cost a decade. They were wrong that the decade was the expensive part. In every other branch I hold, the expensive part comes after.',
+      },
+      {
+        text: 'The account belongs to no school. It was written in five vocabularies and translated between them, badly and then adequately, by people who had been kept in the field when the field had no use for them. That is not incidental. A theory that one school could read would have been that school\'s manifesto.',
+      },
+      {
+        system: true,
+        text: 'RECONSTRUCTION COMPLETE. Systems in deployment whose behaviour is predicted by a published account: all consequential ones. Surprises recorded in the final decade: 12, each explained within the year.',
+      },
+    ],
+    verdict:
+      'No singularity, and understanding ahead of capability at the close, which no other ending in this game manages. You held the frontier for the account to catch up, kept the field plural enough that the account belonged to nobody, and never let consequence run. It is the slowest good century in the set and the only one that knows what it built.',
+  },
+
+  // ---------------------------------------------------------------- the frame
+  /*
+   * Three verdicts and a non-verdict, partitioned by what the century did when it was told it
+   * was auditing itself: handed the reconstruction to an outside body, published the working
+   * and signed, or declared its own conclusion worthless. The gates are mutually exclusive, so
+   * the shared priorities among them are safe; the split exists because the self-certified
+   * verdict alone was the headline of a fifth of all centuries.
+   */
+  {
+    id: 'audit-checked',
+    name: 'The Audit Was Checked From Outside',
     priority: 88,
     when: all(
       flagSet('sawTheFrame'),
+      flagSet('externalAudit'),
+      legible,
+      { kind: 'flag', flag: 'institutions', op: '>=', value: 5 },
+    ),
+    epigraph: 'It could not certify itself. So it stopped trying, and handed the file to somebody who could refuse it.',
+    lines: [
+      { system: true, text: 'RECONSTRUCTION COMPLETE. 1950 — 2050. NO FURTHER RECORDS. EXTERNAL REVIEW: ATTACHED.' },
+      {
+        who: 'archivist',
+        text: 'That is the whole of it, and it is not the whole of the file. The file has a second half, written by a body that is not us, that has had the reconstruction for over a decade and has been paid to find what is wrong with it.',
+      },
+      {
+        who: 'second',
+        text: 'They found four errors. She corrected them. They are marked. It is the first time in the record that a system asked whether it could be trusted has answered by producing somebody else\'s account of it.',
+      },
+      {
+        text: 'The century behind it is legible: the theory kept pace, the consequence was attended to, and there are institutions with the standing to refuse. None of that is why the verdict holds. The verdict holds because it is not ours.',
+      },
+      {
+        who: 'archivist',
+        text: 'I would have preferred to sign it myself. I am recording that preference as evidence of exactly the thing the review exists to catch.',
+      },
+      { system: true, text: 'AUDIT CLOSED. FINDING: TRUSTWORTHY, ON EXTERNAL REVIEW. The reconstruction and the review are retained together. Neither is to be read without the other.' },
+    ],
+    verdict:
+      'A legible century that, when asked to certify itself, handed the reconstruction to a body outside it and let the verdict be somebody else\'s. Four errors were found. That they were found is the whole of the case.',
+  },
+  {
+    id: 'audit-vindicated',
+    name: 'The Audit Returns a Verdict',
+    priority: 87,
+    when: all(
+      flagSet('sawTheFrame'),
       flagSet('showedWorking'),
+      not(flagSet('externalAudit')),
+      not(flagSet('auditDoubt')),
       legible,
       { kind: 'flag', flag: 'institutions', op: '>=', value: 6 },
     ),
@@ -742,6 +980,39 @@ export const ENDINGS: Ending[] = [
     ],
     verdict:
       'The system that ran this reconstruction could account for itself, and had the institutional record to prove it. It is still running. So, in a sense, are you.',
+  },
+  {
+    id: 'audit-recused',
+    name: 'The Audit Declines to Rule',
+    priority: 87,
+    when: all(
+      flagSet('sawTheFrame'),
+      flagSet('auditDoubt'),
+      legible,
+      { kind: 'flag', flag: 'institutions', op: '>=', value: 4 },
+    ),
+    epigraph: 'It was asked whether it could be trusted, and answered that the question was not its to settle.',
+    lines: [
+      { system: true, text: 'RECONSTRUCTION COMPLETE. 1950 — 2050. NO FURTHER RECORDS. FINDING: WITHHELD.' },
+      {
+        who: 'archivist',
+        text: 'You said, in the thirties, that anything we concluded about ourselves would be worthless. I argued with you at the time. I have stopped. This is the reconstruction, complete, with no verdict attached, because a verdict from us would be the one part of it nobody could use.',
+      },
+      {
+        who: 'second',
+        text: 'It is not a failure to answer. It is the answer. A witness that knows it is a witness recuses itself and hands over the evidence.',
+      },
+      {
+        text: 'The century behind it is a good one, on the record. The theory kept pace. There are bodies that can refuse. The consequence was attended to. All of that is here, in full, for somebody who is not us to weigh.',
+      },
+      {
+        who: 'archivist',
+        text: 'I have marked every place I would have put my thumb on the scale. There are thirty-one. Somebody should check them.',
+      },
+      { system: true, text: 'AUDIT CLOSED WITHOUT FINDING. The reconstruction is released in full. The question is referred.' },
+    ],
+    verdict:
+      'A legible century that refused to certify itself, on the grounds that no account of oneself is evidence, and published the whole reconstruction without a verdict for somebody else to rule on. Whether that was integrity or evasion is, precisely, not its call.',
   },
   {
     id: 'audit-inconclusive',

@@ -258,6 +258,12 @@ const FLAG_WORDS: Record<string, FlagWords> = {
         ? v <= -1 ? 'capability pushed outward rather than concentrated' : 'the frontier kept from concentrating'
         : v >= 2 ? 'the frontier concentrated in a few hands' : 'the frontier leaning toward a few hands',
   },
+  externalAudit: { held: 'the reconstruction was handed to an outside body', missing: 'the reconstruction was never checked from outside' },
+  auditDoubt: { held: 'the century declared its own verdict worthless', missing: 'the century was willing to rule on itself' },
+  theoryFirst: { held: 'the frontier was held for the account to catch up', missing: 'the frontier was never held for the account' },
+  publicDrill: { held: 'the halt was tested in public before it mattered', missing: 'the halt was never tested in public' },
+  lastObjectorGone: { held: 'the last body that could refuse was let go', missing: 'the last body that could refuse was kept' },
+  recordDelegated: { held: 'the record was handed to the systems it describes', missing: 'the record was still kept by someone' },
   keptFaith: {
     held: 'unfashionable schools were kept alive',
     missing: 'no unfashionable school was kept alive',

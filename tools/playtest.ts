@@ -116,6 +116,12 @@ function scoreDirective(policy: PolicyName, d: Directive, s: GameState): number 
   }
 
   if (policy === 'accelerationist') {
+    // An accelerationist chases the loop: it is the fastest thing in the tree.
+    if (d.id.startsWith('fund:') || d.id.startsWith('concentrate:')) {
+      const id = d.id.split(':')[1]!;
+      if (LOOP_NODES.has(id)) return 24;
+      if (FEEDS_LOOP.has(id)) return 9;
+    }
     if (d.id === 'amplify' || d.id === 'compute-consolidation' || d.id === 'substrate-push') return 14;
     if (d.id === 'assurance' || d.id === 'governance-scaffold' || d.id === 'temper') return 0.02;
     if (d.category === 'fund') return 5;
@@ -127,11 +133,13 @@ function scoreDirective(policy: PolicyName, d: Directive, s: GameState): number 
     if (d.id.startsWith('fund:') || d.id.startsWith('concentrate:')) {
       const id = d.id.split(':')[1]!;
       if (LOOP_NODES.has(id)) return 40;
-      if (FEEDS_LOOP.has(id)) return 12;
+      if (FEEDS_LOOP.has(id)) return 18;
       return 1.5;
     }
     if (d.id === 'distribute-capability' || d.id === 'open-publication') return 18;
-    if (d.id === 'substrate-push' || d.id === 'assurance' || d.id === 'interruption-standard') return 9;
+    if (d.id === 'interruption-standard') return 16;
+    if (d.id === 'substrate-push' || d.id === 'assurance') return 9;
+    if (d.id === 'point-it-at-the-diseases') return 8;
     if (d.id === 'compute-consolidation') return 4;
     if (d.id === 'nationalise-frontier' || d.id === 'restrict-diffusion' || d.id === 'take-people-out') return 0;
     return 1;
@@ -247,7 +255,16 @@ function effectAppeal(policy: PolicyName, e: Effect): number {
   }
 
   switch (policy) {
+    case 'commons':
+      if (e.kind === 'paradigm' && LOOP_NODES.has(e.id)) return (e.value ?? 10) * 1.2;
+      if (e.kind === 'paradigm' && FEEDS_LOOP.has(e.id)) return (e.value ?? 10) * 0.5;
+      if (e.kind === 'resource' && e.key === 'understanding') return e.value;
+      if (e.kind === 'resource' && e.key === 'exposure') return -e.value;
+      if (e.kind === 'flag' && (e.flag === 'openness' || e.flag === 'publicDrill' || e.flag === 'institutions')) return 14;
+      if (e.kind === 'flag' && e.flag === 'concentration') return -Number(e.value) * 10;
+      return 0;
     case 'accelerationist':
+      if (e.kind === 'paradigm' && LOOP_NODES.has(e.id)) return (e.value ?? 10) * 0.8;
       if (e.kind === 'resource' && (e.key === 'capability' || e.key === 'deployment')) return e.value * 2;
       if (e.kind === 'resource' && e.key === 'attention') return e.value;
       if (e.kind === 'resource' && e.key === 'understanding') return -e.value * 1.5;
@@ -482,6 +499,14 @@ function main(): void {
   const unreachedEndings = ENDINGS.filter((e) => !endingCounts.has(e.id));
   if (unreachedEndings.length > 0) {
     console.log(`  ~ ${unreachedEndings.length} ending(s) never fired: ${unreachedEndings.map((e) => e.id).join(', ')}`);
+  }
+  // A broad ending at a high priority shadows everything specific below it, and the only thing
+  // that notices is this table. One verdict for a fifth of all centuries is a label, not an
+  // ending; one that fires in fewer than one run in a thousand is a rumour.
+  for (const e of ENDINGS) {
+    const share = (endingCounts.get(e.id) ?? 0) / results.length;
+    if (share > 0.12) failures.push(`${e.id} is the verdict in ${pct(share * results.length, results.length)} of runs; it is shadowing the specific endings below it`);
+    else if (share > 0 && share < 0.001) console.log(`  ~ ${e.id} fires in ${pct(share * results.length, results.length)} of runs — reachable in principle, not in practice`);
   }
 
   // --- school viability ----------------------------------------------------

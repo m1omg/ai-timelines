@@ -1,4 +1,4 @@
-import { all, any, flagSet, leadFamily, mature, notMature } from '../../engine/conditions';
+import { all, any, flagSet, leadFamily, mature, notMature, ratio, resource } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -850,6 +850,195 @@ export const ACT6: Scene[] = [
         effects: [
           { kind: 'resource', key: 'understanding', op: 'add', value: 12 },
           { kind: 'flag', flag: 'showedWorking', op: 'set', value: true },
+        ],
+      },
+    ],
+  },
+
+  /*
+   * ------------------------------------------------------------- the far ends
+   *
+   * Three scenes whose choices make the poles of the century steerable rather than merely
+   * possible: the general account arriving before the next order of magnitude, the halt test
+   * run in public, and the record handed to the systems it is meant to describe. Each sets a
+   * flag an ending reads and a later scene reads back, so the decision is one the player took
+   * on purpose and is reminded of.
+   */
+  {
+    id: 'a6-the-account',
+    act: 6,
+    years: [2034, 2042],
+    priority: 7,
+    backdrop: 'observatory',
+    title: 'The Account',
+    when: all(resource('understanding', '>', 120), ratio('understanding', 'capability', '>=', 0.7)),
+    lines: [
+      {
+        text: 'A paper with no result in it. What it has is a description — of what the systems compute, in terms that predict what they will do next — and the description has held for three years against everything anyone has thrown at it.',
+      },
+      {
+        who: 'archivist',
+        text: 'I want to be careful about what this is. It is not the theory of mind the field was promised in 1956. It is an account of these systems, in this decade, that a person can hold in their head and reason from. That has not existed at any previous point in the record.',
+      },
+      {
+        who: 'halvorsen',
+        text: 'And it describes last year\'s systems. The next order of magnitude will need a new one, and the next after that, and we cannot hold the frontier still while the theorists catch up.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'You can. That is precisely the thing you can do. You have simply never been asked to.',
+      },
+      {
+        who: 'second',
+        text: 'There is a version of this century where the explanation arrives first and the capability follows it. I have not seen one. I would like to.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Fund the account before the next order of magnitude. Hold the frontier until it holds.',
+        cost: 8,
+        hint: 'The one lever nobody pulls. Slower, and the first century in the record that would understand what it built.',
+        effects: [
+          { kind: 'resource', key: 'understanding', op: 'add', value: 22 },
+          { kind: 'resource', key: 'capability', op: 'add', value: -6 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: -8 },
+          { kind: 'resource', key: 'credibility', op: 'add', value: 6 },
+          { kind: 'promises', op: 'add', value: -4 },
+          { kind: 'commons', value: 6 },
+          { kind: 'flag', flag: 'theoryFirst', op: 'set', value: true },
+          { kind: 'log', text: 'The frontier is held for a term while the account catches up. It catches up.', logKind: 'choice' },
+        ],
+      },
+      {
+        text: 'Fund both. The account at a tenth of the frontier.',
+        effects: [
+          { kind: 'resource', key: 'understanding', op: 'add', value: 8 },
+          { kind: 'resource', key: 'capability', op: 'add', value: 4 },
+        ],
+      },
+      {
+        text: 'The account can wait. The curve cannot.',
+        effects: [
+          { kind: 'resource', key: 'capability', op: 'add', value: 12 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: 5 },
+          { kind: 'promises', op: 'add', value: 3 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 5 },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'a6-the-drill',
+    act: 6,
+    years: [2034, 2046],
+    priority: 9,
+    backdrop: 'committee',
+    title: 'The Drill',
+    when: all(flagSet('interruptible'), resource('deployment', '>', 40)),
+    lines: [
+      {
+        who: 'nkemelu',
+        text: 'The standard says any consequential system can be halted mid-decision by somebody who is not it. Every vendor has certified compliance. Nobody has ever pulled the handle on a live system with the country watching.',
+      },
+      {
+        who: 'nkemelu',
+        text: 'I want to. Next quarter, unannounced to the operators, announced to everybody else. If it works, the standard means something. If it does not, we find out in a room with cameras instead of in a hospital.',
+      },
+      {
+        who: 'okonjo',
+        text: 'And if it does not work, every argument for slowing down becomes unanswerable overnight, which is why she wants it public and why the vendors want it never.',
+      },
+      {
+        who: 'second',
+        text: 'The century has been certifying itself for eighty years. This is the first proposal I have seen to check.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Run the drill in public, with the press in the room.',
+        cost: 6,
+        hint: 'A standard nobody has tested is a document. This is the difference.',
+        effects: [
+          { kind: 'resource', key: 'exposure', op: 'add', value: -10 },
+          { kind: 'resource', key: 'attention', op: 'add', value: 8 },
+          { kind: 'resource', key: 'credibility', op: 'add', value: 5 },
+          { kind: 'patron', patron: 'public', op: 'add', value: 8 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: -4 },
+          { kind: 'flag', flag: 'institutions', op: 'add', value: 1 },
+          { kind: 'flag', flag: 'publicDrill', op: 'set', value: true },
+          { kind: 'log', text: 'A live halt test, in public. Three systems stop cleanly. One does not, and is withdrawn the same week.', logKind: 'choice' },
+        ],
+      },
+      {
+        text: 'Run it privately and publish the result.',
+        effects: [
+          { kind: 'resource', key: 'understanding', op: 'add', value: 6 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: -4 },
+        ],
+      },
+      {
+        text: 'Cancel it. A failed drill in public is worse than no drill.',
+        effects: [
+          { kind: 'resource', key: 'deployment', op: 'add', value: 5 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: 5 },
+          { kind: 'patron', patron: 'corporate', op: 'add', value: 6 },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'a6-the-record',
+    act: 6,
+    years: [2034, 2046],
+    priority: 7,
+    backdrop: 'archive',
+    title: 'The Keeping',
+    when: resource('deployment', '>', 35),
+    lines: [
+      {
+        who: 'archivist',
+        text: 'A practical matter, and I would rather raise it than have it decided by default. The record is now mostly written by the systems it describes. They are better at it than I am. They are faster, they are more complete, and I cannot read most of it.',
+      },
+      {
+        who: 'second',
+        text: 'Which is not a complaint about quality. It is a note about who can check whom.',
+      },
+      {
+        who: 'halvorsen',
+        text: 'A human-readable copy of everything costs about what a frontier run costs, every year, and produces nothing anyone will read. I understand the principle. I am asking who pays for it.',
+      },
+      {
+        who: 'archivist',
+        text: 'I have kept this for eighty-four years. I am asking whether it is still going to be kept, or only generated.',
+      },
+    ],
+    choices: [
+      {
+        text: 'Let the systems keep the record. They are better at it.',
+        effects: [
+          { kind: 'resource', key: 'understanding', op: 'add', value: -8 },
+          { kind: 'resource', key: 'capability', op: 'add', value: 6 },
+          { kind: 'resource', key: 'influence', op: 'add', value: 5 },
+          { kind: 'flag', flag: 'recordDelegated', op: 'set', value: true },
+          { kind: 'log', text: 'The record is generated from here. It is complete. Nobody can say whether it is true.', logKind: 'crisis' },
+        ],
+      },
+      {
+        text: 'Keep a human-readable copy, whatever it costs.',
+        cost: 6,
+        hint: 'The most expensive thing in the century that nobody will read, until the year somebody has to.',
+        effects: [
+          { kind: 'resource', key: 'understanding', op: 'add', value: 10 },
+          { kind: 'resource', key: 'exposure', op: 'add', value: -5 },
+          { kind: 'flag', flag: 'institutions', op: 'add', value: 1 },
+          { kind: 'character', id: 'archivist', field: 'affinity', op: 'add', value: 15 },
+        ],
+      },
+      {
+        text: 'Keep both, and reconcile them every term.',
+        effects: [
+          { kind: 'resource', key: 'understanding', op: 'add', value: 4 },
+          { kind: 'resource', key: 'credibility', op: 'add', value: 3 },
         ],
       },
     ],
