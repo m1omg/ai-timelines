@@ -2,7 +2,9 @@ import { ERAS, eraForAct, familyColour } from '../art/palette';
 import { plateClass, plateCredit, plateUrl } from '../art/plate';
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { leadingFamily } from '../engine/conditions';
-import { qualifyingEndings, resolveEnding } from '../engine/endings';
+import { nearestMiss, qualifyingEndings, resolveEnding } from '../engine/endings';
+import { describeCondition, measured, phraseCondition } from '../engine/describe';
+import { decisionsHtml } from './decisions';
 import { ACT_TURNS, yearOfTurn } from '../engine/state';
 import { actTitle } from '../content/act-titles';
 import type { GameState, TickReportLike } from './types';
@@ -165,6 +167,35 @@ export async function renderEnding(
        <p class="chart-note">Endings resolve most-specific-first, so one of these had to be the headline. The others were true as well, and outranked rather than refuted.</p>`
     : '';
 
+  /*
+   * Why this one. The condition is data, so it can be read back as the list of things that were
+   * true of the century — which is the difference between a verdict and a label. The calendar
+   * leaves and the unconditional fallback have nothing to say and are skipped.
+   */
+  const reasons = ending.when ? describeCondition(ending.when, s) : [];
+  const whyHtml = reasons.length
+    ? `<div class="section-head">Why this one</div>
+       <ul class="reasons">${reasons.map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul>`
+    : '';
+
+  /*
+   * The ending that was one condition away. It names an ending the player has not reached,
+   * which is the point: a century is a hundred years of afternoons, and this is the one that
+   * would have changed the headline.
+   */
+  const miss = nearestMiss(s);
+  const missHtml = (() => {
+    if (!miss) return '';
+    const needed = phraseCondition(miss.failed);
+    if (!needed) return '';
+    const was = measured(miss.failed, s);
+    return `<div class="section-head">One condition away</div>
+      <div class="verdicts"><div class="verdict miss">
+        <b>${escapeHtml(miss.ending.name)}</b>
+        <span>needed ${escapeHtml(needed)}${was ? ` — this century had ${escapeHtml(was)}` : ''}.</span>
+      </div></div>`;
+  })();
+
   // The shape of the field at the close, drawn rather than only listed: a century that ended
   // split four ways and one that ended with a single school at 70% both read as "the schools"
   // in a list of numbers, and they are not remotely the same outcome.
@@ -213,6 +244,8 @@ export async function renderEnding(
       <div class="log-line"><b>10^${s.computeLog.toFixed(1)}</b><span>the compute frontier you left behind</span></div>
     </div>
 
+    ${whyHtml}
+    ${missHtml}
     ${alsoHtml}
 
     <div class="section-head">The shape of the field</div>
@@ -221,6 +254,10 @@ export async function renderEnding(
 
     <div class="section-head">Winters</div>
     <div class="log-list">${winters}</div>
+
+    <div class="section-head">What you did</div>
+    <p class="chart-note">Every choice and directive, by term, with what each one did and what landed in the term after it. The same ledger Balance kept during the century.</p>
+    ${decisionsHtml(s, (f) => familyColour(FAMILIES[f].hue, era))}
 
     <div style="margin:34px 0 60px;display:flex;gap:10px;flex-wrap:wrap">
       <button class="primary" id="end-again">Run it again ▸</button>

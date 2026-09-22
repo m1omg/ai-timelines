@@ -383,6 +383,9 @@ button.primary:hover { background: color-mix(in srgb, var(--accent) 16%, transpa
   font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 3px;
 }
 .verdict span { font-family: var(--font-body); font-size: 14px; line-height: 1.6; color: var(--dim); }
+.verdict.miss { border-left: 2px solid var(--accent); padding-left: 12px; }
+.reasons { margin: 6px 0 4px; padding-left: 18px; max-width: 82ch; }
+.reasons li { font-family: var(--font-body); font-size: 14px; line-height: 1.6; margin-bottom: 4px; }
 
 /* Who was left doing the work, as one bar rather than eight numbers. A split field and a field
    with one school at seventy per cent are different centuries and should not look alike. */

@@ -31,7 +31,7 @@ const RUNS_PER_POLICY = 260;
 const GATING: FamilyId[] = ['symbolic', 'connectionist', 'statistical', 'cybernetic', 'substrate'];
 const SCENES_PER_TURN = 3;
 
-type PolicyName =
+export type PolicyName =
   | 'random'
   | 'greedy'
   | 'hoarder'
@@ -340,7 +340,17 @@ function playChainHeadless(policy: PolicyName, s: GameState, start: Scene): void
   }
 }
 
-function runOnce(policy: PolicyName, seed: number): RunResult {
+/**
+ * Play one century headlessly under a policy, stopping before the given turn is advanced. The
+ * default plays to the end; a smaller `stopTurn` yields a state part-way through, which is how
+ * the funnel probe and a browser check get a late-century save without clicking through eighty
+ * years. Exported for those tools; the playtest itself goes through `runOnce`.
+ */
+export function simulate(
+  policy: PolicyName,
+  seed: number,
+  stopTurn = TOTAL_TURNS - 1,
+): { s: GameState; crashed: string | null } {
   const s = createState(seed);
   let crashed: string | null = null;
 
@@ -364,12 +374,17 @@ function runOnce(policy: PolicyName, seed: number): RunResult {
         if (s.resources.influence < 3) break;
       }
 
-      if (s.turn >= TOTAL_TURNS - 1) break;
+      if (s.turn >= stopTurn) break;
       advanceTurn(s);
     }
   } catch (e) {
     crashed = e instanceof Error ? `${e.message}\n${e.stack?.split('\n')[1]?.trim() ?? ''}` : String(e);
   }
+  return { s, crashed };
+}
+
+function runOnce(policy: PolicyName, seed: number): RunResult {
+  const { s, crashed } = simulate(policy, seed);
 
   const ending = crashed ? 'CRASH' : resolveEnding(s).id;
   // Use the engine's own definition rather than a node count, so the viability check
@@ -546,4 +561,5 @@ function main(): void {
   console.log('\n✓ playtest clean');
 }
 
-main();
+// Importable by the other tools without running six thousand centuries on import.
+if (process.argv[1] && /playtest\.ts$/.test(process.argv[1])) main();

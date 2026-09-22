@@ -4,9 +4,10 @@ import { leadingFamily } from '../engine/conditions';
 import { familyShares, familyStanding } from '../engine/describe';
 import { ALLY_INSIGHT, ALLY_LIFT, RIVAL_PRESSURE } from '../engine/sim';
 import { END_YEAR, START_YEAR } from '../engine/state';
-import type { Decision, FamilyId, GameState, TurnSnapshot } from '../engine/types';
+import type { FamilyId, GameState, TurnSnapshot } from '../engine/types';
 import { FAMILY_IDS } from '../engine/types';
 import { PATRONS } from './console';
+import { decisionsHtml } from './decisions';
 import { currentEra } from './theme';
 import { escapeHtml } from './vn';
 
@@ -206,70 +207,7 @@ export function renderBalance(root: HTMLElement, s: GameState, onClose: () => vo
       <p class="chart-note">Rivals bite harder than allies lift — ${RIVAL_PRESSURE.toFixed(2)} against ${ALLY_LIFT.toFixed(2)} per point of the other school's momentum — so a century spent feuding runs down hill for everyone in it. Insight is paid from the <b>weakest</b> ally rather than the sum: backing one school of a pair and neglecting the other buys the join nothing, which is why the bridge column needs a portfolio and not a favourite.</p>`;
   };
 
-  // ---------------------------------------------------------------- decisions
-
-  const decisionsView = (): string => {
-    const decisions = s.decisions ?? [];
-    if (decisions.length === 0) {
-      return '<p style="color:var(--dim)">You have not made a decision yet. This fills in as you go.</p>';
-    }
-
-    // Outcomes that arrived in a given term, so a decision can be read next to what followed it.
-    const outcomesByYear = new Map<number, { text: string; kind: string }[]>();
-    for (const l of s.log) {
-      if (l.kind !== 'breakthrough' && l.kind !== 'crisis') continue;
-      const list = outcomesByYear.get(l.year) ?? [];
-      list.push({ text: l.text, kind: l.kind });
-      outcomesByYear.set(l.year, list);
-    }
-
-    const turns = [...new Set(decisions.map((d) => d.turn))].sort((a, b) => a - b);
-
-    const branches = turns
-      .map((turn) => {
-        const inTurn = decisions.filter((d) => d.turn === turn);
-        const year = inTurn[0]!.year;
-        // The consequences of a term's directives land in the tick that follows it.
-        const outcomes = outcomesByYear.get(year + 4) ?? [];
-        const spent = inTurn.reduce((n, d) => n + d.influenceSpent, 0);
-
-        const twigs = inTurn
-          .map((d) => twigHtml(d))
-          .join('');
-
-        const fruit = outcomes.length
-          ? `<div class="fruit">${outcomes
-              .map(
-                (o) =>
-                  `<div class="outcome ${o.kind}">${o.kind === 'crisis' ? '✕' : '✓'} ${escapeHtml(o.text)}</div>`,
-              )
-              .join('')}</div>`
-          : '';
-
-        return `<div class="branch">
-          <div class="node-year">${year}<span>–${year + 3}${spent > 0 ? ` · ${spent} influence` : ''}</span></div>
-          <div class="twigs">${twigs}${fruit}</div>
-        </div>`;
-      })
-      .join('');
-
-    return `<div class="dtree">${branches}</div>`;
-  };
-
-  const twigHtml = (d: Decision): string => {
-    const fam = d.family;
-    const style = fam ? ` style="--fam:${colour(fam)}"` : '';
-    const scene = d.kind === 'choice' ? 'said' : 'ordered';
-    return `<div class="twig ${d.kind}"${style}>
-      <div class="what"><span class="kindtag">${scene}</span> ${escapeHtml(d.label)}</div>
-      <div class="conseq">${
-        d.consequences.length
-          ? d.consequences.map((c) => `<i>${escapeHtml(c)}</i>`).join('')
-          : '<i class="none">nothing you could measure at the time</i>'
-      }</div>
-      ${fam ? `<div class="favoured">favoured ${escapeHtml(FAMILIES[fam].name)}</div>` : ''}
-    </div>`;
-  };
+  const decisionsView = (): string => decisionsHtml(s, colour);
 
   draw();
 }

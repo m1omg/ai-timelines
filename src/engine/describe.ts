@@ -1,6 +1,7 @@
 import { FAMILIES, PARADIGM_BY_ID } from '../content/paradigms';
 import { CHARACTER_BY_ID } from '../content/characters';
-import type { Effect, FamilyId, GameState, TurnSnapshot } from './types';
+import type { CmpOp, Condition, Effect, FamilyId, GameState, TurnSnapshot } from './types';
+import { evaluate, leadMargin, leadingFamily } from './conditions';
 import { FAMILY_IDS } from './types';
 
 /**
@@ -189,4 +190,263 @@ export function recordSnapshot(s: GameState): void {
   const existing = history.findIndex((h) => h.turn === s.turn);
   if (existing >= 0) history[existing] = row;
   else history.push(row);
+}
+
+// ---------------------------------------------------------------------------
+// Conditions in plain English
+// ---------------------------------------------------------------------------
+
+/*
+ * The same argument as for effects: a Condition is data, so it can be read back. This is what
+ * lets the ending screen say *why* a verdict was reached rather than only what it was — and,
+ * for the ending that was one condition away, what that condition was.
+ *
+ * Every flag an ending reads needs an entry here. The fallback spells the raw flag name, which
+ * a test treats as a defect: a player should never be shown `showedWorking`.
+ */
+
+interface FlagWords {
+  /** The flag is set, or the numeric flag meets the bar. */
+  held: string;
+  /** The flag is absent, or the bar was not met. */
+  missing: string;
+  /** For counted flags: a phrase that takes the bar. */
+  count?: (op: CmpOp, value: number) => string;
+}
+
+const FLAG_WORDS: Record<string, FlagWords> = {
+  abundance: { held: 'the capability was pointed at the diseases', missing: 'the capability was never pointed at a problem people have' },
+  autonomy: { held: 'the people were taken out of the loop', missing: 'people stayed in the loop' },
+  interruptible: {
+    held: 'interruptibility was made a condition of operating',
+    missing: 'nothing required that a system could be stopped',
+    count: (_op, v) => (v >= 2 ? 'an interruption standard, enforced more than once' : 'an interruption standard'),
+  },
+  nationalised: { held: 'the frontier was nationalised', missing: 'the frontier was never nationalised' },
+  openness: {
+    held: 'results were published openly',
+    missing: 'results were held back',
+    count: (op, v) =>
+      op === '>=' || op === '>'
+        ? v >= 2 ? 'open publication, insisted on more than once' : 'open publication'
+        : 'results held back rather than published',
+  },
+  screened: { held: 'the dangerous half was put behind a door', missing: 'nothing was screened' },
+  succession: { held: 'terms of succession were drafted', missing: 'no terms of succession were ever drafted' },
+  treaty: { held: 'a compute treaty was signed', missing: 'no treaty was signed' },
+  showedWorking: { held: 'the working was shown beside the verdict', missing: 'the working was never shown' },
+  verifiedStandard: { held: 'verified systems were made the standard', missing: 'no verification standard' },
+  sawTheFrame: { held: 'the century was told what it was', missing: 'the century was never told what it was' },
+  assuranceBacked: {
+    held: 'the people who look for the failure were funded',
+    missing: 'the people who look for the failure were not funded',
+    count: (_op, v) => `the people who look for the failure funded ${v >= 3 ? 'again and again' : 'more than once'}`,
+  },
+  institutions: {
+    held: 'institutions with the authority to refuse were built',
+    missing: 'no institution with the authority to refuse',
+    count: (op, v) =>
+      op === '<' || op === '<='
+        ? `fewer than ${op === '<=' ? v + 1 : v} institutions with the authority to refuse`
+        : `at least ${op === '>' ? v + 1 : v} institutions with the authority to refuse`,
+  },
+  concentration: {
+    held: 'the frontier concentrated in a few hands',
+    missing: 'the frontier did not concentrate',
+    count: (op, v) =>
+      op === '<' || op === '<='
+        ? v <= -1 ? 'capability pushed outward rather than concentrated' : 'the frontier kept from concentrating'
+        : v >= 2 ? 'the frontier concentrated in a few hands' : 'the frontier leaning toward a few hands',
+  },
+  keptFaith: {
+    held: 'unfashionable schools were kept alive',
+    missing: 'no unfashionable school was kept alive',
+    count: () => 'unfashionable schools kept alive, repeatedly',
+  },
+};
+
+const RESOURCE_PHRASE: Record<string, string> = {
+  capability: 'capability',
+  understanding: 'understanding',
+  deployment: 'deployment',
+  exposure: 'unaddressed consequence',
+  attention: 'public attention',
+  credibility: 'credibility with funders',
+  influence: 'influence',
+};
+
+function bar(word: string, op: CmpOp, value: number | string): string {
+  switch (op) {
+    case '>':
+      return `${word} above ${value}`;
+    case '>=':
+      return `${word} of at least ${value}`;
+    case '<':
+      return `${word} kept below ${value}`;
+    case '<=':
+      return `${word} kept to ${value} or less`;
+    case '==':
+      return `${word} at ${value}`;
+    case '!=':
+      return `${word} anything but ${value}`;
+  }
+}
+
+/**
+ * A condition as a requirement, in prose, without reference to any particular century. Null for
+ * the leaves that are bookkeeping rather than a claim about the run (`always`, the calendar).
+ * `negated` phrases the requirement's absence, for `not(...)`.
+ */
+export function phraseCondition(c: Condition, negated = false): string | null {
+  switch (c.kind) {
+    case 'always':
+    case 'year':
+    case 'act':
+    case 'turn':
+    case 'seen':
+      return null;
+    case 'flagSet': {
+      const w = FLAG_WORDS[c.flag];
+      if (w) return negated ? w.missing : w.held;
+      return `${negated ? 'not ' : ''}${c.flag}`;
+    }
+    case 'flag': {
+      const w = FLAG_WORDS[c.flag];
+      if (w?.count && typeof c.value === 'number') {
+        const text = w.count(c.op, c.value);
+        return negated ? `not: ${text}` : text;
+      }
+      if (w) return negated ? w.missing : w.held;
+      return bar(c.flag, negated ? invert(c.op) : c.op, String(c.value));
+    }
+    case 'resource':
+      return bar(RESOURCE_PHRASE[c.key] ?? c.key, negated ? invert(c.op) : c.op, c.value);
+    case 'ratio': {
+      const pct = `${Math.round(c.value * 100)}%`;
+      const op = negated ? invert(c.op) : c.op;
+      if (c.num === 'understanding' && c.den === 'capability') {
+        return op === '>=' || op === '>'
+          ? `understanding kept pace with capability — at least ${pct} of it`
+          : `understanding fell to under ${pct} of capability`;
+      }
+      return bar(`${c.num} against ${c.den}`, op, c.value);
+    }
+    case 'compute':
+      return bar('a compute frontier', negated ? invert(c.op) : c.op, `10^${c.value}`);
+    case 'strain':
+      return bar(c.field === 'promises' ? 'promises outstanding' : 'terms of overpromising in a row', negated ? invert(c.op) : c.op, c.value);
+    case 'patron':
+      return bar(`standing with ${PATRON_WORDS[c.patron] ?? c.patron}`, negated ? invert(c.op) : c.op, c.value);
+    case 'paradigm': {
+      const name = PARADIGM_BY_ID[c.id]?.name ?? c.id;
+      const want = c.status === undefined ? 'reached' : Array.isArray(c.status) ? c.status.join(' or ') : c.status;
+      if (want === 'mature') return negated ? `${name} never established` : `${name} established`;
+      return `${name} ${negated ? 'not ' : ''}${want}`;
+    }
+    case 'family': {
+      const word = FIELD_WORDS[c.field] ?? c.field;
+      const value = c.field === 'talent' ? `${Math.round(c.value * 100)}%` : c.value;
+      return bar(`${FAMILIES[c.family].name}'s ${word}`, negated ? invert(c.op) : c.op, value);
+    }
+    case 'leadFamily':
+      return negated ? `${FAMILIES[c.family].name} not holding the field` : `${FAMILIES[c.family].name} held the field`;
+    case 'leadMargin': {
+      const op = negated ? invert(c.op) : c.op;
+      return op === '<' || op === '<=' ? 'no school dominant' : 'the lead settled rather than contested';
+    }
+    case 'character': {
+      const name = CHARACTER_BY_ID[c.id]?.name ?? c.id;
+      return bar(`${name}'s regard`, negated ? invert(c.op) : c.op, c.value);
+    }
+    case 'characterMet': {
+      const name = CHARACTER_BY_ID[c.id]?.name ?? c.id;
+      return negated ? `${name} never met` : `${name} met`;
+    }
+    case 'actor':
+      return bar(`${c.id}'s ${c.field}`, negated ? invert(c.op) : c.op, c.value);
+    case 'inWinter':
+      return c.is !== negated ? 'the century ended in a funding collapse' : 'no funding collapse at the close';
+    case 'winterCount': {
+      const op = negated ? invert(c.op) : c.op;
+      if ((op === '==' || op === '<=') && c.value === 0) return 'no funding collapse in a hundred years';
+      if (op === '<=' && c.value === 1) return 'at most one funding collapse';
+      if (op === '<') return `fewer than ${c.value} funding collapses`;
+      return `${c.value} or more funding collapses`;
+    }
+    case 'not':
+      return phraseCondition(c.c, !negated);
+    case 'all':
+    case 'any': {
+      const parts = c.cs.map((x) => phraseCondition(x, negated)).filter((x): x is string => Boolean(x));
+      if (parts.length === 0) return null;
+      // De Morgan: the absence of an `any` is the absence of every branch.
+      const disjunctive = (c.kind === 'any') !== negated;
+      return disjunctive ? `one of: ${parts.join('; ')}` : parts.join('; and ');
+    }
+  }
+}
+
+function invert(op: CmpOp): CmpOp {
+  switch (op) {
+    case '<':
+      return '>=';
+    case '<=':
+      return '>';
+    case '>':
+      return '<=';
+    case '>=':
+      return '<';
+    case '==':
+      return '!=';
+    case '!=':
+      return '==';
+  }
+}
+
+/**
+ * Why a satisfied condition holds for this century: one phrase per leaf that contributed. For
+ * an `any`, only the branch that actually carried it is reported, so the list reads as what
+ * happened rather than as everything that might have.
+ */
+export function describeCondition(c: Condition, s: GameState): string[] {
+  switch (c.kind) {
+    case 'all':
+      return c.cs.flatMap((x) => describeCondition(x, s));
+    case 'any': {
+      const carried = c.cs.find((x) => evaluate(x, s));
+      return carried ? describeCondition(carried, s) : [];
+    }
+    default: {
+      const text = phraseCondition(c);
+      return text ? [text] : [];
+    }
+  }
+}
+
+/** The value a leaf was measured against, where one exists, to sit beside what it needed. */
+export function measured(c: Condition, s: GameState): string | null {
+  switch (c.kind) {
+    case 'resource':
+      return `${Math.round(s.resources[c.key])}`;
+    case 'ratio': {
+      const den = s.resources[c.den];
+      return den <= 0 ? null : `${Math.round((s.resources[c.num] / den) * 100)}%`;
+    }
+    case 'compute':
+      return `10^${s.computeLog.toFixed(1)}`;
+    case 'flag': {
+      const v = s.flags[c.flag];
+      return typeof v === 'number' ? `${v}` : v === undefined ? '0' : null;
+    }
+    case 'winterCount':
+      return `${s.winters.length}`;
+    case 'leadFamily':
+      return FAMILIES[leadingFamily(s)].name;
+    case 'leadMargin':
+      return `${Math.round(leadMargin(s) * 100)} points`;
+    case 'family':
+      return c.field === 'talent' ? `${Math.round(s.families[c.family].talent * 100)}%` : `${Math.round(s.families[c.family][c.field])}`;
+    default:
+      return null;
+  }
 }
