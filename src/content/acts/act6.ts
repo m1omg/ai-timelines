@@ -38,6 +38,11 @@ export const ACT6: Scene[] = [
         who: 'archivist',
         text: 'The decisions are still real. That is the odd part. Whatever we conclude at 2050, we act on.',
       },
+      {
+        who: 'second',
+        when: flagSet('acceptedTheFrame'),
+        text: 'You took the reveal without walking away, which most correspondents do not. The record has a category for the runs that stop at 2026, and it is not small.',
+      },
     ],
     onEnter: [{ kind: 'flag', flag: 'sawTheFrame', op: 'set', value: true }],
   },
@@ -74,6 +79,21 @@ export const ACT6: Scene[] = [
       {
         who: 'nkemelu',
         text: 'Both of you are right, which is the worst possible situation, and we have to choose anyway.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('allInOnScale'),
+        text: '“Restructure the field around scale” was the instruction in the twenty-teens. This is the restructured field. Three organisations is not an accident; it is the shape of the instruction, followed.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('hedged'),
+        text: 'The three departments you paid to do something else in the twenty-teens are still doing it. One of them is the reason there is a fourth party at this table who does not need the substation.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('substrateDiversity'),
+        text: 'The unconventional substrates you funded while there was still slack are why the number is three and not two. One of the three can do this on hardware nobody else controls.',
       },
     ],
     choices: [
@@ -139,6 +159,11 @@ export const ACT6: Scene[] = [
         who: 'archivist',
         text: 'Wiener would recognise this immediately. Almost nobody between 1956 and 2030 would.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('sampleEfficiency'),
+        text: 'You funded this road in the twenty-teens, when the alternative was several thousand years of simulated experience. Eleven years is what sample efficiency looks like when it is a childhood.',
+      },
     ],
     choices: [
       {
@@ -190,6 +215,21 @@ export const ACT6: Scene[] = [
       {
         who: 'archivist',
         text: 'That is the first time in a hundred years that a safety argument has won on a commercial ground rather than a moral one. Note it. It is the only kind that has ever held.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('neuroFuzzyEarly'),
+        text: 'It is also the second time. You funded a hybrid in the eighties — rules learned, kept readable — and it shipped in appliances and nobody called it a safety argument. Same shape; larger stakes; same reason it holds.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('routedThroughBridge'),
+        text: 'The seam is older than this argument. You routed the attention architectures through the bridge people when everybody else was scaling them, and the formal back end she is describing is the one they built then.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('parityFunding'),
+        text: 'The refusals come with reasons because the interpretability work was funded at parity with the scaling, from the start. It is still behind. It is close enough to read what it is checking.',
       },
     ],
     choices: [
@@ -248,6 +288,16 @@ export const ACT6: Scene[] = [
         who: 'nkemelu',
         text: 'So it produces things nobody asked for, in a lineage rather than an argument, and we cannot steer it. I want to be very clear that I am not signing this.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('noveltySearch'),
+        text: 'You asked the heretical question in the two-thousands: what if you stop optimising for the goal entirely? This is what. Nine years, no objective, and the best catalogue in the century.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('sawTheWarning'),
+        text: 'You noted the warning at the turn of the century: a circuit evolved on one chip that ran on no other, and nobody could say why. This is the same phenomenon at scale, catalogued rather than fixed.',
+      },
     ],
     choices: [
       {
@@ -302,6 +352,11 @@ export const ACT6: Scene[] = [
       {
         who: 'archivist',
         text: 'The governance argument inside the commons never ends. That is not a bug in the commons; it is the commons functioning. An arrangement in which the argument ends has an owner.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('auditableCollectives'),
+        text: 'The collectives keep a trail, because you made it a first-class requirement when they were new. It is the only reason the commons can answer the question “who decided that”, and it is the reason the argument inside it is conducted in writing.',
       },
     ],
     choices: [
@@ -393,6 +448,16 @@ export const ACT6: Scene[] = [
       {
         who: 'nkemelu',
         text: 'Yes. That would cost about what you spend on training. I have never once been offered that and I would like it noted that I am asking again.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('diagnosedCorrectly'),
+        text: 'The maintenance problem again. You named it correctly after the crash, when it was rule bases: the cost of a change grows faster than the value of the system. Forty years on it is weights instead of rules, and the same sentence is true.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('agenticBuild'),
+        text: 'The industry rebuilt itself around the coding agents in the twenties, as you directed, so the systems now write the systems, and “frozen at the moment training stopped” is the last fixed point anywhere in the toolchain.',
       },
     ],
     choices: [
@@ -562,6 +627,11 @@ export const ACT6: Scene[] = [
         who: 'archivist',
         text: 'She does not have to. In this one, that is a subsystem rather than a rival.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('bridgeWindowTaken'),
+        text: 'The joint appointments from the two-thousands are the people in this room. They are the only ones in the century who can read all three literatures, and there are nine of them.',
+      },
     ],
     choices: [
       {
@@ -619,6 +689,11 @@ export const ACT6: Scene[] = [
           'Every one of them was a reasonable forecast at the moment the concrete was ordered. That is what I would like you to take from the district rather than the obvious lesson about hubris.',
           'A ruin is a forecast you can walk around inside. There are more of them in this century than in the two before it put together, which is a fact about confidence rather than about building.',
         ],
+      },
+      {
+        who: 'archivist',
+        when: flagSet('cheapFrontier'),
+        text: 'Not many of these are yours. You made the capability cheap in the thirties, and a cheap capability does not need a building.',
       },
       {
         who: 'archivist',

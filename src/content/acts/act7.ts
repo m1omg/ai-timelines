@@ -1,4 +1,4 @@
-import { all, any, not, resource } from '../../engine/conditions';
+import { all, any, flagIs, flagSet, not, resource } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -26,6 +26,36 @@ export const ACT7: Scene[] = [
       {
         who: 'archivist',
         text: 'There is no moment where it went right or wrong. I looked for one. There are about two hundred places where a different decision would have produced a materially different century, and none of them felt important at the time.',
+      },
+      {
+        who: 'archivist',
+        when: flagIs('disposition', 'understand'),
+        text: 'In 1950 you said you were here to find out what a mind actually is. I have read the century with that in mind. It is not, mostly, what the century was about — but the places where it was are the ones I would show a stranger first.',
+      },
+      {
+        who: 'archivist',
+        when: flagIs('disposition', 'build'),
+        text: 'In 1950 you said you were here to get it built, whatever it turned out to be. It is built. I would note that “whatever it turned out to be” is the clause the next two intervals are going to be about.',
+      },
+      {
+        who: 'archivist',
+        when: flagIs('disposition', 'guard'),
+        text: 'In 1950 you said you were here to make sure it did not go badly. I have kept a column for that since, and it is the longest in the record, because “badly” kept changing its meaning and you kept having to decide again.',
+      },
+      {
+        who: 'archivist',
+        when: flagIs('disposition', 'open'),
+        text: 'In 1950 you said you did not know yet why you were here. I have waited ninety-six years to ask whether you do now. I am not going to. It is in the record, in what you did, and that is the only form of the answer I trust.',
+      },
+      {
+        who: 'second',
+        when: flagSet('auditDoubt'),
+        text: 'You said, in the thirties, that anything we concluded was worthless. I have thought about it for twelve years. I think you were right about the conclusion and wrong about the record, and we are publishing the record.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('externalAudit'),
+        text: 'It was handed over, as you asked. There is a body outside us that has had the reconstruction since the thirties. It has found four errors, I have corrected them, and they are marked. That is the only reason I will use the word verdict this week.',
       },
       {
         who: 'second',
@@ -127,6 +157,56 @@ export const ACT7: Scene[] = [
         text: 'None of that makes it safe. All of it makes it checkable, and checkable is the only property that survives being wrong.',
       },
       {
+        who: 'nkemelu',
+        when: flagSet('verifiedStandard'),
+        text: 'And a standard: nothing consequential runs without the proof covering the composite. It lost every benchmark it entered. It is the reason there is an insurance market.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('assuranceBacked'),
+        text: 'Which was paid for. The people who look for the failure were funded through this century — by statute, or by habit — and the register is theirs.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('screened'),
+        text: 'And a door. The dangerous half of the synthesis is behind it, there is a list of who has been through, and the list is short.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('succession'),
+        text: 'And terms of succession, drafted while there was still a party on each side to draft them.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('continuousAssurance'),
+        text: 'And — I will say this once — an audit that runs. You gave me training parity in the thirties. I have been checking what is running rather than what was, for over a decade, and it is the only line on this list I would defend in front of a hostile committee.',
+      },
+      {
+        who: 'nkemelu',
+        when: all(flagSet('provedFirst'), { kind: 'seen', scene: 'a6-synthesis-window' }),
+        text: 'The composition rules were proved on something small first, because you refused to build the whole thing until they were. That is why I can sign for a system built of parts.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('sandboxed'),
+        text: 'The open-ended process is still running, inside the sandbox you specified, and nothing has left it without a proof. Forty things have. It is the only unsteerable system in the century with a paper trail.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('evaluationScience'),
+        text: 'And a science of measurement — funded when the curve was still the only chart anyone wanted — which is the reason the incident register means anything. You cannot register what you cannot name.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('interruptible'),
+        text: 'And every system consequential enough to matter can be stopped by somebody who is not it, by statute. It is the one property I would keep if I could keep only one.',
+      },
+      {
+        who: 'nkemelu',
+        when: flagSet('treaty'),
+        text: 'And a treaty, signed while anyone would still sign it, which is the only kind that gets signed.',
+      },
+      {
         who: 'second',
         text: 'That is closer to an argument for trust than anything I expected to have.',
       },
@@ -182,6 +262,21 @@ export const ACT7: Scene[] = [
       {
         who: 'second',
         text: 'And we are being asked to certify ourselves, on that record, with two intervals left.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('voluntaryOnly'),
+        text: 'The commitments were voluntary. You said the labs were serious people, and they were. Three of the five lapsed in the first reorganisation, without malice, because voluntary is the word for a thing nobody has to budget for.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('nationalised'),
+        text: 'The frontier is nationalised, which was meant to be the body with the authority to refuse. It turns out a state that owns the thing refuses it nothing.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('autonomy'),
+        text: 'And the people are out of the loop — that was a decision, in the thirties, an efficiency measure — so there is no longer anybody positioned to notice.',
       },
     ],
     choices: [
@@ -329,6 +424,36 @@ export const ACT7: Scene[] = [
         who: 'second',
         text: 'When we publish this — and we are going to publish it, whatever it says — what do we lead with?',
       },
+      {
+        who: 'second',
+        when: { kind: 'flag', flag: 'openness', op: '>=', value: 1 },
+        text: 'It will be read. Everything else was published, so there is a public that knows how to read it.',
+      },
+      {
+        who: 'second',
+        when: { kind: 'flag', flag: 'openness', op: '<=', value: -1 },
+        text: 'Fewer people will read it than should. The results were held back for thirty years, and the habit outlived the reason for it.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('certifiedAnyway'),
+        text: 'You certified it, four years ago, over the other column. That is in here too, with the reasoning, which was not nothing.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('lateRebuild'),
+        text: 'The rebuilding is in here: four years, two schools re-staffed from the literature, no results yet. I have marked it as an expense. Whoever reads this in a decade can decide what it was.',
+      },
+      {
+        who: 'archivist',
+        when: all(flagSet('focused'), { kind: 'seen', scene: 'a7-the-narrow' }),
+        text: 'You picked a winner in the sixties and declined to hedge in 2046. That consistency is in the record, and I do not know whether it reads as conviction or as never having checked.',
+      },
+      {
+        who: 'archivist',
+        when: { kind: 'flag', flag: 'pluralist', op: '>=', value: 2 },
+        text: 'You said in the sixties that you would keep the losing schools alive, and in 2046 that it was not sentiment. Both are in here, eighty-four years apart, and the second one reads as earned.',
+      },
     ],
     choices: [
       {
@@ -395,6 +520,36 @@ export const ACT7: Scene[] = [
           'The story wants a year with a name on it. What the record holds is a long series of reasonable quarters, and the fact that reasonable quarters compound is the only lesson in here.',
           'Somebody will draw an arrow on a chart and point at where it steepens. The steepening is real. The arrow is a thing we add afterwards, to make a hundred years survivable as a story.',
         ],
+      },
+      {
+        who: 'archivist',
+        when: flagSet('showedWorking'),
+        text: 'The working is shown — every reconstruction, beside the verdict, as you asked. A stranger can walk through it and disagree, which is the only kind of record that is evidence rather than testimony.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('abundance'),
+        text: 'And a column most branches do not have: what it cured. You pointed the whole thing at the diseases, and that column is long, and it is the one people will read first.',
+      },
+      {
+        who: 'second',
+        when: flagIs('ledWith', 'capability'),
+        text: 'It leads with what was built. The rest is in there; it is simply not on the first page, and the first page is what gets quoted.',
+      },
+      {
+        who: 'second',
+        when: flagIs('ledWith', 'uncertainty'),
+        text: 'It leads with what nobody understood. That will be read as weakness by some and as the only honest opening by the rest, and I know which of those readers I would rather have.',
+      },
+      {
+        who: 'second',
+        when: flagIs('ledWith', 'objections'),
+        text: 'It leads with every place somebody said stop. It is the longest opening chapter in the record and it is the one I would have chosen.',
+      },
+      {
+        who: 'second',
+        when: flagIs('ledWith', 'people'),
+        text: 'It leads with the names. All of them, including the ones who were wrong, which is most of them and, at some point, all of us.',
       },
       {
         who: 'second',

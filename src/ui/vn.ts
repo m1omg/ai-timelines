@@ -263,6 +263,10 @@ export function playScene(
     const onKey = (e: KeyboardEvent) => {
       if (e.key === ' ' || e.key === 'Enter') {
         if (document.activeElement?.classList.contains('choice')) return;
+        // With the codex or the balance sheet open, the space bar belongs to that panel. Without
+        // this it advanced the scene underneath, silently, and the player came back to a line
+        // they had never read.
+        if (document.getElementById('overlay')?.childElementCount) return;
         e.preventDefault();
         advance();
       }

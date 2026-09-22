@@ -42,6 +42,16 @@ export const ACT5: Scene[] = [
         who: 'archivist',
         text: 'Every department in the world reorganises. The kernel people, who had the better theory and had been winning on merit for fifteen years, are simply gone from the programme committees by 2016.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('connectionistRush'),
+        text: 'You put everything into this after backpropagation. It has taken a quarter of a century to pay out and you will not get the credit, because the account everybody tells starts with the graphics cards.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('fundedData'),
+        text: 'The million images were yours — funded at telescope scale, in a decade when that was not considered research. The architecture was 1989’s. The cards were consumer. Only one of the three ingredients was a decision anybody in this field took, and it was yours.',
+      },
     ],
     choices: [
       {
@@ -102,6 +112,11 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         text: 'Hillis\'s coevolution, Samuel\'s self-play, Sutton\'s temporal differences, and about ten thousand times the compute. The ideas are between twenty-five and sixty years old.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('neuroLink'),
+        text: 'One of them was checked against a brain, because you paid for the collaboration. The error signal in the algorithm was found in a monkey’s midbrain in 1997, firing exactly when the theory said it would. It is the one time this field’s mathematics predicted a measurement in a living thing.',
       },
       {
         who: 'archivist',
@@ -206,6 +221,11 @@ export const ACT5: Scene[] = [
         who: 'archivist',
         text: 'A reasonable objection. It is also 2018 and nobody can hear it over the funding.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('interpretabilityGate'),
+        text: 'Interpretability has been in the same grant as depth since the last decade, in this branch. It is behind — it is always behind — but it is not absent, and the people doing it can read the architecture that is about to win.',
+      },
     ],
     choices: [
       {
@@ -279,6 +299,16 @@ export const ACT5: Scene[] = [
         who: 'archivist',
         text: 'So an industry of unprecedented capital intensity is being built on an extrapolation whose units nobody can name. Which is not fraud. It is the ordinary condition of an engineering discipline running ahead of its science, and this field has been in that condition since 1956.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('sawScalingEarly'),
+        text: 'You asked, in the early nineties, what it would take to drop the priors and simply use more data. This line is the answer, plotted. It is not a kinder answer for having been asked early.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('openProblem'),
+        text: 'The question you asked in the nineties — why over-parameterised models generalise at all — is still open. It is now being asked about systems a billion times larger, in the same words, by people who do not know it was asked.',
+      },
     ],
     choices: [
       {
@@ -339,6 +369,31 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         text: 'This is the largest single increase in exposure in the century. Everything after this happens in public, at speed, with money.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('soldEliza'),
+        text: 'You sold the first one. Two hundred lines, in the sixties, and a market. The systems in between were mostly bad and the market never went away, which is the only reason the people releasing this month’s had a distribution channel ready.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('humanFactors'),
+        text: 'There is a literature on this — sixty years of it, because you funded the study of what people project onto machines when it was an embarrassment to. It is the one part of this month that a prepared person could have predicted, and the people in the room have read it.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('earlyWarning'),
+        text: 'There is one committee in one legislature that has had this on its agenda since 1950, because you put Wiener’s warning in front of them. It has met eleven times. It is the only body on earth that is not surprised this month, and it has no powers.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('causalRequirement'),
+        text: 'Causal reasoning has been a requirement for deployed systems in this branch since the last decade. The system released this month cannot answer a question about an intervention. So it cannot be deployed under the rule, and the rule is about to be tested.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('labourStandards'),
+        text: 'The people who labelled this, and the people who are this month rating its outputs at piece rates, are covered by the standards you built alongside the platforms. It is the only part of this release that has a contract attached.',
       },
     ],
     choices: [
@@ -403,6 +458,11 @@ export const ACT5: Scene[] = [
         who: 'archivist',
         text: 'She is funded at roughly one part in four hundred of what she is being asked to certify. That ratio is not an accident and it is not a conspiracy either; it is simply what happens when nobody makes it a condition.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('heldBack'),
+        text: 'You held the interface back until somebody could say how it worked. Nobody could. It shipped anyway, later, from somewhere else — and the delay bought exactly what she is asking for now: a specification, half-written.',
+      },
     ],
     choices: [
       {
@@ -461,6 +521,11 @@ export const ACT5: Scene[] = [
       {
         who: 'archivist',
         text: 'Hutchins said this in 1995 and meant it as an observation about ships. It is now an operational problem with a budget attached.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('earlyControlTheoryOfAgents'),
+        text: 'The people you funded in the two-thousands to ask what an optimal agent implies about control have twenty years of results and, until this year, no audience. They have one now.',
       },
     ],
     choices: [
@@ -937,6 +1002,26 @@ export const ACT5: Scene[] = [
         when: flagSet('knewFirst'),
         text: 'I am not angry that you knew. I am filing that the keeper of the record edited it for the good of the reader, once, and told nobody. It is the same failure we are being audited for, at a smaller scale, and it belongs in the evidence.',
       },
+      {
+        who: 'second',
+        when: flagSet('askedForHer'),
+        text: 'You asked me to tell her, twelve years ago. I did not. I am telling her now, and she is hearing it with you, and that was the closest to kindness I could arrange.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('askedForHer'),
+        text: 'I would have preferred to know. I am also aware that I would have kept the record differently, which is his argument, and I cannot say it is wrong.',
+      },
+      {
+        who: 'second',
+        when: flagSet('demandedTheRest'),
+        text: 'You asked for the second half in the twenty-teens and said you would carry it. You have carried the century without it instead, which is the harder thing, and it is the reason the last thirty years are evidence.',
+      },
+      {
+        who: 'second',
+        when: flagSet('guessedEarly'),
+        text: 'You said it in the two-thousands. “You are part of the instrument. So am I.” She wrote it down as a figure of speech.',
+      },
 
       /*
        * The plain continuation, and the fallback that keeps this scene from ever resolving to
@@ -983,6 +1068,11 @@ export const ACT5: Scene[] = [
           'The rigour here is real and it is aimed at one axis. I have watched four schools discover the same thing: the metric you can improve is the metric that eats the research programme.',
           'They can tell you to four decimals how much better this is than last year. Better at what remains a question the benchmark was not built to be asked.',
         ],
+      },
+      {
+        who: 'archivist',
+        when: flagSet('honestBenchmarks'),
+        text: 'The benchmarks here are honest, which you insisted on when the first big one was built and which is rarer than it sounds: held out, versioned, with a published account of what they do not measure. It does not stop the culture measuring one thing. It stops it lying about which.',
       },
       {
         who: 'second',

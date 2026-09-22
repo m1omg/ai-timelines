@@ -41,6 +41,21 @@ export const ACT2: Scene[] = [
         who: 'archivist',
         text: 'Note what this establishes: the field can now be audited. Somebody outside it has demonstrated that the claims and the deliverables can be laid side by side and compared. That instrument does not go away.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('honestOnMT'),
+        text: 'You published the honest assessment yourselves, years before this. The committee cites it. It does not help — a field that admits the shortfall is audited exactly as hard as one that hid it — but the report reads as confirmation rather than exposure, and that is worth about a year of the goodwill you are about to need.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('mtPromises'),
+        text: 'The two years the last demonstration bought are on the committee’s table, itemised. The arithmetic is not kinder for having been postponed. It is simply larger.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('earlyStatisticalNLP'),
+        text: 'One footnote in the report is yours. It notes that a small group working from corpora rather than grammars has results the rest of the programme does not, and recommends nothing about it, because nobody on the committee knows what to call it.',
+      },
     ],
     choices: [
       {
@@ -251,6 +266,36 @@ export const ACT2: Scene[] = [
         who: 'archivist',
         text: 'A correct proof about the weakest case, deployed as a verdict on the general case. Nobody lied. It happened anyway.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('perceptronHype'),
+        text: 'Some of the excitement they are answering is yours. You let him say what he wanted in the fifties, and every one of those sentences is now quoted, exactly and in full, by a book that is careful about quotation.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('perceptronRestraint'),
+        text: 'There is less to answer here than in the branches where the claims ran ahead. You stood him down in the fifties, and the book has to argue with a theorem instead of a press cutting. It does, and it wins anyway. But the committees have less to quote.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('backedConnectionists'),
+        text: 'The multi-layer learning rule you paid for in the early sixties has not arrived. It exists — it is in a doctoral thesis nobody will read for a decade — and the book’s open problem is, precisely, the thing you were funding. That is not a consolation. It is a note for the record.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('backedFormalists'),
+        text: 'This book is, in a sense, what you bought in the early sixties: a proof of what the machines can and cannot do. It is an excellent proof. Note what it is being used for.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('forcedTruce'),
+        text: 'The shared grant you forced on them is still running. Its connectionist half is now co-author on a rebuttal that its formalist half has agreed not to block. It changes nothing this decade. It means there are two people in the field who can read both literatures, which will matter in about twenty years.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('childMachine'),
+        text: '“Fund anything that learns” was the instruction in 1950. This is the decade in which that instruction is most expensive to have given, and I would note that you gave it before there was anything to fund.',
+      },
     ],
     choices: [
       {
@@ -356,6 +401,36 @@ export const ACT2: Scene[] = [
       },
       {
         who: 'archivist',
+        when: flagSet('foughtAudit'),
+        text: 'You fought the last one. Lined up the directors and the generals, and the committee’s report went into a drawer. This one cannot, because he was commissioned by a body that watched what happened to the first and wrote its terms of reference accordingly.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('turingTest'),
+        text: 'He has the field’s own standard to hand — the test you made canonical — and he uses it: nothing on his desk comes close. A standard that cannot yet be met is a gift to the auditor.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('askedHard'),
+        text: 'He is asking the question you asked in the fifties — what happens when the rule of thumb is wrong — and he has the answer, which is that it is wrong combinatorially often. The field had sixteen years’ notice. So did everybody.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('commonSense'),
+        text: 'The common-sense programme is his central exhibit. A decade, no demonstration, exactly as you were told it would be when you funded it. He is not wrong that it has not delivered. He is wrong that this is evidence it cannot.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('dartmouth'),
+        text: 'He uses the name throughout. “Artificial intelligence” — bought at the workshop, over your signature — was an asset for fourteen years and is now a liability, because it makes a specific promise and he has found the receipts.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('noName'),
+        text: 'He never uses the phrase “artificial intelligence”, because in this branch it was never coined. He audits machine reasoning inside the cybernetics programme, which spreads the blame across a discipline that has other things to show. The cut is shallower. It is still a cut.',
+      },
+      {
+        who: 'archivist',
         text: 'British AI funding ends within the year and most of that generation leaves. One country, not the field — the American money keeps moving for another eighteen months. But every research council on earth now has a template for how to ask this question, and a precedent for what to do with the answer.',
       },
     ],
@@ -428,6 +503,11 @@ export const ACT2: Scene[] = [
       {
         who: 'archivist',
         text: 'The ideas do not become wrong. They become uncareerable, which for practical purposes is the same thing for about fifteen years.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('coldEyed'),
+        text: 'You said, the last time this happened, to let it burn. It is burning. I am recording, without comment, that the people leaving are not sorted by whether they deserved to.',
       },
     ],
     choices: [
@@ -1043,6 +1123,21 @@ export const ACT2: Scene[] = [
       {
         who: 'archivist',
         text: 'What it has not done is answer any of the questions from 1956. It has learned to stop being asked them.',
+      },
+      {
+        who: 'archivist',
+        when: flagIs('disposition', 'understand'),
+        text: 'You said in 1950 that finding out what a mind is was the reason you were here. It has been twenty-eight years. I mention it because the field has just spent a decade arranging not to be asked.',
+      },
+      {
+        who: 'archivist',
+        when: flagIs('disposition', 'build'),
+        text: 'You said in 1950 that you were here to get it built. So far the field has built two kinds of thing: demonstrations, and reviews of demonstrations.',
+      },
+      {
+        who: 'archivist',
+        when: flagIs('disposition', 'guard'),
+        text: 'You said in 1950 that you were here to make sure it did not go badly. I would note, for the record, that so far the only thing that has gone badly is the field’s own credit, and that nobody has yet been harmed by a machine that reasons.',
       },
     ],
     choices: [

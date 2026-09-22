@@ -33,6 +33,26 @@ export const ACT3: Scene[] = [
         who: 'archivist',
         text: 'Connectionism does not come back because someone won the 1969 argument. It comes back because a different discipline walked in with tools.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('connectionistExile'),
+        text: 'Some of the people in that room came from signal processing, where you sent them in the seventies. They kept the mathematics and lost the name, and are now discovering that the name has become sayable again.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('connectionistPurge'),
+        text: 'There is nobody left in the field to receive them. You let it consolidate after the book, and the consolidation was thorough. The physicists are not reviving a school so much as founding one, with no memory of the last.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('defendedConnectionism'),
+        text: 'The caveat you had read aloud in every committee is, at last, being read by people who can act on it. It kept a handful of groups funded through the seventies. They are the ones the physicists find when they walk in.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('connectionistRevenue'),
+        text: 'The adaptive filters you pushed into industry in the sixties are in every modem on earth. Nobody calls them neural networks. It is the one school in the field that has been profitable for twenty years and unfundable for fifteen, at the same time.',
+      },
     ],
     choices: [
       {
@@ -271,6 +291,16 @@ export const ACT3: Scene[] = [
         who: 'archivist',
         text: 'Within fifteen years there are millions of these things in domestic use, vacuuming. It is by an enormous margin the most widely deployed AI of the twentieth century and almost nobody counts it.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('embodimentEarly'),
+        text: 'You funded this line twenty years ago, when the argument for it was a philosopher’s. The machine on the floor is what that money looks like once an engineer has had it for a generation.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('ignoredCritics'),
+        text: 'The argument on the floor is the one you declined to engage with in the sixties, made by a machine instead of a philosopher. It is harder to ignore with legs.',
+      },
     ],
     choices: [
       {
@@ -329,6 +359,21 @@ export const ACT3: Scene[] = [
         who: 'archivist',
         text: 'That is the real lesson and it is almost never the one drawn. The one drawn is "AI does not work", again, for the second time in fifteen years.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('noFirstWinter'),
+        text: 'This is the other bill, the one I mentioned in the seventies. You got through the first, which almost nobody does. This one is harder to dodge, because it is not about promises: it is about hardware, and you do not control the hardware.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('boundedExpertSystems'),
+        text: 'Yours state their boundaries. You required it in the seventies. It does not save the hardware companies — nothing does — but a system that says what it cannot do survives the crash as software, and the maintenance problem is smaller, because a rule base that knows its edges is one you can prune.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('fifthGenRace'),
+        text: 'The rival programme you matched ends in the same eighteen months, having spent a decade on a logic machine that nobody, in the end, wanted — in two countries and two languages. Matching it concentrated the funders’ minds. It concentrated them on the wrong thing.',
+      },
     ],
     choices: [
       {
@@ -386,6 +431,11 @@ export const ACT3: Scene[] = [
       {
         who: 'archivist',
         text: 'The obstacle is not the idea. It is that no two chips come out the same, which is precisely how biology works and precisely what the entire discipline of digital engineering exists to prevent.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('analogKept'),
+        text: 'There is a small analog tradition in this field for him to talk to, because you kept one alive in 1950 when everyone else let the digital machines settle the question. It is three laboratories. It is also the only audience in the room that does not need the argument explained.',
       },
     ],
     choices: [
@@ -515,6 +565,11 @@ export const ACT3: Scene[] = [
       {
         who: 'archivist',
         text: 'A useful reminder that a paradigm does not win arguments. It finds an application, an industry, and a customer, and the arguments become retrospective.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('sawTheOtherBet'),
+        text: 'You saw this one coming. When the other bet was a logic machine, you said to watch the one in the washing machines instead, and it is the washing machines that shipped.',
       },
     ],
     choices: [
@@ -892,6 +947,11 @@ export const ACT3: Scene[] = [
       },
       {
         who: 'archivist',
+        when: flagSet('eastChannel'),
+        text: 'A third of the posters are in a second language. The channel you opened in the fifties stayed open, and the people on the other side of it have thirty years of control theory that almost nobody on this side has read.',
+      },
+      {
+        who: 'archivist',
         when: leadFamily('symbolic'),
         text: 'Three of the four tracks are yours, and they do not read each other either. A large school fragments along the same lines a large field does, only faster, because the disagreements are finer.',
       },
@@ -969,6 +1029,16 @@ export const ACT3: Scene[] = [
       {
         who: 'archivist',
         text: 'And the thing that will decide the next thirty years is not on this list at all. It is that the machines got about four thousand times faster while everybody was arguing.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('hardwareFraming'),
+        text: 'You asked for the machines instead of the promises, at the review. That is not why they came — nothing in this field made the hardware happen — but it is why this field was positioned to use them the moment they did.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('refusedNarrowing'),
+        text: 'You refused to narrow when the reviews asked you to. The general problem is still unsolved. It is also still funded, in this branch, which is not true in most, and the people about to pick up the faster machines are the ones you kept on it.',
       },
     ],
     choices: [

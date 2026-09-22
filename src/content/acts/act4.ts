@@ -1,4 +1,4 @@
-import { all, any, contested, dominant, fam, mature, not, notMature } from '../../engine/conditions';
+import { all, any, contested, dominant, fam, flagSet, mature, not, notMature } from '../../engine/conditions';
 import type { Scene } from '../../engine/types';
 
 /**
@@ -139,6 +139,16 @@ export const ACT4: Scene[] = [
       {
         who: 'archivist',
         text: 'This is the machinery for counterfactuals, and therefore for explanation, and therefore for blame. Every question a purely predictive system is structurally unable to answer lives in here.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('probabilisticTurn'),
+        text: 'You made probability the field’s standard for uncertainty in the eighties — all of it — and this is the bill for having done so: the standard now has a known hole in it, and the person who set it is the one pointing.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('causalEarly'),
+        text: 'He has been asked this before. You asked him, in the eighties, what would let a machine reason about causes. This is the answer, and it took the better part of two decades, and I would note that he says you asked.',
       },
     ],
     choices: [
@@ -379,6 +389,11 @@ export const ACT4: Scene[] = [
         who: 'archivist',
         text: 'Four years later a convolutional network trained on it halves the error rate of every method that came before, and the entire field reorganises inside eighteen months. The dataset was the contribution. The architecture had existed since 1989.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('sawTheData'),
+        text: 'You said, at the close of the eighties, that the next act would be about whoever had the data. It is now, and the person who has it has been told that collecting it is not research.',
+      },
     ],
     choices: [
       {
@@ -485,6 +500,16 @@ export const ACT4: Scene[] = [
       {
         who: 'archivist',
         text: 'Within five years better activations and more data make the pre-training step unnecessary, and the technique is quietly dropped. What survives is the discovery that depth was never the obstacle, and a new name for the field.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('earlyBoltzmann'),
+        text: 'The layer-wise trick is a restricted Boltzmann machine — which is to say the stochastic version you funded in the eighties, twenty years on, now that the machines can run it. Nothing in this field is ever new. It is occasionally, at last, affordable.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('renamed'),
+        text: 'This is the second renaming you have been through. After the crash you called it decision support so it could be funded; now it is deep learning, for the same reason. A field that changes its name every crash keeps its money and loses its memory.',
       },
       /*
        * The rebranding only means anything if the old name was in disgrace. In a century where
@@ -642,6 +667,16 @@ export const ACT4: Scene[] = [
         who: 'archivist',
         text: 'Draw whatever conclusion you like. I have drawn several and discarded most of them.',
       },
+      {
+        who: 'archivist',
+        when: flagSet('toldArchivist'),
+        text: 'You told me, in the early nineties, that something had spoken to you. I wrote it down and did not believe you. I am now telling you something I would not have believed either.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('askedTheQuestion'),
+        text: 'You asked me once how many times we had done this. I said once. I am no longer sure I was entitled to the answer.',
+      },
     ],
     choices: [
       {
@@ -758,6 +793,26 @@ export const ACT4: Scene[] = [
         text: 'Which is the harder condition to collaborate under, and not an impossible one — it simply has to be arranged rather than waited for. Left alone, the bridges stop getting built once somebody is clearly winning, because the winners have no reason and the losers have no funding.',
       },
       { who: 'archivist', text: 'You have about a decade.' },
+      {
+        who: 'archivist',
+        when: flagSet('earlyBridge'),
+        text: 'The interoperation you forced after backpropagation held, badly. There are people who can put a network and a theorem prover in the same paper, which makes this window wider than in most branches, and no less closable.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('earlyHybrid'),
+        text: 'Some of the joinery is already there. The classifier systems from the seventies — rules that evolve and bid — were a curiosity when you funded them, and they are one of the few vocabularies this room has in common.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('earlyILP'),
+        text: 'Some of the joinery is already there. The inductive logic programmes from the seventies — clauses induced from examples rather than written — were a curiosity when you funded them, and they are the one place where a learner and a logician already share a paper.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('vsaEarly'),
+        text: 'And the hyperdimensional representations you funded in the early nineties, when nobody was standing on that bridge, are the closest thing anybody here has to a common vocabulary.',
+      },
     ],
     choices: [
       {
@@ -856,6 +911,11 @@ export const ACT4: Scene[] = [
       {
         who: 'archivist',
         text: 'The corpora were built. The accelerators shipped. The architecture from 1989 was still sitting there. Three ingredients, assembled by three groups who were barely aware of one another, and none of them thought they were doing anything historic.',
+      },
+      {
+        who: 'archivist',
+        when: flagSet('patientCapital'),
+        text: 'One programme in this decade is still on the twenty-year clock you set in the eighties, unasked for demonstrations. It has a few million hand-written assertions and no headline. Whether it was worth it depends on a question nobody has asked yet, about what the next decade’s systems will be missing.',
       },
       {
         who: 'archivist',
